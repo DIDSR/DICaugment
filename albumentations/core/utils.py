@@ -10,6 +10,11 @@ from .serialization import Serializable
 
 def get_shape(img: Any) -> Tuple[int, int]:
     if isinstance(img, np.ndarray):
+
+        if img.ndim != 3:
+            raise ValueError(
+                f"Albumenatations3D expected numpy.ndarray or torch.Tensor of shape (H,W,D). Got: {img.ndim}"
+            )
         rows, cols = img.shape[:2]
         return rows, cols
 
@@ -17,13 +22,17 @@ def get_shape(img: Any) -> Tuple[int, int]:
         import torch
 
         if torch.is_tensor(img):
+            if img.ndim != 3:
+                raise ValueError(
+                    f"Albumenatations3D expected numpy.ndarray or torch.Tensor of shape (H,W,D). Got: {img.ndim}"
+                )
             rows, cols = img.shape[-2:]
             return rows, cols
     except ImportError:
         pass
 
     raise RuntimeError(
-        f"Albumentations supports only numpy.ndarray and torch.Tensor data type for image. Got: {type(img)}"
+        f"Albumentations3D supports only numpy.ndarray and torch.Tensor data type for image. Got: {type(img)}"
     )
 
 
@@ -78,7 +87,7 @@ class DataProcessor(ABC):
     def preprocess(self, data: Dict[str, Any]) -> None:
         data = self.add_label_fields_to_data(data)
 
-        rows, cols = data["image"].shape[:2]
+        rows, cols = data["image"].shape[-2:]
         for data_name in self.data_fields:
             data[data_name] = self.check_and_convert(data[data_name], rows, cols, direction="to")
 
