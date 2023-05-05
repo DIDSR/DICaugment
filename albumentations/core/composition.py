@@ -273,18 +273,18 @@ class Compose(BaseCompose):
             if internal_data_name in checked_single:
                 if not isinstance(data, np.ndarray):
                     raise TypeError("{} must be numpy array type".format(data_name))
-                shapes.append(data.shape[:2])
+                shapes.append(data.shape[:3])
             if internal_data_name in checked_multi:
                 if data is not None:
                     if not isinstance(data[0], np.ndarray):
                         raise TypeError("{} must be list of numpy arrays".format(data_name))
-                    shapes.append(data[0].shape[:2])
+                    shapes.append(data[0].shape[:3])
             if internal_data_name in check_bbox_param and self.processors.get("bboxes") is None:
                 raise ValueError("bbox_params must be specified for bbox transformations")
 
         if self.is_check_shapes and shapes and shapes.count(shapes[0]) != len(shapes):
             raise ValueError(
-                "Height and Width of image, mask or masks should be equal. You can disable shapes check "
+                "Height, Width, and Depth of image, mask or masks should be equal. You can disable shapes check "
                 "by setting a parameter is_check_shapes=False of Compose class (do it only if you are sure "
                 "about your data consistency)."
             )
@@ -395,41 +395,41 @@ class OneOrOther(BaseCompose):
         return self.transforms[-1](force_apply=True, **data)
 
 
-class PerChannel(BaseCompose):
-    """Apply transformations per-channel
+# class PerChannel(BaseCompose):
+#     """Apply transformations per-channel
 
-    Args:
-        transforms (list): list of transformations to compose.
-        channels (sequence): channels to apply the transform to. Pass None to apply to all.
-                         Default: None (apply to all)
-        p (float): probability of applying the transform. Default: 0.5.
-    """
+#     Args:
+#         transforms (list): list of transformations to compose.
+#         channels (sequence): channels to apply the transform to. Pass None to apply to all.
+#                          Default: None (apply to all)
+#         p (float): probability of applying the transform. Default: 0.5.
+#     """
 
-    def __init__(
-        self, transforms: TransformsSeqType, channels: typing.Optional[typing.Sequence[int]] = None, p: float = 0.5
-    ):
-        super(PerChannel, self).__init__(transforms, p)
-        self.channels = channels
+#     def __init__(
+#         self, transforms: TransformsSeqType, channels: typing.Optional[typing.Sequence[int]] = None, p: float = 0.5
+#     ):
+#         super(PerChannel, self).__init__(transforms, p)
+#         self.channels = channels
 
-    def __call__(self, *args, force_apply: bool = False, **data) -> typing.Dict[str, typing.Any]:
-        if force_apply or random.random() < self.p:
+#     def __call__(self, *args, force_apply: bool = False, **data) -> typing.Dict[str, typing.Any]:
+#         if force_apply or random.random() < self.p:
 
-            image = data["image"]
+#             image = data["image"]
 
-            # Expand mono images to have a single channel
-            if len(image.shape) == 2:
-                image = np.expand_dims(image, -1)
+#             # Expand mono images to have a single channel
+#             if len(image.shape) == 2:
+#                 image = np.expand_dims(image, -1)
 
-            if self.channels is None:
-                self.channels = range(image.shape[2])
+#             if self.channels is None:
+#                 self.channels = range(image.shape[2])
 
-            for c in self.channels:
-                for t in self.transforms:
-                    image[:, :, c] = t(image=image[:, :, c])["image"]
+#             for c in self.channels:
+#                 for t in self.transforms:
+#                     image[:, :, c] = t(image=image[:, :, c])["image"]
 
-            data["image"] = image
+#             data["image"] = image
 
-        return data
+#         return data
 
 
 class ReplayCompose(Compose):

@@ -23,7 +23,14 @@ __all__ = [
     "ScaleFloatType",
     "ScaleIntType",
     "ImageColorType",
+    "INTER_NEAREST",
+    "INTER_LINEAR",
+    "INTER_CUBIC",
 ]
+
+INTER_NEAREST = 0
+INTER_LINEAR = 1
+INTER_CUBIC = 2
 
 NumType = Union[int, float, np.ndarray]
 BoxInternalType = Tuple[float, float, float, float]
@@ -172,7 +179,7 @@ class BasicTransform(Serializable):
             params["fill_value"] = self.fill_value
         if hasattr(self, "mask_fill_value"):
             params["mask_fill_value"] = self.mask_fill_value
-        params.update({"cols": kwargs["image"].shape[1], "rows": kwargs["image"].shape[0]})
+        params.update({"cols": kwargs["image"].shape[1], "rows": kwargs["image"].shape[0], "slices": kwargs["image"].shape[2]})
         return params
 
     @property
@@ -251,16 +258,16 @@ class DualTransform(BasicTransform):
         raise NotImplementedError("Method apply_to_keypoint is not implemented in class " + self.__class__.__name__)
 
     def apply_to_bboxes(self, bboxes: Sequence[BoxType], **params) -> List[BoxType]:
-        return [self.apply_to_bbox(tuple(bbox[:4]), **params) + tuple(bbox[4:]) for bbox in bboxes]  # type: ignore
+        return [self.apply_to_bbox(tuple(bbox[:6]), **params) + tuple(bbox[6:]) for bbox in bboxes]  # type: ignore
 
     def apply_to_keypoints(self, keypoints: Sequence[KeypointType], **params) -> List[KeypointType]:
         return [  # type: ignore
-            self.apply_to_keypoint(tuple(keypoint[:4]), **params) + tuple(keypoint[4:])  # type: ignore
+            self.apply_to_keypoint(tuple(keypoint[:5]), **params) + tuple(keypoint[5:])  # type: ignore
             for keypoint in keypoints
         ]
 
     def apply_to_mask(self, img: np.ndarray, **params) -> np.ndarray:
-        return self.apply(img, **{k: cv2.INTER_NEAREST if k == "interpolation" else v for k, v in params.items()})
+        return self.apply(img, **{k: INTER_NEAREST if k == "interpolation" else v for k, v in params.items()})
 
     def apply_to_masks(self, masks: Sequence[np.ndarray], **params) -> List[np.ndarray]:
         return [self.apply_to_mask(mask, **params) for mask in masks]

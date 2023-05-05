@@ -24,41 +24,18 @@ __all__ = [
     "union_of_bboxes",
     "BboxProcessor",
     "BboxParams",
+    "BB_COCO_3D",
+    "BB_PASCAL_VOC_3D",
+    "BB_ALBUMENTATIONS_3D",
+    "BB_YOLO_3D",
 ]
 
 TBox = TypeVar("TBox", BoxType, BoxInternalType)
 
-class BoundingBoxFormat:
-
-    @property
-    def COCO_3D():
-        """
-        `[x_min, y_min, z_min, width, height, depth]`, e.g. [97, 12, 5, 150, 200, 10].
-        """
-        return "coco_3d"
-    
-    @property
-    def PASCAL_VOC_3D():
-        """
-        `[x_min, y_min, z_min, x_max, y_max, z_min]`, e.g. [97, 12, 5, 247, 212, 10].
-        """
-        return "pascal_voc_3d"
-    
-    @property
-    def ALBUMENTATION_3D():
-        """
-        is like `pascal_voc_3d`, but normalized,
-        in other words: `[x_min, y_min, z_min, x_max, y_max, z_min]`, e.g. [0.2, 0.3, 0.5, 0.4, 0.5, 0.8].
-        """
-        return "albumentations_3d"
-    
-    @property
-    def YOLO_3D():
-        """
-        `[x, y, z, width, height, depth]`, e.g. [0.3, 0.4, 0.5, 0.1, 0.2, 0.3];
-        `x`, `y`, `z` - normalized bbox center; `width`, `height`, `depth` - normalized bbox width, height, and depth
-        """
-        return "yolo_3d"
+BB_COCO_3D = "coco_3d"
+BB_PASCAL_VOC_3D = "pascal_voc_3d"
+BB_ALBUMENTATIONS_3D = "albumentations_3d"
+BB_YOLO_3D = "yolo_3d"
 
 class BboxParams(Params):
     """
@@ -77,6 +54,8 @@ class BboxParams(Params):
             The `yolo_3d` format
                 `[x, y, z, width, height, depth]`, e.g. [0.3, 0.4, 0.5, 0.1, 0.2, 0.3];
                 `x`, `y`, `z` - normalized bbox center; `width`, `height`, `depth` - normalized bbox width, height, and depth
+
+            You may also pass a predefined string such as albumentation3D.BB_COCO_3D or 
         label_fields (list): list of fields that are joined with boxes, e.g labels.
             Should be same type as boxes.
         min_planar_area (float): minimum area of a bounding box for a single slice. All bounding boxes whose
