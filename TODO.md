@@ -1,7 +1,11 @@
-# ADD:
-
+# DONE:
 * pytorch/transforms -> to_tensor change
 * tensorflow/transforms -> to_tensor (transpose)
+* Normalize
+* Core
+
+
+# ADD:
 * Datasets Class and Subclasses
 
 
@@ -21,7 +25,6 @@
 * MedianBlur
 * MotionBlur
 * MultiplicativeNoise
-* Normalize
 * RandomBrightnessContrast (ColorJitter?)
 * RandomGamma
 * RandomToneCurve

@@ -64,28 +64,20 @@ __all__ = [
 ]
 
 
-def normalize_cv2(img, mean, denominator):
-    if mean.shape and len(mean) != 4 and mean.shape != img.shape:
-        mean = np.array(mean.tolist() + [0] * (4 - len(mean)), dtype=np.float64)
-    if not denominator.shape:
-        denominator = np.array([denominator.tolist()] * 4, dtype=np.float64)
-    elif len(denominator) != 4 and denominator.shape != img.shape:
-        denominator = np.array(denominator.tolist() + [1] * (4 - len(denominator)), dtype=np.float64)
+def normalize(img, mean, std, max_pixel_value):
 
-    img = np.ascontiguousarray(img.astype("float32"))
-    cv2.subtract(img, mean.astype(np.float64), img)
-    cv2.multiply(img, denominator.astype(np.float64), img)
-    return img
+    ndim = img.ndim
+    axis = None if ndim == 3 else tuple(range(ndim - 1))
 
+    if max_pixel_value == None:
+        max_pixel_value = np.max(img, axis = axis)
 
-def normalize_numpy(img, mean, denominator):
-    img = img.astype(np.float32)
-    img -= mean
-    img *= denominator
-    return img
+    if mean == None:
+        mean = np.mean(img, axis = axis)
 
-
-def normalize(img, mean, std, max_pixel_value=255.0):
+    if std == None:
+        std = np.std(img, axis = axis)
+    
     mean = np.array(mean, dtype=np.float32)
     mean *= max_pixel_value
 
@@ -94,260 +86,246 @@ def normalize(img, mean, std, max_pixel_value=255.0):
 
     denominator = np.reciprocal(std, dtype=np.float32)
 
-    if img.ndim == 3 and img.shape[-1] == 3:
-        return normalize_cv2(img, mean, denominator)
-    return normalize_numpy(img, mean, denominator)
-
-
-def _shift_hsv_uint8(img, hue_shift, sat_shift, val_shift):
-    dtype = img.dtype
-    img = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
-    hue, sat, val = cv2.split(img)
-
-    if hue_shift != 0:
-        lut_hue = np.arange(0, 256, dtype=np.int16)
-        lut_hue = np.mod(lut_hue + hue_shift, 180).astype(dtype)
-        hue = cv2.LUT(hue, lut_hue)
-
-    if sat_shift != 0:
-        lut_sat = np.arange(0, 256, dtype=np.int16)
-        lut_sat = np.clip(lut_sat + sat_shift, 0, 255).astype(dtype)
-        sat = cv2.LUT(sat, lut_sat)
-
-    if val_shift != 0:
-        lut_val = np.arange(0, 256, dtype=np.int16)
-        lut_val = np.clip(lut_val + val_shift, 0, 255).astype(dtype)
-        val = cv2.LUT(val, lut_val)
-
-    img = cv2.merge((hue, sat, val)).astype(dtype)
-    img = cv2.cvtColor(img, cv2.COLOR_HSV2RGB)
+    img = img.astype(np.float32)
+    img -= mean
+    img *= denominator
     return img
 
 
-def _shift_hsv_non_uint8(img, hue_shift, sat_shift, val_shift):
-    dtype = img.dtype
-    img = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
-    hue, sat, val = cv2.split(img)
+# def _shift_hsv_uint8(img, hue_shift, sat_shift, val_shift):
+#     dtype = img.dtype
+#     img = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
+#     hue, sat, val = cv2.split(img)
 
-    if hue_shift != 0:
-        hue = cv2.add(hue, hue_shift)
-        hue = np.mod(hue, 360)  # OpenCV fails with negative values
+#     if hue_shift != 0:
+#         lut_hue = np.arange(0, 256, dtype=np.int16)
+#         lut_hue = np.mod(lut_hue + hue_shift, 180).astype(dtype)
+#         hue = cv2.LUT(hue, lut_hue)
 
-    if sat_shift != 0:
-        sat = clip(cv2.add(sat, sat_shift), dtype, 1.0)
+#     if sat_shift != 0:
+#         lut_sat = np.arange(0, 256, dtype=np.int16)
+#         lut_sat = np.clip(lut_sat + sat_shift, 0, 255).astype(dtype)
+#         sat = cv2.LUT(sat, lut_sat)
 
-    if val_shift != 0:
-        val = clip(cv2.add(val, val_shift), dtype, 1.0)
+#     if val_shift != 0:
+#         lut_val = np.arange(0, 256, dtype=np.int16)
+#         lut_val = np.clip(lut_val + val_shift, 0, 255).astype(dtype)
+#         val = cv2.LUT(val, lut_val)
 
-    img = cv2.merge((hue, sat, val))
-    img = cv2.cvtColor(img, cv2.COLOR_HSV2RGB)
-    return img
-
-
-@preserve_shape
-def shift_hsv(img, hue_shift, sat_shift, val_shift):
-    if hue_shift == 0 and sat_shift == 0 and val_shift == 0:
-        return img
-
-    is_gray = is_grayscale_image(img)
-    if is_gray:
-        if hue_shift != 0 or sat_shift != 0:
-            hue_shift = 0
-            sat_shift = 0
-            warn(
-                "HueSaturationValue: hue_shift and sat_shift are not applicable to grayscale image. "
-                "Set them to 0 or use RGB image"
-            )
-        img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
-
-    if img.dtype == np.uint8:
-        img = _shift_hsv_uint8(img, hue_shift, sat_shift, val_shift)
-    else:
-        img = _shift_hsv_non_uint8(img, hue_shift, sat_shift, val_shift)
-
-    if is_gray:
-        img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-
-    return img
+#     img = cv2.merge((hue, sat, val)).astype(dtype)
+#     img = cv2.cvtColor(img, cv2.COLOR_HSV2RGB)
+#     return img
 
 
-def solarize(img, threshold=128):
-    """Invert all pixel values above a threshold.
+# def _shift_hsv_non_uint8(img, hue_shift, sat_shift, val_shift):
+#     dtype = img.dtype
+#     img = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
+#     hue, sat, val = cv2.split(img)
 
-    Args:
-        img (numpy.ndarray): The image to solarize.
-        threshold (int): All pixels above this greyscale level are inverted.
+#     if hue_shift != 0:
+#         hue = cv2.add(hue, hue_shift)
+#         hue = np.mod(hue, 360)  # OpenCV fails with negative values
 
-    Returns:
-        numpy.ndarray: Solarized image.
+#     if sat_shift != 0:
+#         sat = clip(cv2.add(sat, sat_shift), dtype, 1.0)
 
-    """
-    dtype = img.dtype
-    max_val = MAX_VALUES_BY_DTYPE[dtype]
+#     if val_shift != 0:
+#         val = clip(cv2.add(val, val_shift), dtype, 1.0)
 
-    if dtype == np.dtype("uint8"):
-        lut = [(i if i < threshold else max_val - i) for i in range(max_val + 1)]
-
-        prev_shape = img.shape
-        img = cv2.LUT(img, np.array(lut, dtype=dtype))
-
-        if len(prev_shape) != len(img.shape):
-            img = np.expand_dims(img, -1)
-        return img
-
-    result_img = img.copy()
-    cond = img >= threshold
-    result_img[cond] = max_val - result_img[cond]
-    return result_img
+#     img = cv2.merge((hue, sat, val))
+#     img = cv2.cvtColor(img, cv2.COLOR_HSV2RGB)
+#     return img
 
 
-@preserve_shape
-def posterize(img, bits):
-    """Reduce the number of bits for each color channel.
+# @preserve_shape
+# def shift_hsv(img, hue_shift, sat_shift, val_shift):
+#     if hue_shift == 0 and sat_shift == 0 and val_shift == 0:
+#         return img
 
-    Args:
-        img (numpy.ndarray): image to posterize.
-        bits (int): number of high bits. Must be in range [0, 8]
+#     is_gray = is_grayscale_image(img)
+#     if is_gray:
+#         if hue_shift != 0 or sat_shift != 0:
+#             hue_shift = 0
+#             sat_shift = 0
+#             warn(
+#                 "HueSaturationValue: hue_shift and sat_shift are not applicable to grayscale image. "
+#                 "Set them to 0 or use RGB image"
+#             )
+#         img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
 
-    Returns:
-        numpy.ndarray: Image with reduced color channels.
+#     if img.dtype == np.uint8:
+#         img = _shift_hsv_uint8(img, hue_shift, sat_shift, val_shift)
+#     else:
+#         img = _shift_hsv_non_uint8(img, hue_shift, sat_shift, val_shift)
 
-    """
-    bits = np.uint8(bits)
+#     if is_gray:
+#         img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
 
-    if img.dtype != np.uint8:
-        raise TypeError("Image must have uint8 channel type")
-    if np.any((bits < 0) | (bits > 8)):
-        raise ValueError("bits must be in range [0, 8]")
-
-    if not bits.shape or len(bits) == 1:
-        if bits == 0:
-            return np.zeros_like(img)
-        if bits == 8:
-            return img.copy()
-
-        lut = np.arange(0, 256, dtype=np.uint8)
-        mask = ~np.uint8(2 ** (8 - bits) - 1)
-        lut &= mask
-
-        return cv2.LUT(img, lut)
-
-    if not is_rgb_image(img):
-        raise TypeError("If bits is iterable image must be RGB")
-
-    result_img = np.empty_like(img)
-    for i, channel_bits in enumerate(bits):
-        if channel_bits == 0:
-            result_img[..., i] = np.zeros_like(img[..., i])
-        elif channel_bits == 8:
-            result_img[..., i] = img[..., i].copy()
-        else:
-            lut = np.arange(0, 256, dtype=np.uint8)
-            mask = ~np.uint8(2 ** (8 - channel_bits) - 1)
-            lut &= mask
-
-            result_img[..., i] = cv2.LUT(img[..., i], lut)
-
-    return result_img
+#     return img
 
 
-def _equalize_pil(img, mask=None):
-    histogram = cv2.calcHist([img], [0], mask, [256], (0, 256)).ravel()
-    h = [_f for _f in histogram if _f]
+# def solarize(img, threshold=128):
+#     """Invert all pixel values above a threshold.
 
-    if len(h) <= 1:
-        return img.copy()
+#     Args:
+#         img (numpy.ndarray): The image to solarize.
+#         threshold (int): All pixels above this greyscale level are inverted.
 
-    step = np.sum(h[:-1]) // 255
-    if not step:
-        return img.copy()
+#     Returns:
+#         numpy.ndarray: Solarized image.
 
-    lut = np.empty(256, dtype=np.uint8)
-    n = step // 2
-    for i in range(256):
-        lut[i] = min(n // step, 255)
-        n += histogram[i]
+#     """
+#     dtype = img.dtype
+#     max_val = MAX_VALUES_BY_DTYPE[dtype]
 
-    return cv2.LUT(img, np.array(lut))
+#     if dtype == np.dtype("uint8"):
+#         lut = [(i if i < threshold else max_val - i) for i in range(max_val + 1)]
+
+#         prev_shape = img.shape
+#         img = cv2.LUT(img, np.array(lut, dtype=dtype))
+
+#         if len(prev_shape) != len(img.shape):
+#             img = np.expand_dims(img, -1)
+#         return img
+
+#     result_img = img.copy()
+#     cond = img >= threshold
+#     result_img[cond] = max_val - result_img[cond]
+#     return result_img
 
 
-def _equalize_cv(img, mask=None):
-    if mask is None:
-        return cv2.equalizeHist(img)
+# @preserve_shape
+# def posterize(img, bits):
+#     """Reduce the number of bits for each color channel.
 
-    histogram = cv2.calcHist([img], [0], mask, [256], (0, 256)).ravel()
-    i = 0
-    for val in histogram:
-        if val > 0:
-            break
-        i += 1
-    i = min(i, 255)
+#     Args:
+#         img (numpy.ndarray): image to posterize.
+#         bits (int): number of high bits. Must be in range [0, 8]
+
+#     Returns:
+#         numpy.ndarray: Image with reduced color channels.
+
+#     """
+#     bits = np.uint8(bits)
+
+#     if img.dtype != np.uint8:
+#         raise TypeError("Image must have uint8 channel type")
+#     if np.any((bits < 0) | (bits > 8)):
+#         raise ValueError("bits must be in range [0, 8]")
+
+#     if not bits.shape or len(bits) == 1:
+#         if bits == 0:
+#             return np.zeros_like(img)
+#         if bits == 8:
+#             return img.copy()
+
+#         lut = np.arange(0, 256, dtype=np.uint8)
+#         mask = ~np.uint8(2 ** (8 - bits) - 1)
+#         lut &= mask
+
+#         return cv2.LUT(img, lut)
+
+#     if not is_rgb_image(img):
+#         raise TypeError("If bits is iterable image must be RGB")
+
+#     result_img = np.empty_like(img)
+#     for i, channel_bits in enumerate(bits):
+#         if channel_bits == 0:
+#             result_img[..., i] = np.zeros_like(img[..., i])
+#         elif channel_bits == 8:
+#             result_img[..., i] = img[..., i].copy()
+#         else:
+#             lut = np.arange(0, 256, dtype=np.uint8)
+#             mask = ~np.uint8(2 ** (8 - channel_bits) - 1)
+#             lut &= mask
+
+#             result_img[..., i] = cv2.LUT(img[..., i], lut)
+
+#     return result_img
+
+
+# def _equalize_pil(img, mask=None):
+#     histogram = cv2.calcHist([img], [0], mask, [256], (0, 256)).ravel()
+#     h = [_f for _f in histogram if _f]
+
+#     if len(h) <= 1:
+#         return img.copy()
+
+#     step = np.sum(h[:-1]) // 255
+#     if not step:
+#         return img.copy()
+
+#     lut = np.empty(256, dtype=np.uint8)
+#     n = step // 2
+#     for i in range(256):
+#         lut[i] = min(n // step, 255)
+#         n += histogram[i]
+
+#     return cv2.LUT(img, np.array(lut))
+
+
+def _equalize_cv(img, hist_range, mask=None):
+    # if mask is None:
+    #     return cv2.equalizeHist(img)
+    lo, hi = hist_range
+    histogram = sum(map(lambda x: cv2.calcHist([x],[0], mask, [hi - lo], hist_range), img)).ravel()
 
     total = np.sum(histogram)
-    if histogram[i] == total:
-        return np.full_like(img, i)
+    histogram /= total
+    cumsum = (np.cumsum(histogram) * (hi - lo)) + lo
 
-    scale = 255.0 / (total - histogram[i])
-    _sum = 0
+    print(cumsum)
 
-    lut = np.zeros(256, dtype=np.uint8)
-    i += 1
-    for i in range(i, len(histogram)):
-        _sum += histogram[i]
-        lut[i] = clip(round(_sum * scale), np.dtype("uint8"), 255)
+    lut = {}
 
-    return cv2.LUT(img, lut)
+    for i in range(lo, hi):
+        lut[i] = clip(round(cumsum[i - lo]), np.dtype("uint16"), hi)
+
+    return np.vectorize(lambda x: lut.get(x,x))(img)
+
 
 
 @preserve_channel_dim
-def equalize(img, mask=None, mode="cv", by_channels=True):
+def equalize(img, hist_range, mask=None):
     """Equalize the image histogram.
 
     Args:
-        img (numpy.ndarray): RGB or grayscale image.
+        img (numpy.ndarray): image.
+        hist_range (tuple): The histogram range
         mask (numpy.ndarray): An optional mask.  If given, only the pixels selected by
             the mask are included in the analysis. Maybe 1 channel or 3 channel array.
-        mode (str): {'cv', 'pil'}. Use OpenCV or Pillow equalization method.
-        by_channels (bool): If True, use equalization by channels separately,
-            else convert image to YCbCr representation and use equalization by `Y` channel.
 
     Returns:
         numpy.ndarray: Equalized image.
 
     """
-    if img.dtype != np.uint8:
-        raise TypeError("Image must have uint8 channel type")
+    if img.dtype != np.uint8 and img.dtype != np.uint16:
+        raise TypeError("Image must have uint8 or uint16 type")
 
-    modes = ["cv", "pil"]
-
-    if mode not in modes:
-        raise ValueError("Unsupported equalization mode. Supports: {}. " "Got: {}".format(modes, mode))
     if mask is not None:
-        if is_rgb_image(mask) and is_grayscale_image(img):
+        if not is_grayscale_image(mask) and is_grayscale_image(img):
             raise ValueError("Wrong mask shape. Image shape: {}. " "Mask shape: {}".format(img.shape, mask.shape))
-        if not by_channels and not is_grayscale_image(mask):
-            raise ValueError(
-                "When by_channels=False only 1-channel mask supports. " "Mask shape: {}".format(mask.shape)
-            )
+        # if not by_channels and not is_grayscale_image(mask):
+        #     raise ValueError(
+        #         "When by_channels=False only 1-channel mask ared supported. " "Mask shape: {}".format(mask.shape)
+        #     )
 
-    if mode == "pil":
-        function = _equalize_pil
-    else:
-        function = _equalize_cv
+    if hist_range == None:
+        hist_range = (0, np.max(img))
 
     if mask is not None:
         mask = mask.astype(np.uint8)
 
     if is_grayscale_image(img):
-        return function(img, mask)
+        return _equalize_cv(img, hist_range, mask)
 
-    if not by_channels:
-        result_img = cv2.cvtColor(img, cv2.COLOR_RGB2YCrCb)
-        result_img[..., 0] = function(result_img[..., 0], mask)
-        return cv2.cvtColor(result_img, cv2.COLOR_YCrCb2RGB)
+    # if not by_channels:
+    #     result_img = cv2.cvtColor(img, cv2.COLOR_RGB2YCrCb)
+    #     result_img[..., 0] = function(result_img[..., 0], mask)
+    #     return cv2.cvtColor(result_img, cv2.COLOR_YCrCb2RGB)
 
     result_img = np.empty_like(img)
-    for i in range(3):
+    for i in range(img.shape[-1]):
         if mask is None:
             _mask = None
         elif is_grayscale_image(mask):
@@ -355,7 +333,7 @@ def equalize(img, mask=None, mode="cv", by_channels=True):
         else:
             _mask = mask[..., i]
 
-        result_img[..., i] = function(img[..., i], _mask)
+        result_img[..., i] = _equalize_cv(img[..., i], hist_range, _mask)
 
     return result_img
 

@@ -137,7 +137,7 @@ class BasicTransform(Serializable):
                 target_dependencies = {k: kwargs[k] for k in self.target_dependence.get(key, [])}
                 res[key] = target_function(arg, **dict(params, **target_dependencies))
             else:
-                res[key] = None
+                res[key] = None 
         return res
 
     def set_deterministic(self, flag: bool, save_key: str = "replay") -> "BasicTransform":

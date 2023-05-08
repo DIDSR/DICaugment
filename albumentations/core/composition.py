@@ -219,14 +219,14 @@ class Compose(BaseCompose):
         return data
 
     def _check_data_post_transform(self, data: typing.Dict[str, typing.Any]) -> typing.Dict[str, typing.Any]:
-        rows, cols = get_shape(data["image"])
+        rows, cols, slices = get_shape(data["image"])
 
         for p in self.processors.values():
             if not getattr(p.params, "check_each_transform", False):
                 continue
 
             for data_name in p.data_fields:
-                data[data_name] = p.filter(data[data_name], rows, cols)
+                data[data_name] = p.filter(data[data_name], rows, cols, slices)
         return data
 
     def _to_dict(self) -> typing.Dict[str, typing.Any]:

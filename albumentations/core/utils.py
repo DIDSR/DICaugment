@@ -1,33 +1,33 @@
 from __future__ import absolute_import
 
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional, Sequence, Tuple
+from typing import Any, Dict, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
 from .serialization import Serializable
 
 
-def get_shape(img: Any) -> Tuple[int, int]:
+def get_shape(img: Any) -> Tuple[int, int, int]:
     if isinstance(img, np.ndarray):
 
-        if img.ndim != 3:
+        if img.ndim not in {3,4}:
             raise ValueError(
-                f"Albumenatations3D expected numpy.ndarray or torch.Tensor of shape (H,W,D). Got: {img.ndim}"
+                f"Albumenatations3D expected numpy.ndarray or torch.Tensor of shape (H,W,D) or (H,W,D,C). Got: {img.shape}"
             )
-        rows, cols = img.shape[:2]
-        return rows, cols
+        rows, cols, slices = img.shape[:3]
+        return rows, cols, slices
 
     try:
         import torch
 
         if torch.is_tensor(img):
-            if img.ndim != 3:
+            if img.ndim not in {3,4}:
                 raise ValueError(
-                    f"Albumenatations3D expected numpy.ndarray or torch.Tensor of shape (H,W,D). Got: {img.ndim}"
+                    f"Albumenatations3D expected numpy.ndarray or torch.Tensor of shape (H,W,D) or (H,W,D,C). Got: {img.shape}"
                 )
-            rows, cols = img.shape[-2:]
-            return rows, cols
+            rows, cols, slices = img.shape[:3]
+            return rows, cols, slices
     except ImportError:
         pass
 
@@ -75,11 +75,11 @@ class DataProcessor(ABC):
         pass
 
     def postprocess(self, data: Dict[str, Any]) -> Dict[str, Any]:
-        rows, cols = get_shape(data["image"])
+        rows, cols, slices = get_shape(data["image"])
 
         for data_name in self.data_fields:
-            data[data_name] = self.filter(data[data_name], rows, cols)
-            data[data_name] = self.check_and_convert(data[data_name], rows, cols, direction="from")
+            data[data_name] = self.filter(data[data_name], rows, cols, slices)
+            data[data_name] = self.check_and_convert(data[data_name], rows, cols, slices, direction="from")
 
         data = self.remove_label_fields_from_data(data)
         return data
@@ -87,36 +87,36 @@ class DataProcessor(ABC):
     def preprocess(self, data: Dict[str, Any]) -> None:
         data = self.add_label_fields_to_data(data)
 
-        rows, cols = data["image"].shape[-2:]
+        rows, cols, slices = get_shape(data["image"])
         for data_name in self.data_fields:
-            data[data_name] = self.check_and_convert(data[data_name], rows, cols, direction="to")
+            data[data_name] = self.check_and_convert(data[data_name], rows, cols, slices, direction="to")
 
-    def check_and_convert(self, data: Sequence, rows: int, cols: int, direction: str = "to") -> Sequence:
+    def check_and_convert(self, data: Sequence, rows: int, cols: int, slices: int, direction: str = "to") -> Sequence:
         if self.params.format == "albumentations":
-            self.check(data, rows, cols)
+            self.check(data, rows, cols, slices)
             return data
 
         if direction == "to":
-            return self.convert_to_albumentations(data, rows, cols)
+            return self.convert_to_albumentations(data, rows, cols, slices)
         elif direction == "from":
-            return self.convert_from_albumentations(data, rows, cols)
+            return self.convert_from_albumentations(data, rows, cols, slices)
         else:
             raise ValueError(f"Invalid direction. Must be `to` or `from`. Got `{direction}`")
 
     @abstractmethod
-    def filter(self, data: Sequence, rows: int, cols: int) -> Sequence:
+    def filter(self, data: Sequence, rows: int, cols: int, slices: int) -> Sequence:
         pass
 
     @abstractmethod
-    def check(self, data: Sequence, rows: int, cols: int) -> None:
+    def check(self, data: Sequence, rows: int, cols: int, slices: int) -> None:
         pass
 
     @abstractmethod
-    def convert_to_albumentations(self, data: Sequence, rows: int, cols: int) -> Sequence:
+    def convert_to_albumentations(self, data: Sequence, rows: int, cols: int, slices: int) -> Sequence:
         pass
 
     @abstractmethod
-    def convert_from_albumentations(self, data: Sequence, rows: int, cols: int) -> Sequence:
+    def convert_from_albumentations(self, data: Sequence, rows: int, cols: int, slices: int) -> Sequence:
         pass
 
     def add_label_fields_to_data(self, data: Dict[str, Any]) -> Dict[str, Any]:

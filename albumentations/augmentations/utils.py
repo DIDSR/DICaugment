@@ -142,19 +142,19 @@ def ensure_contiguous(
 
 
 def is_rgb_image(image: np.ndarray) -> bool:
-    return len(image.shape) == 3 and image.shape[-1] == 3
+    return len(image.shape) == 4 and image.shape[-1] == 3
 
 
 def is_grayscale_image(image: np.ndarray) -> bool:
-    return (len(image.shape) == 2) or (len(image.shape) == 3 and image.shape[-1] == 1)
+    return (len(image.shape) == 3) or (len(image.shape) == 4 and image.shape[-1] == 1)
 
 
 def is_multispectral_image(image: np.ndarray) -> bool:
-    return len(image.shape) == 3 and image.shape[-1] not in [1, 3]
+    return len(image.shape) == 4 and image.shape[-1] not in [1, 3]
 
 
 def get_num_channels(image: np.ndarray) -> int:
-    return image.shape[2] if len(image.shape) == 3 else 1
+    return image.shape[3] if len(image.shape) == 4 else 1
 
 
 def non_rgb_warning(image: np.ndarray) -> None:
