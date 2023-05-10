@@ -5,7 +5,7 @@ from warnings import warn
 
 import cv2
 import numpy as np
-import skimage
+from scipy import ndimage
 
 from albumentations import random_utils
 from albumentations.augmentations.utils import (
@@ -19,6 +19,15 @@ from albumentations.augmentations.utils import (
     non_rgb_warning,
     preserve_channel_dim,
     preserve_shape,
+)
+
+from core.transforms_interface import(
+    INTER_NEAREST,
+    INTER_LINEAR,
+    INTER_QUADRATIC,
+    INTER_CUBIC,
+    INTER_QUARTIC,
+    INTER_QUINTIC
 )
 
 __all__ = [
@@ -265,16 +274,13 @@ def normalize(img, mean, std, max_pixel_value):
 
 
 def _equalize_cv(img, hist_range, mask=None):
-    # if mask is None:
-    #     return cv2.equalizeHist(img)
+
     lo, hi = hist_range
     histogram = sum(map(lambda x: cv2.calcHist([x],[0], mask, [hi - lo], hist_range), img)).ravel()
 
     total = np.sum(histogram)
     histogram /= total
     cumsum = (np.cumsum(histogram) * (hi - lo)) + lo
-
-    print(cumsum)
 
     lut = {}
 
@@ -444,12 +450,21 @@ def clahe(img, clip_limit=2.0, tile_grid_size=(8, 8)):
 
 
 @preserve_shape
+@clipped
 def convolve(img, kernel):
-    conv_fn = _maybe_process_in_chunks(cv2.filter2D, ddepth=-1, kernel=kernel)
-    return conv_fn(img)
+    h,w,d = img.shape[:3]
+
+    if img.ndim == 4:
+        convolved = np.zeros_like(img)
+        for i in range(img.shape[-1]):
+            convolved[...,i] = ndimage.convolve(img[...,i], kernel, mode = "constant", cval = 0 )
+        return convolved
+    
+    else:
+        return ndimage.convolve(img, kernel, mode = "constant", cval = 0 )
 
 
-@preserve_shape
+@preserve_shape 
 def image_compression(img, quality, image_type):
     if image_type in [".jpeg", ".jpg"]:
         quality_flag = cv2.IMWRITE_JPEG_QUALITY
@@ -786,6 +801,12 @@ def add_gravel(img: np.ndarray, gravels: list):
 def invert(img: np.ndarray) -> np.ndarray:
     # Supports all the valid dtypes
     # clips the img to avoid unexpected behaviour.
+    if img.dtype == np.float32  and np.max(img) > 1.0:
+        warn(
+            "Images with dtype float32 are expected to remain in the range of [0,1]. Returned image will contain negative values",
+            UserWarning
+        )
+
     return MAX_VALUES_BY_DTYPE[img.dtype] - img
 
 
@@ -812,47 +833,47 @@ def gauss_noise(image, gauss):
 
 
 @clipped
-def _brightness_contrast_adjust_non_uint(img, alpha=1, beta=0, beta_by_max=False):
+def _brightness_contrast_adjust(img, alpha=1, beta=0, max_brightness = None):
     dtype = img.dtype
     img = img.astype("float32")
 
     if alpha != 1:
         img *= alpha
     if beta != 0:
-        if beta_by_max:
-            max_value = MAX_VALUES_BY_DTYPE[dtype]
-            img += beta * max_value
+        if max_brightness != None:
+            img += beta * max_brightness
         else:
             img += beta * np.mean(img)
-    return img
+    
+    if max_brightness != None:
+        img = np.clip(img, 0, max_brightness)
+    
+    return img.astype(dtype)
 
 
-@preserve_shape
-def _brightness_contrast_adjust_uint(img, alpha=1, beta=0, beta_by_max=False):
-    dtype = np.dtype("uint8")
+# @preserve_shape
+# def _brightness_contrast_adjust_uint(img, alpha=1, beta=0, max_brightness = None):
+#     dtype = np.dtype("uint16")
 
-    max_value = MAX_VALUES_BY_DTYPE[dtype]
+#     max_value = MAX_VALUES_BY_DTYPE[dtype]
 
-    lut = np.arange(0, max_value + 1).astype("float32")
+#     lut = np.arange(0, max_value + 1).astype("float32")
 
-    if alpha != 1:
-        lut *= alpha
-    if beta != 0:
-        if beta_by_max:
-            lut += beta * max_value
-        else:
-            lut += (alpha * beta) * np.mean(img)
+#     if alpha != 1:
+#         lut *= alpha
+#     if beta != 0:
+#         if beta_by_max:
+#             lut += beta * max_value
+#         else:
+#             lut += (alpha * beta) * np.mean(img)
 
-    lut = np.clip(lut, 0, max_value).astype(dtype)
-    img = cv2.LUT(img, lut)
-    return img
+#     lut = np.clip(lut, 0, max_value).astype(dtype)
+#     img = cv2.LUT(img, lut)
+#     return img
 
 
-def brightness_contrast_adjust(img, alpha=1, beta=0, beta_by_max=False):
-    if img.dtype == np.uint8:
-        return _brightness_contrast_adjust_uint(img, alpha, beta, beta_by_max)
-
-    return _brightness_contrast_adjust_non_uint(img, alpha, beta, beta_by_max)
+def brightness_contrast_adjust(img, alpha=1, beta=0, max_brightness = None):
+        return _brightness_contrast_adjust(img, alpha, beta, max_brightness)
 
 
 @clipped
@@ -907,18 +928,23 @@ def gray_to_rgb(img):
 
 
 @preserve_shape
-def downscale(img, scale, down_interpolation=cv2.INTER_AREA, up_interpolation=cv2.INTER_LINEAR):
-    h, w = img.shape[:2]
+def downscale(img, scale, down_interpolation= INTER_LINEAR, up_interpolation=INTER_LINEAR):
 
-    need_cast = (
-        up_interpolation != cv2.INTER_NEAREST or down_interpolation != cv2.INTER_NEAREST
-    ) and img.dtype == np.uint8
-    if need_cast:
-        img = to_float(img)
-    downscaled = cv2.resize(img, None, fx=scale, fy=scale, interpolation=down_interpolation)
-    upscaled = cv2.resize(downscaled, (w, h), interpolation=up_interpolation)
-    if need_cast:
-        upscaled = from_float(np.clip(upscaled, 0, 1), dtype=np.dtype("uint8"))
+    h,w,d = img.shape[:3]
+
+    if img.ndim == 4:
+        upscaled = np.zeros_like(img)
+        for i in range(img.shape[-1]):
+
+            downscaled = ndimage.zoom(img[...,i], scale, order = down_interpolation)
+            inv_scale = h / downscaled.shape[0] 
+            upscaled[...,i] = ndimage.zoom(downscaled, inv_scale, order = up_interpolation)
+    
+    else:
+        downscaled = ndimage.zoom(img, scale, order = down_interpolation)
+        inv_scale = h / downscaled.shape[0] 
+        upscaled = ndimage.zoom(downscaled, inv_scale, order = up_interpolation)
+
     return upscaled
 
 
@@ -1233,62 +1259,62 @@ def adjust_hue_torchvision(img, factor):
     return cv2.cvtColor(img, cv2.COLOR_HSV2RGB)
 
 
-@preserve_shape
-def superpixels(
-    image: np.ndarray, n_segments: int, replace_samples: Sequence[bool], max_size: Optional[int], interpolation: int
-) -> np.ndarray:
-    if not np.any(replace_samples):
-        return image
+# @preserve_shape
+# def superpixels(
+#     image: np.ndarray, n_segments: int, replace_samples: Sequence[bool], max_size: Optional[int], interpolation: int
+# ) -> np.ndarray:
+#     if not np.any(replace_samples):
+#         return image
 
-    orig_shape = image.shape
-    if max_size is not None:
-        size = max(image.shape[:2])
-        if size > max_size:
-            scale = max_size / size
-            height, width = image.shape[:2]
-            new_height, new_width = int(height * scale), int(width * scale)
-            resize_fn = _maybe_process_in_chunks(cv2.resize, dsize=(new_width, new_height), interpolation=interpolation)
-            image = resize_fn(image)
+#     orig_shape = image.shape
+#     if max_size is not None:
+#         size = max(image.shape[:2])
+#         if size > max_size:
+#             scale = max_size / size
+#             height, width = image.shape[:2]
+#             new_height, new_width = int(height * scale), int(width * scale)
+#             resize_fn = _maybe_process_in_chunks(cv2.resize, dsize=(new_width, new_height), interpolation=interpolation)
+#             image = resize_fn(image)
 
-    segments = skimage.segmentation.slic(
-        image, n_segments=n_segments, compactness=10, channel_axis=-1 if image.ndim > 2 else None
-    )
+#     segments = skimage.segmentation.slic(
+#         image, n_segments=n_segments, compactness=10, channel_axis=-1 if image.ndim > 2 else None
+#     )
 
-    min_value = 0
-    max_value = MAX_VALUES_BY_DTYPE[image.dtype]
-    image = np.copy(image)
-    if image.ndim == 2:
-        image = image.reshape(*image.shape, 1)
-    nb_channels = image.shape[2]
-    for c in range(nb_channels):
-        # segments+1 here because otherwise regionprops always misses the last label
-        regions = skimage.measure.regionprops(segments + 1, intensity_image=image[..., c])
-        for ridx, region in enumerate(regions):
-            # with mod here, because slic can sometimes create more superpixel than requested.
-            # replace_samples then does not have enough values, so we just start over with the first one again.
-            if replace_samples[ridx % len(replace_samples)]:
-                mean_intensity = region.mean_intensity
-                image_sp_c = image[..., c]
+#     min_value = 0
+#     max_value = MAX_VALUES_BY_DTYPE[image.dtype]
+#     image = np.copy(image)
+#     if image.ndim == 2:
+#         image = image.reshape(*image.shape, 1)
+#     nb_channels = image.shape[2]
+#     for c in range(nb_channels):
+#         # segments+1 here because otherwise regionprops always misses the last label
+#         regions = skimage.measure.regionprops(segments + 1, intensity_image=image[..., c])
+#         for ridx, region in enumerate(regions):
+#             # with mod here, because slic can sometimes create more superpixel than requested.
+#             # replace_samples then does not have enough values, so we just start over with the first one again.
+#             if replace_samples[ridx % len(replace_samples)]:
+#                 mean_intensity = region.mean_intensity
+#                 image_sp_c = image[..., c]
 
-                if image_sp_c.dtype.kind in ["i", "u", "b"]:
-                    # After rounding the value can end up slightly outside of the value_range. Hence, we need to clip.
-                    # We do clip via min(max(...)) instead of np.clip because
-                    # the latter one does not seem to keep dtypes for dtypes with large itemsizes (e.g. uint64).
-                    value: Union[int, float]
-                    value = int(np.round(mean_intensity))
-                    value = min(max(value, min_value), max_value)
-                else:
-                    value = mean_intensity
+#                 if image_sp_c.dtype.kind in ["i", "u", "b"]:
+#                     # After rounding the value can end up slightly outside of the value_range. Hence, we need to clip.
+#                     # We do clip via min(max(...)) instead of np.clip because
+#                     # the latter one does not seem to keep dtypes for dtypes with large itemsizes (e.g. uint64).
+#                     value: Union[int, float]
+#                     value = int(np.round(mean_intensity))
+#                     value = min(max(value, min_value), max_value)
+#                 else:
+#                     value = mean_intensity
 
-                image_sp_c[segments == ridx] = value
+#                 image_sp_c[segments == ridx] = value
 
-    if orig_shape != image.shape:
-        resize_fn = _maybe_process_in_chunks(
-            cv2.resize, dsize=(orig_shape[1], orig_shape[0]), interpolation=interpolation
-        )
-        image = resize_fn(image)
+#     if orig_shape != image.shape:
+#         resize_fn = _maybe_process_in_chunks(
+#             cv2.resize, dsize=(orig_shape[1], orig_shape[0]), interpolation=interpolation
+#         )
+#         image = resize_fn(image)
 
-    return image
+#     return image
 
 
 @clipped
@@ -1298,27 +1324,39 @@ def add_weighted(img1, alpha, img2, beta):
 
 @clipped
 @preserve_shape
-def unsharp_mask(image: np.ndarray, ksize: int, sigma: float = 0.0, alpha: float = 0.2, threshold: int = 10):
-    blur_fn = _maybe_process_in_chunks(cv2.GaussianBlur, ksize=(ksize, ksize), sigmaX=sigma)
+def unsharp_mask(image: np.ndarray, ksize: int, sigma: float = 0.0, alpha: float = 0.2, threshold: float = 0.05):
 
     input_dtype = image.dtype
-    if input_dtype == np.uint8:
+    if input_dtype in {np.uint8, np.uint16}:
         image = to_float(image)
-    elif input_dtype not in (np.uint8, np.float32):
+    elif input_dtype not in (np.uint8, np.uint16, np.float32):
         raise ValueError("Unexpected dtype {} for UnsharpMask augmentation".format(input_dtype))
+    
+    if image.ndim == 4:
+        blur = np.zeros_like(image)
+        for i in range(image.shape[-1]):
+            blur[...,i] = ndimage.gaussian_filter(image[...,i], sigma= sigma, radius= (ksize - 1)//2, mode = "constant", cval = 0 )
+    else:
+        blur = ndimage.gaussian_filter(image, sigma= sigma, radius= (ksize - 1)//2, mode = "constant", cval = 0 )
 
-    blur = blur_fn(image)
     residual = image - blur
 
     # Do not sharpen noise
-    mask = np.abs(residual) * 255 > threshold
+    mask = np.abs(residual) > threshold
     mask = mask.astype("float32")
 
     sharp = image + alpha * residual
     # Avoid color noise artefacts.
     sharp = np.clip(sharp, 0, 1)
 
-    soft_mask = blur_fn(mask)
+    if image.ndim == 4:
+        soft_mask = np.zeros_like(mask)
+        for i in range(mask.shape[-1]):
+            soft_mask[...,i] = ndimage.gaussian_filter(image[...,i], sigma= sigma, radius= (ksize - 1)//2, mode = "constant", cval = 0 )
+    else:
+        soft_mask = ndimage.gaussian_filter(image, sigma= sigma, radius= (ksize - 1)//2, mode = "constant", cval = 0 )
+    
+
     output = soft_mask * sharp + (1 - soft_mask) * image
     return from_float(output, dtype=input_dtype)
 

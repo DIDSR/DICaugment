@@ -25,12 +25,18 @@ __all__ = [
     "ImageColorType",
     "INTER_NEAREST",
     "INTER_LINEAR",
+    "INTER_QUADRATIC",
     "INTER_CUBIC",
+    "INTER_QUARTIC",
+    "INTER_QUINTIC",
 ]
 
 INTER_NEAREST = 0
 INTER_LINEAR = 1
-INTER_CUBIC = 2
+INTER_QUADRATIC = 2
+INTER_CUBIC = 3
+INTER_QUARTIC = 4
+INTER_QUINTIC = 5
 
 NumType = Union[int, float, np.ndarray]
 BoxInternalType = Tuple[float, float, float, float]

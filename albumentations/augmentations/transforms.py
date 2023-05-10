@@ -27,6 +27,12 @@ from ..core.transforms_interface import (
     NoOp,
     ScaleFloatType,
     to_tuple,
+    INTER_NEAREST,
+    INTER_LINEAR,
+    INTER_QUADRATIC,
+    INTER_CUBIC,
+    INTER_QUARTIC,
+    INTER_QUINTIC
 )
 from ..core.utils import format_args
 from . import functional as F
@@ -1139,7 +1145,7 @@ class Equalize(ImageOnlyTransform):
         return ["image"] + list(self.mask_params)
 
     def get_transform_init_args_names(self):
-        return ("by_channels",)
+        return ("range",)
 
 
 # class RGBShift(ImageOnlyTransform):
@@ -1194,36 +1200,37 @@ class RandomBrightnessContrast(ImageOnlyTransform):
     """Randomly change brightness and contrast of the input image.
 
     Args:
+        max_brightness (int,float,None): If not None, adjust contrast by specified maximum and clip to maximum,
+                else adjust contrast by image mean. Default: None
         brightness_limit ((float, float) or float): factor range for changing brightness.
             If limit is a single float, the range will be (-limit, limit). Default: (-0.2, 0.2).
         contrast_limit ((float, float) or float): factor range for changing contrast.
             If limit is a single float, the range will be (-limit, limit). Default: (-0.2, 0.2).
-        brightness_by_max (Boolean): If True adjust contrast by image dtype maximum,
-            else adjust contrast by image mean.
+        
         p (float): probability of applying the transform. Default: 0.5.
 
     Targets:
         image
 
     Image types:
-        uint8, float32
+        uint8, uint16, float32
     """
 
     def __init__(
         self,
-        brightness_limit=0.2,
-        contrast_limit=0.2,
-        brightness_by_max=True,
-        always_apply=False,
-        p=0.5,
+        max_brightness: Union[int,float,None],
+        brightness_limit: Union[float, Tuple[float,float]] = 0.2,
+        contrast_limit: Union[float, Tuple[float,float]] = 0.2,
+        always_apply: bool = False,
+        p: bool = 0.5
     ):
         super(RandomBrightnessContrast, self).__init__(always_apply, p)
         self.brightness_limit = to_tuple(brightness_limit)
         self.contrast_limit = to_tuple(contrast_limit)
-        self.brightness_by_max = brightness_by_max
+        self.max_brightness = max_brightness
 
     def apply(self, img, alpha=1.0, beta=0.0, **params):
-        return F.brightness_contrast_adjust(img, alpha, beta, self.brightness_by_max)
+        return F.brightness_contrast_adjust(img, alpha, beta, self.max_brightness)
 
     def get_params(self):
         return {
@@ -1232,59 +1239,7 @@ class RandomBrightnessContrast(ImageOnlyTransform):
         }
 
     def get_transform_init_args_names(self):
-        return ("brightness_limit", "contrast_limit", "brightness_by_max")
-
-
-class RandomBrightness(RandomBrightnessContrast):
-    """Randomly change brightness of the input image.
-
-    Args:
-        limit ((float, float) or float): factor range for changing brightness.
-            If limit is a single float, the range will be (-limit, limit). Default: (-0.2, 0.2).
-        p (float): probability of applying the transform. Default: 0.5.
-
-    Targets:
-        image
-
-    Image types:
-        uint8, float32
-    """
-
-    def __init__(self, limit=0.2, always_apply=False, p=0.5):
-        super(RandomBrightness, self).__init__(brightness_limit=limit, contrast_limit=0, always_apply=always_apply, p=p)
-        warnings.warn(
-            "This class has been deprecated. Please use RandomBrightnessContrast",
-            FutureWarning,
-        )
-
-    def get_transform_init_args(self):
-        return {"limit": self.brightness_limit}
-
-
-class RandomContrast(RandomBrightnessContrast):
-    """Randomly change contrast of the input image.
-
-    Args:
-        limit ((float, float) or float): factor range for changing contrast.
-            If limit is a single float, the range will be (-limit, limit). Default: (-0.2, 0.2).
-        p (float): probability of applying the transform. Default: 0.5.
-
-    Targets:
-        image
-
-    Image types:
-        uint8, float32
-    """
-
-    def __init__(self, limit=0.2, always_apply=False, p=0.5):
-        super(RandomContrast, self).__init__(brightness_limit=0, contrast_limit=limit, always_apply=always_apply, p=p)
-        warnings.warn(
-            f"{self.__class__.__name__} has been deprecated. Please use RandomBrightnessContrast",
-            FutureWarning,
-        )
-
-    def get_transform_init_args(self):
-        return {"limit": self.contrast_limit}
+        return ("brightness_limit", "contrast_limit", "max_brightness")
 
 
 class GaussNoise(ImageOnlyTransform):
@@ -1294,18 +1249,28 @@ class GaussNoise(ImageOnlyTransform):
         var_limit ((float, float) or float): variance range for noise. If var_limit is a single float, the range
             will be (0, var_limit). Default: (10.0, 50.0).
         mean (float): mean of the noise. Default: 0
+        apply_to_channel_idx (int, None): If not None, then only only noise is applied on the specified channel index. Default: None
         per_channel (bool): if set to True, noise will be sampled for each channel independently.
-            Otherwise, the noise will be sampled once for all channels. Default: True
+            Otherwise, the noise will be sampled once for all channels. Ignored if apply_to_channel_idx is not None. Default: True
+        
         p (float): probability of applying the transform. Default: 0.5.
 
     Targets:
         image
 
     Image types:
-        uint8, float32
+        uint8, uint16, float32
     """
 
-    def __init__(self, var_limit=(10.0, 50.0), mean=0, per_channel=True, always_apply=False, p=0.5):
+    def __init__(
+            self,
+            var_limit: Union[float, Sequence[float,float]] = (10.0, 50.0),
+            mean: float = 0,
+            apply_to_channel_idx: Union[None,int] = None,
+            per_channel: bool = True,
+            always_apply: bool = False,
+            p: float = 0.5
+            ):
         super(GaussNoise, self).__init__(always_apply, p)
         if isinstance(var_limit, (tuple, list)):
             if var_limit[0] < 0:
@@ -1322,23 +1287,39 @@ class GaussNoise(ImageOnlyTransform):
             raise TypeError(
                 "Expected var_limit type to be one of (int, float, tuple, list), got {}".format(type(var_limit))
             )
+        
+        if apply_to_channel_idx != None:
+            if isinstance(apply_to_channel_idx, int):
+                raise TypeError("Expected apply_to_channel_idx to be one of (None, int), got {}".format(type(apply_to_channel_idx)))
+            if apply_to_channel_idx < 0:
+                raise ValueError("apply_to_channel_idx should be non negative")
 
         self.mean = mean
         self.per_channel = per_channel
+        self.apply_to_channel_idx = apply_to_channel_idx
 
-    def apply(self, img, gauss=None, **params):
-        return F.gauss_noise(img, gauss=gauss)
+    def apply(self, img, gauss=None, channel_idx=None, **params):
+        return F.gauss_noise(img, gauss=gauss, channel_idx=channel_idx)
 
     def get_params_dependent_on_targets(self, params):
         image = params["image"]
         var = random.uniform(self.var_limit[0], self.var_limit[1])
         sigma = var**0.5
 
-        if self.per_channel:
+        if self.apply_to_channel_idx != None:
+            if image.ndim != 4:
+                raise RuntimeError("Expected image to be of shape (H,W,D,C) with argument 'apply_to_channel_idx' not None, got shape {}".format(image.shape))
+            if self.apply_to_channel_idx >= image.shape[-1]:
+                raise IndexError("Index {} out of range for image of shape {}".format(self.apply_to_channel_idx, image.shape))
+            
+            guass = np.zeros_like(image, dtype = np.float32)
+            gauss[...,self.apply_to_channel_idx] = random_utils.normal(self.mean, sigma, image.shape[:3])
+
+        elif self.per_channel:
             gauss = random_utils.normal(self.mean, sigma, image.shape)
         else:
-            gauss = random_utils.normal(self.mean, sigma, image.shape[:2])
-            if len(image.shape) == 3:
+            gauss = random_utils.normal(self.mean, sigma, image.shape[:3])
+            if len(image.shape) == 4:
                 gauss = np.expand_dims(gauss, -1)
 
         return {"gauss": gauss}
@@ -1348,7 +1329,7 @@ class GaussNoise(ImageOnlyTransform):
         return ["image"]
 
     def get_transform_init_args_names(self):
-        return ("var_limit", "per_channel", "mean")
+        return ("var_limit", "apply_to_channel_idx", "per_channel", "mean")
 
 
 # class ISONoise(ImageOnlyTransform):
@@ -1453,7 +1434,7 @@ class GaussNoise(ImageOnlyTransform):
 
 
 class InvertImg(ImageOnlyTransform):
-    """Invert the input image by subtracting pixel values from 255.
+    """Invert the input image by subtracting pixel values from the maximum value for the input image dtype.
 
     Args:
         p (float): probability of applying the transform. Default: 0.5.
@@ -1462,7 +1443,7 @@ class InvertImg(ImageOnlyTransform):
         image
 
     Image types:
-        uint8, float32
+        uint8, uint16, float32
     """
 
     def apply(self, img, **params):
@@ -1477,7 +1458,6 @@ class RandomGamma(ImageOnlyTransform):
     Args:
         gamma_limit (float or (float, float)): If gamma_limit is a single float value,
             the range will be (-gamma_limit, gamma_limit). Default: (80, 120).
-        eps: Deprecated.
 
     Targets:
         image
@@ -1486,10 +1466,9 @@ class RandomGamma(ImageOnlyTransform):
         uint8, float32
     """
 
-    def __init__(self, gamma_limit=(80, 120), eps=None, always_apply=False, p=0.5):
+    def __init__(self, gamma_limit=(80, 120), always_apply=False, p=0.5):
         super(RandomGamma, self).__init__(always_apply, p)
         self.gamma_limit = to_tuple(gamma_limit)
-        self.eps = eps
 
     def apply(self, img, gamma=1, **params):
         return F.gamma_transform(img, gamma=gamma)
@@ -1498,7 +1477,7 @@ class RandomGamma(ImageOnlyTransform):
         return {"gamma": random.uniform(self.gamma_limit[0], self.gamma_limit[1]) / 100.0}
 
     def get_transform_init_args_names(self):
-        return ("gamma_limit", "eps")
+        return ("gamma_limit",)
 
 
 # class ToGray(ImageOnlyTransform):
@@ -1656,22 +1635,22 @@ class Downscale(ImageOnlyTransform):
 
     Args:
         scale_min (float): lower bound on the image scale. Should be < 1.
-        scale_max (float):  lower bound on the image scale. Should be .
-        interpolation: cv2 interpolation method. Could be:
-            - single cv2 interpolation flag - selected method will be used for downscale and upscale.
+        scale_max (float):  lower bound on the image scale. Should be < 1.
+        interpolation: scipy interpolation method (e.g. albumenations3d.INTER_NEAREST). Could be:
+            - single scipy interpolation flag - selected method will be used for downscale and upscale.
             - dict(downscale=flag, upscale=flag)
             - Downscale.Interpolation(downscale=flag, upscale=flag) -
-            Default: Interpolation(downscale=cv2.INTER_NEAREST, upscale=cv2.INTER_NEAREST)
+            Default: Interpolation(downscale=albumenations3d.INTER_NEAREST, upscale=albumenations3d.INTER_NEAREST)
 
     Targets:
         image
 
     Image types:
-        uint8, float32
+        uint8, uint16, float32
     """
 
     class Interpolation:
-        def __init__(self, *, downscale: int = cv2.INTER_NEAREST, upscale: int = cv2.INTER_NEAREST):
+        def __init__(self, *, downscale: int = INTER_NEAREST, upscale: int = INTER_NEAREST):
             self.downscale = downscale
             self.upscale = upscale
 
@@ -1685,12 +1664,12 @@ class Downscale(ImageOnlyTransform):
     ):
         super(Downscale, self).__init__(always_apply, p)
         if interpolation is None:
-            self.interpolation = self.Interpolation(downscale=cv2.INTER_NEAREST, upscale=cv2.INTER_NEAREST)
+            self.interpolation = self.Interpolation()
             warnings.warn(
                 "Using default interpolation INTER_NEAREST, which is sub-optimal."
                 "Please specify interpolation mode for downscale and upscale explicitly."
-                "For additional information see this PR https://github.com/albumentations-team/albumentations/pull/584"
             )
+            # "For additional information see this PR https://github.com/albumentations-team/albumentations/pull/584"
         elif isinstance(interpolation, int):
             self.interpolation = self.Interpolation(downscale=interpolation, upscale=interpolation)
         elif isinstance(interpolation, self.Interpolation):
@@ -1813,70 +1792,70 @@ class Downscale(ImageOnlyTransform):
 #         return "{name}({args})".format(name=self.__class__.__name__, args=format_args(state))
 
 
-class MultiplicativeNoise(ImageOnlyTransform):
-    """Multiply image to random number or array of numbers.
+# class MultiplicativeNoise(ImageOnlyTransform):
+#     """Multiply image to random number or array of numbers.
 
-    Args:
-        multiplier (float or tuple of floats): If single float image will be multiplied to this number.
-            If tuple of float multiplier will be in range `[multiplier[0], multiplier[1])`. Default: (0.9, 1.1).
-        per_channel (bool): If `False`, same values for all channels will be used.
-            If `True` use sample values for each channels. Default False.
-        elementwise (bool): If `False` multiply multiply all pixels in an image with a random value sampled once.
-            If `True` Multiply image pixels with values that are pixelwise randomly sampled. Defaule: False.
+#     Args:
+#         multiplier (float or tuple of floats): If single float image will be multiplied to this number.
+#             If tuple of float multiplier will be in range `[multiplier[0], multiplier[1])`. Default: (0.9, 1.1).
+#         per_channel (bool): If `False`, same values for all channels will be used.
+#             If `True` use sample values for each channels. Default False.
+#         elementwise (bool): If `False` multiply multiply all pixels in an image with a random value sampled once.
+#             If `True` Multiply image pixels with values that are pixelwise randomly sampled. Defaule: False.
 
-    Targets:
-        image
+#     Targets:
+#         image
 
-    Image types:
-        Any
-    """
+#     Image types:
+#         Any
+#     """
 
-    def __init__(
-        self,
-        multiplier=(0.9, 1.1),
-        per_channel=False,
-        elementwise=False,
-        always_apply=False,
-        p=0.5,
-    ):
-        super(MultiplicativeNoise, self).__init__(always_apply, p)
-        self.multiplier = to_tuple(multiplier, multiplier)
-        self.per_channel = per_channel
-        self.elementwise = elementwise
+#     def __init__(
+#         self,
+#         multiplier=(0.9, 1.1),
+#         per_channel=False,
+#         elementwise=False,
+#         always_apply=False,
+#         p=0.5,
+#     ):
+#         super(MultiplicativeNoise, self).__init__(always_apply, p)
+#         self.multiplier = to_tuple(multiplier, multiplier)
+#         self.per_channel = per_channel
+#         self.elementwise = elementwise
 
-    def apply(self, img, multiplier=np.array([1]), **kwargs):
-        return F.multiply(img, multiplier)
+#     def apply(self, img, multiplier=np.array([1]), **kwargs):
+#         return F.multiply(img, multiplier)
 
-    def get_params_dependent_on_targets(self, params):
-        if self.multiplier[0] == self.multiplier[1]:
-            return {"multiplier": np.array([self.multiplier[0]])}
+#     def get_params_dependent_on_targets(self, params):
+#         if self.multiplier[0] == self.multiplier[1]:
+#             return {"multiplier": np.array([self.multiplier[0]])}
 
-        img = params["image"]
+#         img = params["image"]
 
-        h, w = img.shape[:2]
+#         h, w = img.shape[:2]
 
-        if self.per_channel:
-            c = 1 if is_grayscale_image(img) else img.shape[-1]
-        else:
-            c = 1
+#         if self.per_channel:
+#             c = 1 if is_grayscale_image(img) else img.shape[-1]
+#         else:
+#             c = 1
 
-        if self.elementwise:
-            shape = [h, w, c]
-        else:
-            shape = [c]
+#         if self.elementwise:
+#             shape = [h, w, c]
+#         else:
+#             shape = [c]
 
-        multiplier = random_utils.uniform(self.multiplier[0], self.multiplier[1], shape)
-        if is_grayscale_image(img) and img.ndim == 2:
-            multiplier = np.squeeze(multiplier)
+#         multiplier = random_utils.uniform(self.multiplier[0], self.multiplier[1], shape)
+#         if is_grayscale_image(img) and img.ndim == 2:
+#             multiplier = np.squeeze(multiplier)
 
-        return {"multiplier": multiplier}
+#         return {"multiplier": multiplier}
 
-    @property
-    def targets_as_params(self):
-        return ["image"]
+#     @property
+#     def targets_as_params(self):
+#         return ["image"]
 
-    def get_transform_init_args_names(self):
-        return "multiplier", "per_channel", "elementwise"
+#     def get_transform_init_args_names(self):
+#         return "multiplier", "per_channel", "elementwise"
 
 
 # class FancyPCA(ImageOnlyTransform):
@@ -2020,7 +1999,7 @@ class Sharpen(ImageOnlyTransform):
         super(Sharpen, self).__init__(always_apply, p)
         self.alpha = self.__check_values(to_tuple(alpha, 0.0), name="alpha", bounds=(0.0, 1.0))
         self.lightness = self.__check_values(to_tuple(lightness, 0.0), name="lightness")
-
+ 
     @staticmethod
     def __check_values(value, name, bounds=(0, float("inf"))):
         if not bounds[0] <= value[0] <= value[1] <= bounds[1]:
@@ -2028,12 +2007,23 @@ class Sharpen(ImageOnlyTransform):
         return value
 
     @staticmethod
-    def __generate_sharpening_matrix(alpha_sample, lightness_sample):
-        matrix_nochange = np.array([[0, 0, 0], [0, 1, 0], [0, 0, 0]], dtype=np.float32)
-        matrix_effect = np.array(
-            [[-1, -1, -1], [-1, 8 + lightness_sample, -1], [-1, -1, -1]],
-            dtype=np.float32,
-        )
+    def __generate_sharpening_matrix(alpha_sample, lightness_sample, ksize = 3):
+
+        if ksize % 2 != 1:
+            raise ValueError("expected ksize to be an odd number, got {}".format(ksize))
+        
+        #matrix_nochange = np.array([[0, 0, 0], [0, 1, 0], [0, 0, 0]], dtype=np.float32)
+        matrix_nochange = np.zeros((ksize,ksize,ksize), dtype = np.float32)
+        matrix_nochange[ksize//2 , ksize //2 , ksize //2] = 1.0
+        
+        matrix_effect = np.ones((ksize,ksize,ksize), dtype = np.float32)
+        matrix_effect[ksize//2 , ksize //2 , ksize //2] = -(np.sum(matrix_effect) - 1 + lightness_sample)
+        matrix_effect *= -1.0
+        
+        # matrix_effect = np.array(
+        #     [[-1, -1, -1], [-1, 8 + lightness_sample, -1], [-1, -1, -1]],
+        #     dtype=np.float32,
+        # )
 
         matrix = (1 - alpha_sample) * matrix_nochange + alpha_sample * matrix_effect
         return matrix
@@ -2351,9 +2341,9 @@ class UnsharpMask(ImageOnlyTransform):
         alpha (float, (float, float)): range to choose the visibility of the sharpened image.
             At 0, only the original image is visible, at 1.0 only its sharpened version is visible.
             Default: (0.2, 0.5).
-        threshold (int): Value to limit sharpening only for areas with high pixel difference between original image
+        threshold (float): Value to limit sharpening only for areas with high pixel difference between original image
             and it's smoothed version. Higher threshold means less sharpening on flat areas.
-            Must be in range [0, 255]. Default: 10.
+            Must be in range [0, 1]. Default: 0.05.
         p (float): probability of applying the transform. Default: 0.5.
 
     Reference:
@@ -2368,9 +2358,9 @@ class UnsharpMask(ImageOnlyTransform):
         blur_limit: Union[int, Sequence[int]] = (3, 7),
         sigma_limit: Union[float, Sequence[float]] = 0.0,
         alpha: Union[float, Sequence[float]] = (0.2, 0.5),
-        threshold: int = 10,
-        always_apply=False,
-        p=0.5,
+        threshold: float = 0.05,
+        always_apply: bool =False,
+        p: float = 0.5,
     ):
         super(UnsharpMask, self).__init__(always_apply, p)
         self.blur_limit = to_tuple(blur_limit, 3)
@@ -2462,7 +2452,7 @@ class PixelDropout(DualTransform):
         if self.mask_drop_value is None:
             return img
 
-        if img.ndim == 2:
+        if img.ndim == 3:
             drop_mask = np.squeeze(drop_mask)
 
         return F.pixel_dropout(img, drop_mask, self.mask_drop_value)
@@ -2475,22 +2465,24 @@ class PixelDropout(DualTransform):
 
     def get_params_dependent_on_targets(self, params: Dict[str, Any]) -> Dict[str, Any]:
         img = params["image"]
-        shape = img.shape if self.per_channel else img.shape[:2]
+        shape = img.shape if self.per_channel and img.ndim == 4 else img.shape[:3]
 
         rnd = np.random.RandomState(random.randint(0, 1 << 31))
         # Use choice to create boolean matrix, if we will use binomial after that we will need type conversion
         drop_mask = rnd.choice([True, False], shape, p=[self.dropout_prob, 1 - self.dropout_prob])
 
-        drop_value: Union[float, Sequence[float], np.ndarray]
         if drop_mask.ndim != img.ndim:
             drop_mask = np.expand_dims(drop_mask, -1)
+
+        drop_value: Union[float, Sequence[float], np.ndarray]
+        
         if self.drop_value is None:
             drop_shape = 1 if is_grayscale_image(img) else int(img.shape[-1])
 
             if img.dtype in (np.uint8, np.uint16, np.uint32):
                 drop_value = rnd.randint(0, int(F.MAX_VALUES_BY_DTYPE[img.dtype]), drop_shape, img.dtype)
             elif img.dtype in [np.float32, np.double]:
-                drop_value = rnd.uniform(0, 1, drop_shape).astype(img.dtpye)
+                drop_value = rnd.uniform(0, 1, drop_shape).astype(img.dtype)
             else:
                 raise ValueError(f"Unsupported dtype: {img.dtype}")
         else:
