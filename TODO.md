@@ -3,7 +3,20 @@
 * tensorflow/transforms -> to_tensor (transpose)
 * Normalize
 * Core
-
+* Blur
+* Downscale
+* Equalize
+* FromFloat
+* GaussNoise
+* GaussianBlur
+* InvertImg
+* MedianBlur
+* MultiplicativeNoise
+* RandomBrightnessContrast (ColorJitter?)
+* Sharpen
+* ToFloat
+* UnsharpMask
+* PixelDropout
 
 # ADD:
 * Datasets Class and Subclasses
@@ -11,27 +24,8 @@
 
 # ALTER:
 
-* AdvancedBlur
-* Blur
-* CLAHE
 * **ColorJitter** - Remove Hue and Saturation
-* Downscale
-* Emboss
-* Equalize
-* FromFloat
-* GaussNoise
-* GaussianBlur
-* InvertImg
-* MedianBlur
-* MotionBlur
-* MultiplicativeNoise
-* RandomBrightnessContrast (ColorJitter?)
 * RandomGamma
-* RandomToneCurve
-* Sharpen
-* Solarize
-* ToFloat
-* UnsharpMask
 * Affine
 * BBoxSafeRandomCrop	
 * CenterCrop
@@ -40,12 +34,10 @@
 * ElasticTransform
 * Flip
 * HorizontalFlip
-* Lambda
-* LongestMaxSize
 * NoOp
+* LongestMaxSize
 * PadIfNeeded
 * Perspective
-* PixelDropout
 * RandomCrop
 * RandomCropFromBorders
 * RandomCropNearBBox
@@ -67,18 +59,24 @@
 # UNKNOWN:
 
 * FDA
-* GlassBlur
+* CLAHE
 * HistogramMatching
-* ISONoise
-* ImageCompression
-* PixelDistributionAdaptation
-* RingingOvershoot
-* Superpixels
 * TemplateTransform
 * PiecewiseAffine
+* RandomToneCurve
+
 
 # REMOVE:
 
+* MotionBlur
+* Emboss
+* PixelDistributionAdaptation
+* RingingOvershoot
+* Superpixels
+* ImageCompression
+* GlassBlur
+* ISONoise
+* AdvancedBlur
 * ToGray
 * ToRGB
 * ToSepia
@@ -103,3 +101,5 @@
 * GridDropout
 * MaskDropout
 * OpticalDistortion
+* Solarize
+* Lambda
