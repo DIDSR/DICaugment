@@ -11,11 +11,13 @@ from albumentations import random_utils
 from albumentations.augmentations.utils import (
     MAX_VALUES_BY_DTYPE,
     _maybe_process_in_chunks,
+    _maybe_process_by_channel,
     clip,
     clipped,
     ensure_contiguous,
     is_grayscale_image,
     is_rgb_image,
+    is_uint8_or_float32,
     non_rgb_warning,
     preserve_channel_dim,
     preserve_shape,
@@ -451,17 +453,10 @@ def clahe(img, clip_limit=2.0, tile_grid_size=(8, 8)):
 
 @preserve_shape
 @clipped
-def convolve(img, kernel):
-    h,w,d = img.shape[:3]
+def convolve(img, kernel, mode = "constant", cval = 0):
 
-    if img.ndim == 4:
-        convolved = np.zeros_like(img)
-        for i in range(img.shape[-1]):
-            convolved[...,i] = ndimage.convolve(img[...,i], kernel, mode = "constant", cval = 0 )
-        return convolved
-    
-    else:
-        return ndimage.convolve(img, kernel, mode = "constant", cval = 0 )
+    convolve_fn = _maybe_process_by_channel(ndimage.convolve, weights = kernel, mode = mode, cval = cval)
+    return convolve_fn(img)
 
 
 @preserve_shape 
@@ -1009,13 +1004,13 @@ def _multiply_uint8(img, multiplier):
 
 @preserve_shape
 def _multiply_uint8_optimized(img, multiplier):
-    if is_grayscale_image(img) or len(multiplier) == 1:
+    if is_grayscale_image(img):
         multiplier = multiplier[0]
         lut = np.arange(0, 256, dtype=np.float32)
         lut *= multiplier
         lut = clip(lut, np.uint8, MAX_VALUES_BY_DTYPE[img.dtype])
         func = _maybe_process_in_chunks(cv2.LUT, lut=lut)
-        return func(img)
+        return func(img if img.ndim == 3 else img[:3])
 
     channels = img.shape[-1]
     lut = [np.arange(0, 256, dtype=np.float32)] * channels
@@ -1027,7 +1022,7 @@ def _multiply_uint8_optimized(img, multiplier):
     images = []
     for i in range(channels):
         func = _maybe_process_in_chunks(cv2.LUT, lut=lut[:, i])
-        images.append(func(img[:, :, i]))
+        images.append(func(img[...,i]))
     return np.stack(images, axis=-1)
 
 
@@ -1062,16 +1057,18 @@ def bbox_from_mask(mask):
         mask (numpy.ndarray): binary mask.
 
     Returns:
-        tuple: A bounding box tuple `(x_min, y_min, x_max, y_max)`.
+        tuple: A bounding box tuple `(x_min, y_min, z_min, x_max, y_max, z_max)`.
 
     """
     rows = np.any(mask, axis=1)
     if not rows.any():
-        return -1, -1, -1, -1
+        return -1, -1, -1, -1, -1, -1
     cols = np.any(mask, axis=0)
+    slices = np.any(mask, axis=2)
     y_min, y_max = np.where(rows)[0][[0, -1]]
     x_min, x_max = np.where(cols)[0][[0, -1]]
-    return x_min, y_min, x_max + 1, y_max + 1
+    z_min, z_max = np.where(slices)[0][[0, -1]]
+    return x_min, y_min, z_min, x_max + 1, y_max + 1, z_max + 1
 
 
 def mask_from_bbox(img, bbox):
@@ -1079,16 +1076,16 @@ def mask_from_bbox(img, bbox):
 
     Args:
         img (numpy.ndarray): input image
-        bbox: A bounding box tuple `(x_min, y_min, x_max, y_max)`
+        bbox: A bounding box tuple `(x_min, y_min, z_min, x_max, y_max, z_max)`
 
     Returns:
         mask (numpy.ndarray): binary mask
 
     """
 
-    mask = np.zeros(img.shape[:2], dtype=np.uint8)
-    x_min, y_min, x_max, y_max = bbox
-    mask[y_min:y_max, x_min:x_max] = 1
+    mask = np.zeros(img.shape[:3], dtype=np.uint8)
+    x_min, y_min, z_min, x_max, y_max, z_max = bbox[:6]
+    mask[y_min:y_max, x_min:x_max, z_min:z_max] = 1
     return mask
 
 
@@ -1324,7 +1321,7 @@ def add_weighted(img1, alpha, img2, beta):
 
 @clipped
 @preserve_shape
-def unsharp_mask(image: np.ndarray, ksize: int, sigma: float = 0.0, alpha: float = 0.2, threshold: float = 0.05):
+def unsharp_mask(image: np.ndarray, ksize: int, sigma: float = 0.0, alpha: float = 0.2, threshold: float = 0.05, mode: str = 'constant', cval: Union[float,int] = 0):
 
     input_dtype = image.dtype
     if input_dtype in {np.uint8, np.uint16}:
@@ -1332,12 +1329,9 @@ def unsharp_mask(image: np.ndarray, ksize: int, sigma: float = 0.0, alpha: float
     elif input_dtype not in (np.uint8, np.uint16, np.float32):
         raise ValueError("Unexpected dtype {} for UnsharpMask augmentation".format(input_dtype))
     
-    if image.ndim == 4:
-        blur = np.zeros_like(image)
-        for i in range(image.shape[-1]):
-            blur[...,i] = ndimage.gaussian_filter(image[...,i], sigma= sigma, radius= (ksize - 1)//2, mode = "constant", cval = 0 )
-    else:
-        blur = ndimage.gaussian_filter(image, sigma= sigma, radius= (ksize - 1)//2, mode = "constant", cval = 0 )
+
+    blur_fn = _maybe_process_by_channel(ndimage.gaussian_filter, sigma= sigma, radius= (ksize - 1)//2, mode = mode, cval = cval)
+    blur = blur_fn(image)
 
     residual = image - blur
 
@@ -1348,14 +1342,8 @@ def unsharp_mask(image: np.ndarray, ksize: int, sigma: float = 0.0, alpha: float
     sharp = image + alpha * residual
     # Avoid color noise artefacts.
     sharp = np.clip(sharp, 0, 1)
-
-    if image.ndim == 4:
-        soft_mask = np.zeros_like(mask)
-        for i in range(mask.shape[-1]):
-            soft_mask[...,i] = ndimage.gaussian_filter(image[...,i], sigma= sigma, radius= (ksize - 1)//2, mode = "constant", cval = 0 )
-    else:
-        soft_mask = ndimage.gaussian_filter(image, sigma= sigma, radius= (ksize - 1)//2, mode = "constant", cval = 0 )
     
+    soft_mask = blur_fn(mask)
 
     output = soft_mask * sharp + (1 - soft_mask) * image
     return from_float(output, dtype=input_dtype)

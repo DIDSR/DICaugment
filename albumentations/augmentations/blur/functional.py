@@ -4,11 +4,13 @@ from typing import Sequence, Union
 
 import cv2
 import numpy as np
+from scipy import ndimage
 
 from albumentations.augmentations.functional import convolve
 from albumentations.augmentations.geometric.functional import scale
 from albumentations.augmentations.utils import (
     _maybe_process_in_chunks,
+    _maybe_process_by_channel,
     clipped,
     preserve_shape,
 )
@@ -17,24 +19,26 @@ __all__ = ["blur", "median_blur", "gaussian_blur", "glass_blur"]
 
 
 @preserve_shape
-def blur(img: np.ndarray, ksize: int) -> np.ndarray:
-    blur_fn = _maybe_process_in_chunks(cv2.blur, ksize=(ksize, ksize))
+def blur(img: np.ndarray, ksize: int, mode: str = 'constant', cval: Union[float,int] = 0) -> np.ndarray:
+    kernel = np.ones((ksize,)*3, dtype = np.float32)
+    kernel /= np.sum(kernel)
+    return convolve(img, kernel = kernel, mode = mode, cval = cval)
+    
+
+
+@preserve_shape
+def median_blur(img: np.ndarray, ksize: int, mode: str = 'constant', cval: Union[float,int] = 0) -> np.ndarray:
+
+    blur_fn = _maybe_process_by_channel(ndimage.median_filter, size = ksize, mode = mode, cval = cval)
     return blur_fn(img)
 
 
 @preserve_shape
-def median_blur(img: np.ndarray, ksize: int) -> np.ndarray:
-    if img.dtype == np.float32 and ksize not in {3, 5}:
-        raise ValueError(f"Invalid ksize value {ksize}. For a float32 image the only valid ksize values are 3 and 5")
-
-    blur_fn = _maybe_process_in_chunks(cv2.medianBlur, ksize=ksize)
-    return blur_fn(img)
-
-
-@preserve_shape
-def gaussian_blur(img: np.ndarray, ksize: int, sigma: float = 0) -> np.ndarray:
-    # When sigma=0, it is computed as `sigma = 0.3*((ksize-1)*0.5 - 1) + 0.8`
-    blur_fn = _maybe_process_in_chunks(cv2.GaussianBlur, ksize=(ksize, ksize), sigmaX=sigma)
+def gaussian_blur(img: np.ndarray, ksize: int, sigma: float = 0, mode: str = 'constant', cval: Union[float,int] = 0) -> np.ndarray:
+    if sigma == 0:
+        sigma = 0.3*((ksize-1)*0.5 - 1) + 0.8
+    
+    blur_fn = _maybe_process_by_channel(ndimage.gaussian_filter, sigma= sigma, radius= (ksize - 1)//2, mode = mode, cval = cval)
     return blur_fn(img)
 
 

@@ -142,11 +142,14 @@ def ensure_contiguous(
 
 
 def is_rgb_image(image: np.ndarray) -> bool:
-    return len(image.shape) == 4 and image.shape[-1] == 3
+    return len(image.shape) == 4 and image.shape[-1] == 3 and image.dtype in {np.uint8, np.float32}
 
 
 def is_grayscale_image(image: np.ndarray) -> bool:
     return (len(image.shape) == 3) or (len(image.shape) == 4 and image.shape[-1] == 1)
+
+def is_uint8_or_float32(image: np.ndarray) -> bool:
+    return image.dtype in {np.uint8, np.float32}
 
 
 def is_multispectral_image(image: np.ndarray) -> bool:
@@ -204,6 +207,41 @@ def _maybe_process_in_chunks(
                     chunk = process_fn(chunk, **kwargs)
                     chunks.append(chunk)
             img = np.dstack(chunks)
+        else:
+            img = process_fn(img, **kwargs)
+        return img
+
+    return __process_fn
+
+
+
+def _maybe_process_by_channel(
+    process_fn: Callable[Concatenate[np.ndarray, P], np.ndarray], **kwargs
+) -> Callable[[np.ndarray], np.ndarray]:
+    """
+    Wrap OpenCV or Scipy function to enable processing channeled images of any length.
+
+    Limitations:
+        This wrapper requires image to be the first argument and rest must be sent via named arguments.
+
+    Args:
+        process_fn: Transform function (e.g scipy.ndimage.zoom).
+        kwargs: Additional parameters.
+
+    Returns:
+        numpy.ndarray: Transformed image.
+
+    """
+
+    @wraps(process_fn)
+    def __process_fn(img: np.ndarray) -> np.ndarray:
+        num_channels = get_num_channels(img)
+        if num_channels > 1:
+            chunks = []
+            for i in range(num_channels):
+                chunks.append(process_fn(img[...,i], **kwargs))
+            
+            img = np.stack(chunks, axis = 3)
         else:
             img = process_fn(img, **kwargs)
         return img
