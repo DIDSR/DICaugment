@@ -35,7 +35,19 @@ MAX_VALUES_BY_DTYPE = {
     np.dtype("uint16"): 65535,
     np.dtype("uint32"): 4294967295,
     np.dtype("float32"): 1.0,
+    np.dtype("int16"): 32767,
+    np.dtype("int32"): 2147483647
 }
+
+MIN_VALUES_BY_DTYPE = {
+    np.dtype("uint8"): 0,
+    np.dtype("uint16"): 0,
+    np.dtype("uint32"): 0,
+    np.dtype("float32"): 0.0,
+    np.dtype("int16"): -32768,
+    np.dtype("int32"): -2147483648
+}
+
 
 NPDTYPE_TO_OPENCV_DTYPE = {
     np.uint8: cv2.CV_8U,
@@ -59,19 +71,23 @@ def read_rgb_image(path):
     image = cv2.imread(path, cv2.IMREAD_COLOR)
     return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
+def read_dcm_image(path: str, include_header: bool = True):
+    pass
+
 
 def clipped(func: Callable[Concatenate[np.ndarray, P], np.ndarray]) -> Callable[Concatenate[np.ndarray, P], np.ndarray]:
     @wraps(func)
     def wrapped_function(img: np.ndarray, *args: P.args, **kwargs: P.kwargs) -> np.ndarray:
         dtype = img.dtype
         maxval = MAX_VALUES_BY_DTYPE.get(dtype, 1.0)
-        return clip(func(img, *args, **kwargs), dtype, maxval)
+        minval = MIN_VALUES_BY_DTYPE.get(dtype, 0.0)
+        return clip(func(img, *args, **kwargs), dtype, minval, maxval)
 
     return wrapped_function
 
 
-def clip(img: np.ndarray, dtype: np.dtype, maxval: float) -> np.ndarray:
-    return np.clip(img, 0, maxval).astype(dtype)
+def clip(img: np.ndarray, dtype: np.dtype, minval: float, maxval: float) -> np.ndarray:
+    return np.clip(img, minval, maxval).astype(dtype)
 
 
 def get_opencv_dtype_from_numpy(value: Union[np.ndarray, int, np.dtype, object]) -> int:

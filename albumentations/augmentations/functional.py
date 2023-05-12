@@ -1,6 +1,6 @@
 from __future__ import division
 
-from typing import Optional, Sequence, Union
+from typing import Optional, Sequence, Union, Tuple
 from warnings import warn
 
 import cv2
@@ -10,6 +10,7 @@ from scipy import ndimage
 from albumentations import random_utils
 from albumentations.augmentations.utils import (
     MAX_VALUES_BY_DTYPE,
+    MIN_VALUES_BY_DTYPE,
     _maybe_process_in_chunks,
     _maybe_process_by_channel,
     clip,
@@ -274,11 +275,21 @@ def normalize(img, mean, std, max_pixel_value):
 
 #     return cv2.LUT(img, np.array(lut))
 
+def _calcHist(img: np.ndarray, mask: Union[np.ndarray,None], nbins: int, hist_range: Tuple):
+
+    if not mask:
+        mask = np.ones_like(img, dtype = np.bool_)
+
+    bins = np.linspace(*hist_range, nbins)
+
+    return np.histogram(img[mask.astype(np.bool_)], bins = bins)[0]
+
+
 
 def _equalize_cv(img, hist_range, mask=None):
 
     lo, hi = hist_range
-    histogram = sum(map(lambda x: cv2.calcHist([x],[0], mask, [hi - lo], hist_range), img)).ravel()
+    histogram = sum(map(lambda x: _calcHist(x, mask, hi - lo, hist_range), img)).ravel()
 
     total = np.sum(histogram)
     histogram /= total
@@ -287,7 +298,7 @@ def _equalize_cv(img, hist_range, mask=None):
     lut = {}
 
     for i in range(lo, hi):
-        lut[i] = clip(round(cumsum[i - lo]), np.dtype("uint16"), hi)
+        lut[i] = clip(round(cumsum[i - lo]), img.dtype, lo, hi)
 
     return np.vectorize(lambda x: lut.get(x,x))(img)
 
@@ -307,8 +318,8 @@ def equalize(img, hist_range, mask=None):
         numpy.ndarray: Equalized image.
 
     """
-    if img.dtype != np.uint8 and img.dtype != np.uint16:
-        raise TypeError("Image must have uint8 or uint16 type")
+    if img.dtype not in {np.uint8, np.uint16, np.int16, np.int32}:
+        raise TypeError("Image must have int or uint type")
 
     if mask is not None:
         if not is_grayscale_image(mask) and is_grayscale_image(img):
@@ -322,7 +333,7 @@ def equalize(img, hist_range, mask=None):
         hist_range = (0, np.max(img))
 
     if mask is not None:
-        mask = mask.astype(np.uint8)
+        mask = mask.astype(np.bool_)
 
     if is_grayscale_image(img):
         return _equalize_cv(img, hist_range, mask)
@@ -802,7 +813,7 @@ def invert(img: np.ndarray) -> np.ndarray:
             UserWarning
         )
 
-    return MAX_VALUES_BY_DTYPE[img.dtype] - img
+    return MAX_VALUES_BY_DTYPE[img.dtype] - (img + MIN_VALUES_BY_DTYPE[img.dtype]) 
 
 
 def channel_shuffle(img, channels_shuffled):
@@ -811,14 +822,9 @@ def channel_shuffle(img, channels_shuffled):
 
 
 @preserve_shape
+@clipped
 def gamma_transform(img, gamma):
-    if img.dtype == np.uint8:
-        table = (np.arange(0, 256.0 / 255, 1.0 / 255) ** gamma) * 255
-        img = cv2.LUT(img, table.astype(np.uint8))
-    else:
-        img = np.power(img, gamma)
-
-    return img
+    return np.power(img, gamma)
 
 
 @clipped
@@ -841,9 +847,9 @@ def _brightness_contrast_adjust(img, alpha=1, beta=0, max_brightness = None):
             img += beta * np.mean(img)
     
     if max_brightness != None:
-        img = np.clip(img, 0, max_brightness)
+        img = np.clip(img, MIN_VALUES_BY_DTYPE[dtype], max_brightness)
     
-    return img.astype(dtype)
+    return img
 
 
 # @preserve_shape
@@ -943,28 +949,30 @@ def downscale(img, scale, down_interpolation= INTER_LINEAR, up_interpolation=INT
     return upscaled
 
 
-def to_float(img, max_value=None):
-    if max_value is None:
+def to_float(img, min_value = None, max_value=None):
+    if max_value is None or min_value is None:
         try:
             max_value = MAX_VALUES_BY_DTYPE[img.dtype]
+            min_value = MIN_VALUES_BY_DTYPE[img.dtype]
         except KeyError:
             raise RuntimeError(
-                "Can't infer the maximum value for dtype {}. You need to specify the maximum value manually by "
-                "passing the max_value argument".format(img.dtype)
+                "Can't infer the minimum and maximum value for dtype {}. You need to specify the minimum and maximum value manually by "
+                "passing the min_value and max_value arguments".format(img.dtype)
             )
-    return img.astype("float32") / max_value
+    return (img.astype("float32") - min_value) / (max_value - min_value)
 
 
-def from_float(img, dtype, max_value=None):
-    if max_value is None:
+def from_float(img, dtype, min_value = None, max_value=None):
+    if max_value is None or min_value is None:
         try:
             max_value = MAX_VALUES_BY_DTYPE[dtype]
+            min_value = MIN_VALUES_BY_DTYPE[img.dtype]
         except KeyError:
             raise RuntimeError(
-                "Can't infer the maximum value for dtype {}. You need to specify the maximum value manually by "
-                "passing the max_value argument".format(dtype)
+                "Can't infer the minimum and maximum value for dtype {}. You need to specify the minimum and maximum value manually by "
+                "passing the min_value and max_value arguments".format(dtype)
             )
-    return (img * max_value).astype(dtype)
+    return (img * (max_value - min_value) + min_value).astype(dtype)
 
 
 def noop(input_obj, **params):  # skipcq: PYL-W0613
@@ -1324,9 +1332,9 @@ def add_weighted(img1, alpha, img2, beta):
 def unsharp_mask(image: np.ndarray, ksize: int, sigma: float = 0.0, alpha: float = 0.2, threshold: float = 0.05, mode: str = 'constant', cval: Union[float,int] = 0):
 
     input_dtype = image.dtype
-    if input_dtype in {np.uint8, np.uint16}:
+    if input_dtype in {np.uint8, np.uint16, np.int16, np.int32}:
         image = to_float(image)
-    elif input_dtype not in (np.uint8, np.uint16, np.float32):
+    elif input_dtype not in MAX_VALUES_BY_DTYPE.keys():
         raise ValueError("Unexpected dtype {} for UnsharpMask augmentation".format(input_dtype))
     
 

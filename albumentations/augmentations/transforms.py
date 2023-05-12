@@ -1298,8 +1298,8 @@ class GaussNoise(ImageOnlyTransform):
         self.per_channel = per_channel
         self.apply_to_channel_idx = apply_to_channel_idx
 
-    def apply(self, img, gauss=None, channel_idx=None, **params):
-        return F.gauss_noise(img, gauss=gauss, channel_idx=channel_idx)
+    def apply(self, img, gauss=None, **params):
+        return F.gauss_noise(img, gauss=gauss)
 
     def get_params_dependent_on_targets(self, params):
         image = params["image"]
@@ -1573,6 +1573,7 @@ class ToFloat(ImageOnlyTransform):
         :class:`~albumentations.augmentations.transforms.FromFloat`
 
     Args:
+        min_value (float): minimum possible input value. Default: None.
         max_value (float): maximum possible input value. Default: None.
         p (float): probability of applying the transform. Default: 1.0.
 
@@ -1584,15 +1585,16 @@ class ToFloat(ImageOnlyTransform):
 
     """
 
-    def __init__(self, max_value=None, always_apply=False, p=1.0):
+    def __init__(self, min_value = None, max_value=None, always_apply=False, p=1.0):
         super(ToFloat, self).__init__(always_apply, p)
         self.max_value = max_value
+        self.min_value = min_value
 
     def apply(self, img, **params):
-        return F.to_float(img, self.max_value)
+        return F.to_float(img, self.min_value, self.max_value)
 
     def get_transform_init_args_names(self):
-        return ("max_value",)
+        return ("max_value","min_value")
 
 
 class FromFloat(ImageOnlyTransform):
@@ -1603,9 +1605,10 @@ class FromFloat(ImageOnlyTransform):
     This is the inverse transform for :class:`~albumentations.augmentations.transforms.ToFloat`.
 
     Args:
+        min_value (float): minimum possible input value. Default: None.
         max_value (float): maximum possible input value. Default: None.
         dtype (string or numpy data type): data type of the output. See the `'Data types' page from the NumPy docs`_.
-            Default: 'uint16'.
+            Default: 'uint8'.
         p (float): probability of applying the transform. Default: 1.0.
 
     Targets:
@@ -1618,16 +1621,17 @@ class FromFloat(ImageOnlyTransform):
        https://docs.scipy.org/doc/numpy/user/basics.types.html
     """
 
-    def __init__(self, dtype="uint16", max_value=None, always_apply=False, p=1.0):
+    def __init__(self, dtype="uint8", min_value = None, max_value=None, always_apply=False, p=1.0):
         super(FromFloat, self).__init__(always_apply, p)
         self.dtype = np.dtype(dtype)
+        self.min_value = min_value
         self.max_value = max_value
 
     def apply(self, img, **params):
-        return F.from_float(img, self.dtype, self.max_value)
+        return F.from_float(img, self.dtype, self.min_value, self.max_value)
 
     def get_transform_init_args(self):
-        return {"dtype": self.dtype.name, "max_value": self.max_value}
+        return {"dtype": self.dtype.name, "min_value": self.min_value, "max_value": self.max_value}
 
 
 class Downscale(ImageOnlyTransform):
@@ -1646,7 +1650,7 @@ class Downscale(ImageOnlyTransform):
         image
 
     Image types:
-        uint8, uint16, float32
+        uint8, uint16, int16, int32, float32
     """
 
     class Interpolation:
@@ -1989,16 +1993,37 @@ class Sharpen(ImageOnlyTransform):
         alpha ((float, float)): range to choose the visibility of the sharpened image. At 0, only the original image is
             visible, at 1.0 only its sharpened version is visible. Default: (0.2, 0.5).
         lightness ((float, float)): range to choose the lightness of the sharpened image. Default: (0.5, 1.0).
+        mode (str): scipy parameter to determine how the input image is extended during convolution to maintain image shape
+            Must be one of the following:
+                `reflect` (d c b a | a b c d | d c b a)
+                    The input is extended by reflecting about the edge of the last pixel. This mode is also sometimes referred to as half-sample symmetric.
+                `constant` (k k k k | a b c d | k k k k)
+                    The input is extended by filling all values beyond the edge with the same constant value, defined by the cval parameter.
+                `nearest` (a a a a | a b c d | d d d d)
+                    The input is extended by replicating the last pixel.
+                `mirror` (d c b | a b c d | c b a)
+                    The input is extended by reflecting about the center of the last pixel. This mode is also sometimes referred to as whole-sample symmetric.
+                `wrap` (a b c d | a b c d | a b c d)
+                    The input is extended by wrapping around to the opposite edge.
+                https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.median_filter.html
+            Default: `constant`
+        cval (int,float): The fill value when mode = `constant`. Default: 0
         p (float): probability of applying the transform. Default: 0.5.
 
     Targets:
         image
     """
 
-    def __init__(self, alpha=(0.2, 0.5), lightness=(0.5, 1.0), always_apply=False, p=0.5):
+    def __init__(self, alpha=(0.2, 0.5), lightness=(0.5, 1.0), mode: str = 'constant', cval: Union[float,int] = 0, always_apply=False, p=0.5):
         super(Sharpen, self).__init__(always_apply, p)
         self.alpha = self.__check_values(to_tuple(alpha, 0.0), name="alpha", bounds=(0.0, 1.0))
         self.lightness = self.__check_values(to_tuple(lightness, 0.0), name="lightness")
+        self.mode = mode
+        self.cval = cval
+
+        if self.mode not in {'reflect', 'constant', 'nearest', 'mirror', 'wrap'}:
+            raise ValueError("Expected mode to be one of ('reflect', 'constant', 'nearest', 'mirror', 'wrap'), got {}".format(self.mode))
+
  
     @staticmethod
     def __check_values(value, name, bounds=(0, float("inf"))):
@@ -2035,10 +2060,10 @@ class Sharpen(ImageOnlyTransform):
         return {"sharpening_matrix": sharpening_matrix}
 
     def apply(self, img, sharpening_matrix=None, **params):
-        return F.convolve(img, sharpening_matrix)
+        return F.convolve(img, sharpening_matrix, self.mode, self.cval)
 
     def get_transform_init_args_names(self):
-        return ("alpha", "lightness")
+        return ("alpha", "lightness", "mode", "cval")
 
 
 # class Emboss(ImageOnlyTransform):
@@ -2409,6 +2434,8 @@ class PixelDropout(DualTransform):
                 - uint8 - [0, 255]
                 - uint16 - [0, 65535]
                 - uint32 - [0, 4294967295]
+                - int16 - [-32768, 32767]
+                - int32 - [-2147483648, 2147483647]
                 - float, double - [0, 1]
             Default: 0
         mask_drop_value (number or sequence of numbers or None): Value that will be set in dropped place in masks.
@@ -2479,8 +2506,8 @@ class PixelDropout(DualTransform):
         if self.drop_value is None:
             drop_shape = 1 if is_grayscale_image(img) else int(img.shape[-1])
 
-            if img.dtype in (np.uint8, np.uint16, np.uint32):
-                drop_value = rnd.randint(0, int(F.MAX_VALUES_BY_DTYPE[img.dtype]), drop_shape, img.dtype)
+            if img.dtype in (np.uint8, np.uint16, np.uint32, np.int16, np.int32):
+                drop_value = rnd.randint(F.MIN_VALUES_BY_DTYPE[img.dtype], int(F.MAX_VALUES_BY_DTYPE[img.dtype]), drop_shape, img.dtype)
             elif img.dtype in [np.float32, np.double]:
                 drop_value = rnd.uniform(0, 1, drop_shape).astype(img.dtype)
             else:
