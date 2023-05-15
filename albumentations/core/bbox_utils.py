@@ -576,7 +576,7 @@ def union_of_bboxes(height: int, width: int, depth: int, bboxes: Sequence[BoxTyp
     
         height: Height of image or space.
         width: Width of image or space.
-        slices: Depth of image or space.
+        depth: Depth of image or space.
         bboxes: List of albumentations3d bounding boxes `(x_min, y_min, z_min, x_max, y_max, z_max)`.
         erosion_rate: How much each bounding box can be shrinked, useful for erosive cropping.
             Set this in range [0, 1]. 0 will not be erosive at all, 1.0 can make any bbox to lose its volume.

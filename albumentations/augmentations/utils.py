@@ -62,6 +62,16 @@ NPDTYPE_TO_OPENCV_DTYPE = {
     np.dtype("float64"): cv2.CV_64F,
 }
 
+SCIPY_MODE_TO_NUMPY_MODE = {
+      "reflect" : "symmetric",
+      "constant" : "constant",
+      "nearest" : "edge",
+      "mirror" : "reflect",
+      "wrap" : "wrap"
+
+
+}
+
 
 def read_bgr_image(path):
     return cv2.imread(path, cv2.IMREAD_COLOR)
@@ -136,7 +146,7 @@ def preserve_channel_dim(
     def wrapped_function(img: np.ndarray, *args: P.args, **kwargs: P.kwargs) -> np.ndarray:
         shape = img.shape
         result = func(img, *args, **kwargs)
-        if len(shape) == 3 and shape[-1] == 1 and len(result.shape) == 2:
+        if len(shape) == 4 and shape[-1] == 1 and len(result.shape) == 3:
             result = np.expand_dims(result, axis=-1)
         return result
 

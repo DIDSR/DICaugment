@@ -4,14 +4,16 @@ from typing import List, Optional, Sequence, Tuple, Union
 import cv2
 import numpy as np
 import skimage.transform
-from scipy.ndimage import gaussian_filter
+import scipy.ndimage as ndimage
 
 from albumentations.augmentations.utils import (
     _maybe_process_in_chunks,
+    _maybe_process_by_channel,
     angle_2pi_range,
     clipped,
     preserve_channel_dim,
     preserve_shape,
+    SCIPY_MODE_TO_NUMPY_MODE
 )
 
 from ... import random_utils
@@ -21,6 +23,12 @@ from ...core.transforms_interface import (
     FillValueType,
     ImageColorType,
     KeypointInternalType,
+    INTER_NEAREST,
+    INTER_LINEAR,
+    INTER_QUADRATIC,
+    INTER_CUBIC,
+    INTER_QUARTIC,
+    INTER_QUINTIC
 )
 
 __all__ = [
@@ -362,14 +370,14 @@ def elastic_transform(
             dy *= alpha
     else:
         dx = np.float32(
-            gaussian_filter((random_utils.rand(height, width, random_state=random_state) * 2 - 1), sigma) * alpha
+            ndimage.gaussian_filter((random_utils.rand(height, width, random_state=random_state) * 2 - 1), sigma) * alpha
         )
         if same_dxdy:
             # Speed up
             dy = dx
         else:
             dy = np.float32(
-                gaussian_filter((random_utils.rand(height, width, random_state=random_state) * 2 - 1), sigma) * alpha
+                ndimage.gaussian_filter((random_utils.rand(height, width, random_state=random_state) * 2 - 1), sigma) * alpha
             )
 
     x, y = np.meshgrid(np.arange(width), np.arange(height))
@@ -382,13 +390,23 @@ def elastic_transform(
     )
     return remap_fn(img)
 
+def _resize(img, dsize, interpolation):
+    img_height, img_width, img_depth = img.shape[:3]
+    dst_height, dst_width, dst_depth = dsize
+
+    scale_y = dst_height / img_height
+    scale_x = dst_width / img_width
+    scale_z = dst_depth / img_depth
+
+    return ndimage.zoom(img, zoom = (scale_y,scale_x,scale_z), order=interpolation)
+
 
 @preserve_channel_dim
-def resize(img, height, width, interpolation=cv2.INTER_LINEAR):
-    img_height, img_width = img.shape[:2]
-    if height == img_height and width == img_width:
+def resize(img, height, width, depth, interpolation=INTER_LINEAR):
+    img_height, img_width, img_depth = img.shape[:3]
+    if height == img_height and width == img_width and depth == img_depth:
         return img
-    resize_fn = _maybe_process_in_chunks(cv2.resize, dsize=(width, height), interpolation=interpolation)
+    resize_fn = _maybe_process_by_channel(_resize, dsize=(height, width, depth), interpolation=interpolation)
     return resize_fn(img)
 
 
@@ -1046,13 +1064,13 @@ def keypoint_transpose(keypoint: KeypointInternalType) -> KeypointInternalType:
     """Rotate a keypoint by angle.
 
     Args:
-        keypoint: A keypoint `(x, y, angle, scale)`.
+        keypoint: A keypoint `(x, y, z, angle, scale)`.
 
     Returns:
-        A keypoint `(x, y, angle, scale)`.
+        A keypoint `(x, y, z, angle, scale)`.
 
     """
-    x, y, angle, scale = keypoint[:4]
+    x, y, z, angle, scale = keypoint[:5]
 
     if angle <= np.pi:
         angle = np.pi - angle
@@ -1067,10 +1085,11 @@ def pad(
     img: np.ndarray,
     min_height: int,
     min_width: int,
-    border_mode: int = cv2.BORDER_REFLECT_101,
-    value: Optional[ImageColorType] = None,
+    min_depth: int,
+    border_mode: int = "constant",
+    value: Union[float,int] = 0,
 ) -> np.ndarray:
-    height, width = img.shape[:2]
+    height, width, depth = img.shape[:3]
 
     if height < min_height:
         h_pad_top = int((min_height - height) / 2.0)
@@ -1086,16 +1105,34 @@ def pad(
         w_pad_left = 0
         w_pad_right = 0
 
-    img = pad_with_params(img, h_pad_top, h_pad_bottom, w_pad_left, w_pad_right, border_mode, value)
+    if depth < min_depth:
+        d_pad_close = int((min_depth - depth) / 2.0)
+        d_pad_far = min_depth - depth - d_pad_close
+    else:
+        d_pad_close = 0
+        d_pad_far = 0
 
-    if img.shape[:2] != (max(min_height, height), max(min_width, width)):
+    img = pad_with_params(img, h_pad_top, h_pad_bottom, w_pad_left, w_pad_right, d_pad_close, d_pad_far, border_mode, value)
+
+    if img.shape[:3] != (max(min_height, height), max(min_width, width), max(min_depth, depth)):
         raise RuntimeError(
             "Invalid result shape. Got: {}. Expected: {}".format(
-                img.shape[:2], (max(min_height, height), max(min_width, width))
+                img.shape[:3], (max(min_height, height), max(min_width, width), max(min_depth, depth))
             )
         )
 
     return img
+
+
+def _pad(
+    img: np.ndarray,
+    pad_width: List[Tuple,Tuple,Tuple],
+    border_mode: str = 'constant',
+    value: Union[float,int] = 0
+) -> np.ndarray:
+    
+    return np.pad(img, pad_width=pad_width, border_mode=SCIPY_MODE_TO_NUMPY_MODE[border_mode], constant_values = value)
+
 
 
 @preserve_channel_dim
@@ -1105,18 +1142,16 @@ def pad_with_params(
     h_pad_bottom: int,
     w_pad_left: int,
     w_pad_right: int,
-    border_mode: int = cv2.BORDER_REFLECT_101,
-    value: Optional[ImageColorType] = None,
+    d_pad_close: int,
+    d_pad_far: int,
+    border_mode: str = 'constant',
+    value: Union[float,int] = None,
 ) -> np.ndarray:
-    pad_fn = _maybe_process_in_chunks(
-        cv2.copyMakeBorder,
-        top=h_pad_top,
-        bottom=h_pad_bottom,
-        left=w_pad_left,
-        right=w_pad_right,
-        borderType=border_mode,
-        value=value,
-    )
+    pad_fn = _maybe_process_by_channel(
+        _pad,
+        pad_width=((h_pad_top, h_pad_bottom),(w_pad_left, w_pad_right),(d_pad_close, d_pad_far)),
+        border_mode=border_mode,
+        value=value)
     return pad_fn(img)
 
 
