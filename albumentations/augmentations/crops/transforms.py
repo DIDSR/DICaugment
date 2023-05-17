@@ -1001,14 +1001,14 @@ class RandomCropFromBorders(DualTransform):
     def apply(self, img, x_min=0, x_max=0, y_min=0, y_max=0, z_min=0, z_max=0, **params):
         return F.clamping_crop(img, x_min, y_min, z_min, x_max, y_max, z_max)
 
-    def apply_to_mask(self, mask, x_min=0, x_max=0, y_min=0, y_max=0, z_min=0, z_max=0,**params):
+    def apply_to_mask(self, mask, x_min=0, x_max=0, y_min=0, y_max=0, z_min=0, z_max=0, **params):
         return F.clamping_crop(mask, x_min, y_min, z_min, x_max, y_max, z_max)
 
-    def apply_to_bbox(self, bbox, x_min=0, x_max=0, y_min=0, y_max=0, z_min=0, z_max=0,**params):
+    def apply_to_bbox(self, bbox, x_min=0, x_max=0, y_min=0, y_max=0, z_min=0, z_max=0, **params):
         rows, cols, slices = params["rows"], params["cols"], params["slices"]
         return F.bbox_crop(bbox, x_min, y_min, z_min, x_max, y_max, z_max, rows, cols, slices)
 
-    def apply_to_keypoint(self, keypoint, x_min=0, x_max=0, y_min=0, y_max=0, z_min=0, z_max=0,**params):
+    def apply_to_keypoint(self, keypoint, x_min=0, x_max=0, y_min=0, y_max=0, z_min=0, z_max=0, **params):
         return F.crop_keypoint_by_coords(keypoint, crop_coords=(x_min, y_min, z_min, x_max, y_max, z_max))
 
     @property

@@ -33,6 +33,8 @@ class Blur(ImageOnlyTransform):
     Args:
         blur_limit (int, (int, int)): maximum kernel size for blurring the input image.
             Should be in range [3, inf). Default: (3, 7).
+        by_slice (bool): Whether the kernel should be applied by slice or the image as a whole. If true, a 2D kernel is convolved along each slice of the image.
+            Otherwise, a 3D kernel is used. Default: False
         mode (str): scipy parameter to determine how the input image is extended during convolution to maintain image shape
             Must be one of the following:
                 `reflect` (d c b a | a b c d | d c b a)
@@ -57,23 +59,24 @@ class Blur(ImageOnlyTransform):
         uint8, uint16, float32
     """
 
-    def __init__(self, blur_limit: ScaleIntType = 7, always_apply: bool = False, p: float = 0.5, mode: str = 'constant', cval: Union[float,int] = 0):
+    def __init__(self, blur_limit: ScaleIntType = 7, by_slice: bool = False, mode: str = 'constant', cval: Union[float,int] = 0, always_apply: bool = False, p: float = 0.5):
         super().__init__(always_apply, p)
         self.blur_limit = to_tuple(blur_limit, 3)
         self.mode = mode
+        self.by_slice = by_slice
         self.cval = cval
 
         if self.mode not in {'reflect', 'constant', 'nearest', 'mirror', 'wrap'}:
             raise ValueError("Expected mode to be one of ('reflect', 'constant', 'nearest', 'mirror', 'wrap'), got {}".format(self.mode))
 
     def apply(self, img: np.ndarray, ksize: int = 3, **params) -> np.ndarray:
-        return F.blur(img, ksize, mode = self.mode, cval = self.cval)
+        return F.blur(img, ksize, by_slice = self.by_slice, mode = self.mode, cval = self.cval)
 
     def get_params(self) -> Dict[str, Any]:
         return {"ksize": int(random.choice(list(range(self.blur_limit[0], self.blur_limit[1] + 1, 2))))}
 
     def get_transform_init_args_names(self) -> Tuple[str, ...]:
-        return ("blur_limit", "mode", "cval")
+        return ("blur_limit", "by_slice", "mode", "cval")
 
 
 # class MotionBlur(Blur):
@@ -157,6 +160,8 @@ class MedianBlur(Blur):
     Args:
         blur_limit (int): maximum aperture linear size for blurring the input image.
             Must be odd and in range [3, inf). Default: (3, 7).
+        by_slice (bool): Whether the kernel should be applied by slice or the image as a whole. If true, a 2D kernel is convolved along each slice of the image.
+            Otherwise, a 3D kernel is used. Default: False
         mode (str): scipy parameter to determine how the input image is extended during convolution to maintain image shape
             Must be one of the following:
                 `reflect` (d c b a | a b c d | d c b a)
@@ -181,14 +186,14 @@ class MedianBlur(Blur):
         uint8, uint16, float32
     """
 
-    def __init__(self, blur_limit: ScaleIntType = 7, always_apply: bool = False, p: float = 0.5, mode: str = 'constant', cval: Union[float,int] = 0):
-        super().__init__(blur_limit, always_apply, p, mode, cval)
+    def __init__(self, blur_limit: ScaleIntType = 7, by_slice: bool = False, mode: str = 'constant', cval: Union[float,int] = 0, always_apply: bool = False, p: float = 0.5, ):
+        super().__init__(blur_limit, by_slice, mode, cval, always_apply, p)
 
         if self.blur_limit[0] % 2 != 1 or self.blur_limit[1] % 2 != 1:
             raise ValueError("MedianBlur supports only odd blur limits.")
 
     def apply(self, img: np.ndarray, ksize: int = 3, **params) -> np.ndarray:
-        return F.median_blur(img, ksize, mode = self.mode, cval = self.cval)
+        return F.median_blur(img, ksize, by_slice = self.by_slice, mode = self.mode, cval = self.cval)
 
 
 class GaussianBlur(ImageOnlyTransform):
@@ -203,6 +208,8 @@ class GaussianBlur(ImageOnlyTransform):
         sigma_limit (float, (float, float)): Gaussian kernel standard deviation. Must be in range [0, inf).
             If set single value `sigma_limit` will be in range (0, sigma_limit).
             If set to 0 sigma will be computed as `sigma = 0.3*((ksize-1)*0.5 - 1) + 0.8`. Default: 0.
+        by_slice (bool): Whether the kernel should be applied by slice or the image as a whole. If true, a 2D kernel is convolved along each slice of the image.
+            Otherwise, a 3D kernel is used. Default: False
         mode (str): scipy parameter to determine how the input image is extended during convolution to maintain image shape
             Must be one of the following:
                 `reflect` (d c b a | a b c d | d c b a)
@@ -231,6 +238,7 @@ class GaussianBlur(ImageOnlyTransform):
         self,
         blur_limit: ScaleIntType = (3, 7),
         sigma_limit: ScaleFloatType = 0,
+        by_slice: bool = False,
         always_apply: bool = False,
         p: float = 0.5,
         mode: str = 'constant',
@@ -239,6 +247,7 @@ class GaussianBlur(ImageOnlyTransform):
         super().__init__(always_apply, p)
         self.blur_limit = to_tuple(blur_limit, 0)
         self.sigma_limit = to_tuple(sigma_limit if sigma_limit is not None else 0, 0)
+        self.by_slice = by_slice
         self.mode = mode
         self.cval = cval
 
@@ -258,7 +267,7 @@ class GaussianBlur(ImageOnlyTransform):
             raise ValueError("GaussianBlur supports only odd blur limits.")
 
     def apply(self, img: np.ndarray, ksize: int = 3, sigma: float = 0, **params) -> np.ndarray:
-        return F.gaussian_blur(img, ksize, sigma=sigma, mode = self.mode, cval = self.cval)
+        return F.gaussian_blur(img, ksize, sigma=sigma, by_slice=self.by_slice, mode = self.mode, cval = self.cval)
 
     def get_params(self) -> Dict[str, float]:
         ksize = random.randrange(self.blur_limit[0], self.blur_limit[1] + 1)
@@ -268,7 +277,7 @@ class GaussianBlur(ImageOnlyTransform):
         return {"ksize": ksize, "sigma": random.uniform(*self.sigma_limit)}
 
     def get_transform_init_args_names(self) -> Tuple[str, str]:
-        return ("blur_limit", "sigma_limit", "mode", "cval")
+        return ("blur_limit", "sigma_limit", "by_slice", "mode", "cval")
 
 
 # class GlassBlur(Blur):

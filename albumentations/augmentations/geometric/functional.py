@@ -5,6 +5,7 @@ import cv2
 import numpy as np
 import skimage.transform
 import scipy.ndimage as ndimage
+from functools import reduce
 
 from albumentations.augmentations.utils import (
     _maybe_process_in_chunks,
@@ -83,83 +84,142 @@ __all__ = [
 ]
 
 
-def bbox_rot90(bbox: BoxInternalType, factor: int, rows: int, cols: int) -> BoxInternalType:  # skipcq: PYL-W0613
-    """Rotates a bounding box by 90 degrees CCW (see np.rot90)
+
+def bbox_rot90(bbox: BoxInternalType, factor: int, axes: str, rows: int, cols: int, slices:int) -> BoxInternalType:  # skipcq: PYL-W0613
+    """Rotates a bounding box by 90 degrees in the direction dicated by a right-handed coordinate system. 
+        i.e. from a top-level view of the xy plane:
+            Rotation around the z-axis: counterclockwise rotation
+            Rotation around the y-axis: left to right rotation
+            Rotation around the x-axis: bottom to top rotation
 
     Args:
-        bbox: A bounding box tuple (x_min, y_min, x_max, y_max).
+        bbox: A bounding box tuple (x_min, y_min, z_min, x_max, y_max, z_max).
         factor: Number of CCW rotations. Must be in set {0, 1, 2, 3} See np.rot90.
+        axes: The axes that define the axis of rotation. Must be in {'xy','yz','xz'}
         rows: Image rows.
         cols: Image cols.
+        slices: Image depth.
 
     Returns:
-        tuple: A bounding box tuple (x_min, y_min, x_max, y_max).
+        tuple: A bounding box tuple (x_min, y_min, z_min, x_max, y_max, z_max).
 
     """
     if factor not in {0, 1, 2, 3}:
         raise ValueError("Parameter n must be in set {0, 1, 2, 3}")
-    x_min, y_min, x_max, y_max = bbox[:4]
-    if factor == 1:
-        bbox = y_min, 1 - x_max, y_max, 1 - x_min
-    elif factor == 2:
-        bbox = 1 - x_max, 1 - y_max, 1 - x_min, 1 - y_min
-    elif factor == 3:
-        bbox = 1 - y_max, x_min, 1 - y_min, x_max
+    if axes not in {"xy", "yz", "xz"}:
+        raise ValueError("Parameter axes must be one of {'xy','yz','xz'}")
+    x_min, y_min, z_min, x_max, y_max, z_max = bbox[:6]
+
+    if axes == 'xy':
+        if factor == 1:
+            bbox = y_min, 1 - x_max, z_min, y_max, 1 - x_min, z_max
+        elif factor == 2:
+            bbox = 1 - x_max, 1 - y_max, z_min, 1 - x_min, 1 - y_min, z_max
+        elif factor == 3:
+            bbox = 1 - y_max, x_min, z_min, 1 - y_min, x_max, z_max
+    elif axes == 'xz':
+        if factor == 1:
+            bbox = 1 - z_max, y_min, x_min, 1 - z_min, y_max, z_min
+        elif factor == 2:
+            bbox = 1 - x_max, y_min, 1 - z_max, 1 - x_min, y_max, 1- z_min
+        elif factor == 3:
+            bbox = z_min, y_min, 1 - x_min, z_max, y_max, 1 - x_max
+    elif axes == 'yz':
+        if factor == 1:
+            bbox = x_min, 1- z_max, y_min, x_max, 1 - z_min, y_max
+        elif factor == 2:
+            bbox = x_min, 1 - y_max, 1- z_max, x_max, 1 - y_min, 1 - z_min
+        elif factor == 3:
+            bbox = x_min, z_min, 1 - y_max, x_max, z_max, 1 - y_min
+    
     return bbox
 
 
 @angle_2pi_range
-def keypoint_rot90(keypoint: KeypointInternalType, factor: int, rows: int, cols: int, **params) -> KeypointInternalType:
-    """Rotates a keypoint by 90 degrees CCW (see np.rot90)
-
+def keypoint_rot90(keypoint: KeypointInternalType, factor: int, axes: str, rows: int, cols: int, slices: int, **params) -> KeypointInternalType:
+    """Rotates a bounding box by 90 degrees in the direction dicated by a right-handed coordinate system. 
+        i.e. from a top-level view of the xy plane:
+            Rotation around the z-axis: counterclockwise rotation
+            Rotation around the y-axis: left to right rotation
+            Rotation around the x-axis: bottom to top rotation
     Args:
-        keypoint: A keypoint `(x, y, angle, scale)`.
+        keypoint: A keypoint `(x, y, z, angle, scale)`.
         factor: Number of CCW rotations. Must be in range [0;3] See np.rot90.
+        axes: The axes that define the axis of rotation. Must be in {'xy','yz','xz'}
         rows: Image height.
         cols: Image width.
 
     Returns:
-        tuple: A keypoint `(x, y, angle, scale)`.
+        tuple: A keypoint `(x, y, z, angle, scale)`.
 
     Raises:
         ValueError: if factor not in set {0, 1, 2, 3}
 
     """
-    x, y, angle, scale = keypoint[:4]
+    x, y, z, angle, scale = keypoint[:5]
 
     if factor not in {0, 1, 2, 3}:
         raise ValueError("Parameter n must be in set {0, 1, 2, 3}")
+    if axes not in {"xy", "yz", "xz"}:
+        raise ValueError("Parameter axes must be one of {'xy','yz','xz'}")
 
-    if factor == 1:
-        x, y, angle = y, (cols - 1) - x, angle - math.pi / 2
-    elif factor == 2:
-        x, y, angle = (cols - 1) - x, (rows - 1) - y, angle - math.pi
-    elif factor == 3:
-        x, y, angle = (rows - 1) - y, x, angle + math.pi / 2
+    if axes == 'xy':
+        if factor == 1:
+            x, y, z, angle = y, (cols - 1) - x, z, angle - math.pi / 2
+        elif factor == 2:
+            x, y, z, angle = (cols - 1) - x, (rows - 1) - y, z, angle - math.pi
+        elif factor == 3:
+            x, y, z, angle = (rows - 1) - y, x, z, angle + math.pi / 2
+    if axes == 'xz':
+        if factor == 1:
+            x, y, z, angle = (slices - 1) - z, y, x, angle + math.pi / 2
+        elif factor == 2:
+            x, y, z, angle = (cols - 1) - x, y, (slices - 1) - z, angle - math.pi
+        elif factor == 3:
+            x, y, z, angle = z, y, (cols - 1) - x, angle - math.pi / 2
+    if axes == 'yz':
+        if factor == 1:
+            x, y, z, angle = x , (slices - 1) - z, y, angle + math.pi / 2
+        elif factor == 2:
+            x, y, z, angle = x, (rows - 1) - y, (slices - 1) - z, angle - math.pi
+        elif factor == 3:
+            x, y, z, angle = x, z, (rows - 1) - y,  angle - math.pi / 2
 
-    return x, y, angle, scale
+    return x, y, z, angle, scale
+
 
 
 @preserve_channel_dim
 def rotate(
     img: np.ndarray,
     angle: float,
+    axes: str,
     interpolation: int = cv2.INTER_LINEAR,
     border_mode: int = cv2.BORDER_REFLECT_101,
     value: Optional[ImageColorType] = None,
 ):
-    height, width = img.shape[:2]
-    # for images we use additional shifts of (0.5, 0.5) as otherwise
-    # we get an ugly black border for 90deg rotations
-    matrix = cv2.getRotationMatrix2D((width / 2 - 0.5, height / 2 - 0.5), angle, 1.0)
+    height, width, depth = img.shape[:3]
+    center = (height/2, width/2, depth/2)
+    to_origin_matrix = _get_translation_matrix(*center)
+    from_origin_matrix = _get_translation_matrix(*[-c for c in center])
+    rotation_matrix = _get_rotation_matrix(angle, axes)
 
-    warp_fn = _maybe_process_in_chunks(
-        cv2.warpAffine, M=matrix, dsize=(width, height), flags=interpolation, borderMode=border_mode, borderValue=value
+    matrix = reduce(
+        np.matmul,
+        (
+            to_origin_matrix,
+            rotation_matrix,
+            from_origin_matrix,
+        ) 
+        )
+
+    warp_affine_fn = _maybe_process_by_channel(
+        ndimage.affine_transform, input=img, matrix=matrix, order=interpolation, mode=border_mode, cval=value
     )
-    return warp_fn(img)
+    return warp_affine_fn(img)
 
 
-def bbox_rotate(bbox: BoxInternalType, angle: float, method: str, rows: int, cols: int) -> BoxInternalType:
+def bbox_rotate(bbox: BoxInternalType, angle: float, method: str, axes: str, rows: int, cols: int, slices: int) -> BoxInternalType:
     """Rotates a bounding box by angle degrees.
 
     Args:
@@ -176,29 +236,53 @@ def bbox_rotate(bbox: BoxInternalType, angle: float, method: str, rows: int, col
         https://arxiv.org/abs/2109.13488
 
     """
-    x_min, y_min, x_max, y_max = bbox[:4]
-    scale = cols / float(rows)
+    x_min, y_min, z_min, x_max, y_max, z_max = denormalize_bbox(list(map(lambda x: x - 0.5, bbox[:6])), rows, cols, slices)
+    #scale = cols / float(rows)
     if method == "largest_box":
-        x = np.array([x_min, x_max, x_max, x_min]) - 0.5
-        y = np.array([y_min, y_min, y_max, y_max]) - 0.5
+        bbox_points = np.array(
+            [
+                [x_min, y_min, z_min, 1],
+                [x_max, y_max, z_max, 1]
+            ]
+        )
     elif method == "ellipse":
         w = (x_max - x_min) / 2
         h = (y_max - y_min) / 2
+        d = (z_max - z_min) / 2
         data = np.arange(0, 360, dtype=np.float32)
-        x = w * np.sin(np.radians(data)) + (w + x_min - 0.5)
-        y = h * np.cos(np.radians(data)) + (h + y_min - 0.5)
+
+        if axes == "xy":
+            x = np.tile(w * np.sin(np.radians(data)) + (w + x_min), 2)
+            y = np.tile(h * np.cos(np.radians(data)) + (h + y_min), 2)
+            z = np.concatenate((np.full((360,), z_min), np.full((360,), z_max)))
+        elif axes == "xz":
+            x = np.tile(w * np.sin(np.radians(data)) + (w + x_min), 2)
+            y = np.concatenate((np.full((360,), y_min), np.full((360,), y_max)))
+            z = np.tile(d * np.cos(np.radians(data)) + (d + z_min), 2)
+        elif axes == "yz":
+            x = np.concatenate((np.full((360,), x_min), np.full((360,), x_max)))
+            y = np.tile(h * np.cos(np.radians(data)) + (h + y_min), 2)
+            z = np.tile(d * np.sin(np.radians(data)) + (d + z_min), 2)
+        else:
+            raise ValueError("Parameter axes must be one of {'xy','yz','xz'}")
+        
+        bbox_points = np.column_stack(
+                [x,y,z, np.ones(720)],
+            )
     else:
         raise ValueError(f"Method {method} is not a valid rotation method.")
+    
+    
     angle = np.deg2rad(angle)
-    x_t = (np.cos(angle) * x * scale + np.sin(angle) * y) / scale
-    y_t = -np.sin(angle) * x * scale + np.cos(angle) * y
-    x_t = x_t + 0.5
-    y_t = y_t + 0.5
 
-    x_min, x_max = min(x_t), max(x_t)
-    y_min, y_max = min(y_t), max(y_t)
+    bbox_points_t = np.matmul(bbox_points, _get_rotation_matrix(angle, axes))
 
-    return x_min, y_min, x_max, y_max
+    x_min, x_max = np.min(bbox_points_t[:,0]), np.max(bbox_points_t[:,0])
+    y_min, y_max = np.min(bbox_points_t[:,1]), np.max(bbox_points_t[:,1])
+    z_min, z_max = np.min(bbox_points_t[:,2]), np.max(bbox_points_t[:,2])
+
+    bbox = x_min, y_min, z_min, x_max, y_max, z_max
+    return list(map(lambda x: x + 0.5, normalize_bbox(bbox, rows, cols, slices)))
 
 
 @angle_2pi_range
@@ -222,20 +306,83 @@ def keypoint_rotate(keypoint, angle, rows, cols, **params):
     return x, y, a + math.radians(angle), s
 
 
+def _get_rotation_matrix(theta, axes, dir = 1):
+    if axes == "xy":
+        arr = np.array([
+            [       np.cos(theta), dir * np.sin(theta), 0, 0],
+            [dir * -np.sin(theta),       np.cos(theta), 0, 0],
+            [                   0,                   0, 1, 0],
+            [                   0,                   0, 0, 1],
+        ],
+        dtype= np.float32)
+    
+    elif axes == "xz":
+        arr = np.array([
+            [      np.cos(theta), 0, dir * -np.sin(theta), 0],
+            [                  0, 1,                    0, 0],
+            [dir * np.sin(theta), 0,        np.cos(theta), 0],
+            [                  0, 0,                    0, 1],
+        ],
+        dtype= np.float32)
+
+    elif axes == "yz":
+        arr = np.array([
+            [1,                   0,                    0, 0],
+            [0,       np.cos(theta), dir * -np.sin(theta), 0],
+            [0, dir * np.sin(theta),        np.cos(theta), 0],
+            [0,                   0,                    0, 1],
+        ],
+        dtype= np.float32)
+
+    else:
+        raise ValueError("Parameter axes must be one of {'xy','yz','xz'}")
+    
+    return arr
+
+def _get_translation_matrix(x,y,z):
+    return np.array([
+        [1, 0, 0, y],
+        [0, 1, 0, x],
+        [0, 0, 1, z],
+        [0, 0, 0, 1],
+    ],
+    dtype= np.float32)
+
+def _get_scale_matrix(dx,dy,dz):
+    return np.array([
+        [dy,  0,  0, 0],
+        [ 0, dx,  0, 0],
+        [ 0,  0, dz, 0],
+        [ 0,  0,  0, 1],
+    ],
+    dtype= np.float32)
+
+
 @preserve_channel_dim
 def shift_scale_rotate(
-    img, angle, scale, dx, dy, interpolation=cv2.INTER_LINEAR, border_mode=cv2.BORDER_REFLECT_101, value=None
+    img, angle, scale, dx, dy, dz, axes = "xy", interpolation=INTER_LINEAR, border_mode="constant", value=0
 ):
-    height, width = img.shape[:2]
-    # for images we use additional shifts of (0.5, 0.5) as otherwise
-    # we get an ugly black border for 90deg rotations
-    center = (width / 2 - 0.5, height / 2 - 0.5)
-    matrix = cv2.getRotationMatrix2D(center, angle, scale)
-    matrix[0, 2] += dx * width
-    matrix[1, 2] += dy * height
+    height, width, depth = img.shape[:3]
+    center = (height/2, width/2, depth/2)
+    to_origin_matrix = _get_translation_matrix(*center)
+    from_origin_matrix = _get_translation_matrix(*[-c for c in center])
+    rotation_matrix = _get_rotation_matrix(angle, axes)
+    scale_matrix = _get_scale_matrix(*scale)
+    translation_matrix = _get_translation_matrix(dy*height, dx*width, dz*depth)
 
-    warp_affine_fn = _maybe_process_in_chunks(
-        cv2.warpAffine, M=matrix, dsize=(width, height), flags=interpolation, borderMode=border_mode, borderValue=value
+    matrix = reduce(
+        np.matmul,
+        (
+            to_origin_matrix,
+            rotation_matrix,
+            scale_matrix,
+            from_origin_matrix,
+            translation_matrix
+        ) 
+        )
+
+    warp_affine_fn = _maybe_process_by_channel(
+        ndimage.affine_transform, input=img, matrix=matrix, order=interpolation, mode=border_mode, cval=value
     )
     return warp_affine_fn(img)
 

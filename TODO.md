@@ -17,6 +17,17 @@
 * ToFloat
 * UnsharpMask
 * PixelDropout
+* CenterCrop
+* Crop
+* CropAndPad
+* RandomCrop
+* RandomCropFromBorders
+* RandomCropNearBBox
+* RandomResizedCrop
+* RandomRotate90
+* RandomSizedCrop
+* BBoxSafeRandomCrop
+* RandomSizedBBoxSafeCrop
 
 # ADD:
 * Datasets Class and Subclasses
@@ -27,10 +38,6 @@
 * **ColorJitter** - Remove Hue and Saturation
 * RandomGamma
 * Affine
-* BBoxSafeRandomCrop	
-* CenterCrop
-* Crop
-* CropAndPad
 * ElasticTransform
 * Flip
 * HorizontalFlip
@@ -38,15 +45,8 @@
 * LongestMaxSize
 * PadIfNeeded
 * Perspective
-* RandomCrop
-* RandomCropFromBorders
-* RandomCropNearBBox
 * RandomGridShuffle
-* RandomResizedCrop
-* RandomRotate90
 * RandomScale
-* RandomSizedBBoxSafeCrop	
-* RandomSizedCrop
 * Resize
 * Rotate
 * SafeRotate

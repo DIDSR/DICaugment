@@ -22,6 +22,9 @@ class RandomRotate90(DualTransform):
     """Randomly rotate the input by 90 degrees zero or more times.
 
     Args:
+        axes (str, list of str): Defines the axis of rotation. Must be one of {'xy','yz','xz'} or a list of them.
+            If a single str is passed, then all rotations will occur on that axis
+            If a list is passed, then one axis of rotation will be chosen at random for each call of the transformation
         p (float): probability of applying the transform. Default: 0.5.
 
     Targets:
@@ -30,26 +33,52 @@ class RandomRotate90(DualTransform):
     Image types:
         uint8, float32
     """
+    def __init__(
+        self,
+        axes = "xy",
+        always_apply=False,
+        p=0.5,
+    ):
+        super(RandomRotate90, self).__init__(always_apply, p)
+        if isinstance(axes, str) and axes not in {"xy", "yz", "xz"}:
+            raise ValueError("Parameter axes must be one of {'xy','yz','xz'} or a list of these elements")
+        if isinstance(axes, Sequence) and len(set(axes).difference({"xy", "yz", "xz"})) != 0:
+            raise ValueError("Parameter axes contains one or more elements that are not allowed. Got {}".format(set(axes).difference({"xy", "yz", "xz"})))
+        
+        self.axes = axes
 
-    def apply(self, img, factor=0, **params):
+    def apply(self, img, factor=0, axes = "xy", **params):
         """
         Args:
             factor (int): number of times the input will be rotated by 90 degrees.
         """
-        return np.ascontiguousarray(np.rot90(img, factor))
+
+        return np.ascontiguousarray(np.rot90(img, factor, self.__str_axes_to_tuple[axes]))
 
     def get_params(self):
         # Random int in the range [0, 3]
-        return {"factor": random.randint(0, 3)}
+        return {
+            "factor": random.randint(0, 3),
+            "axes" : self.axes if isinstance(self.axes, str) else random.choice(self.axes)
+            }
 
-    def apply_to_bbox(self, bbox, factor=0, **params):
+    def apply_to_bbox(self, bbox, factor=0, axes="xy", **params):
         return F.bbox_rot90(bbox, factor, **params)
 
-    def apply_to_keypoint(self, keypoint, factor=0, **params):
+    def apply_to_keypoint(self, keypoint, factor=0, axes="xy", **params):
         return F.keypoint_rot90(keypoint, factor, **params)
+    
+    @staticmethod
+    @property
+    def __str_axes_to_tuple():
+        return {
+            "xy" : (0,1),
+            "yz" : (0,2),
+            "xz" : (1,2)
+        }
 
     def get_transform_init_args_names(self):
-        return ()
+        return ("axes",)
 
 
 class Rotate(DualTransform):
