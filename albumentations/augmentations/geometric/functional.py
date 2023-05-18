@@ -187,22 +187,87 @@ def keypoint_rot90(keypoint: KeypointInternalType, factor: int, axes: str, rows:
 
     return x, y, z, angle, scale
 
+def _get_new_image_shape(rows, cols, slices, rot_mat, scale_x = 1, scale_y = 1, scale_z = 1):
+    """
+    Finds the bounding box of the image transformation and provides the new shape that encapsulates the entire image
+    """
+    rows /= 2
+    cols /= 2
+    slices /= 2
+    arr = np.array(
+        [
+            [-rows, -cols, -slices, 1],
+            [-rows, -cols,  slices, 1],
+            [-rows,  cols, -slices, 1],
+            [-rows,  cols,  slices, 1],
+            [ rows, -cols, -slices, 1],
+            [ rows, -cols,  slices, 1],
+            [ rows,  cols, -slices, 1],
+            [ rows,  cols,  slices, 1],
+        ]).T
+    arr = np.matmul(rot_mat, arr)
 
+    n_rows = int((np.max(arr[0]) - np.min(arr[0]))*scale_y)
+    n_cols = int((np.max(arr[1]) - np.min(arr[1]))*scale_x)
+    n_slices = int((np.max(arr[2]) - np.min(arr[2]))*scale_z)
+
+    return n_rows, n_cols, n_slices
 
 @preserve_channel_dim
 def rotate(
     img: np.ndarray,
     angle: float,
     axes: str,
-    interpolation: int = cv2.INTER_LINEAR,
-    border_mode: int = cv2.BORDER_REFLECT_101,
-    value: Optional[ImageColorType] = None,
+    crop_to_border: bool = True,
+    interpolation: int = INTER_LINEAR,
+    border_mode: int = "constant",
+    value: Union[float,int] = 0,
 ):
-    height, width, depth = img.shape[:3]
+    """
+    Rotates an image by angle degrees.
+    
+    Args:
+        img: Target image.
+        angle: Angle of rotation in degrees.
+        axes: The axis of rotation. Must be one of `{'xy', 'xz', 'yz'}`.
+        crop_to_border: If True, then the image is cropped to fit the entire rotation. If False, then original image shape is
+            maintained and some portions of the image may be cropped away. Default: True
+        interpolation: scipy interpolation method (e.g. albumenations3d.INTER_NEAREST).
+        border_mode: scipy parameter to determine how the input image is extended during convolution to maintain image shape
+            Must be one of the following:
+                `reflect` (d c b a | a b c d | d c b a)
+                    The input is extended by reflecting about the edge of the last pixel. This mode is also sometimes referred to as half-sample symmetric.
+                `constant` (k k k k | a b c d | k k k k)
+                    The input is extended by filling all values beyond the edge with the same constant value, defined by the cval parameter.
+                `nearest` (a a a a | a b c d | d d d d)
+                    The input is extended by replicating the last pixel.
+                `mirror` (d c b | a b c d | c b a)
+                    The input is extended by reflecting about the center of the last pixel. This mode is also sometimes referred to as whole-sample symmetric.
+                `wrap` (a b c d | a b c d | a b c d)
+                    The input is extended by wrapping around to the opposite edge.
+                https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.median_filter.html
+            Default: `constant`
+        value: The fill value when border_mode = `constant`. Default: 0        
+
+    Returns:
+        Image
+
+    """
+    
+    angle = np.deg2rad(angle)
+    out_shape = img.shape[:3]
+    height, width, depth = out_shape
     center = (height/2, width/2, depth/2)
     to_origin_matrix = _get_translation_matrix(*center)
-    from_origin_matrix = _get_translation_matrix(*[-c for c in center])
     rotation_matrix = _get_rotation_matrix(angle, axes)
+
+    if crop_to_border:
+        out_shape = _get_new_image_shape(height, width, depth, rotation_matrix)
+        height, width, depth = out_shape[:3]
+        center = (height/2, width/2, depth/2)
+
+    from_origin_matrix = _get_translation_matrix(*[-c for c in center])
+    
 
     matrix = reduce(
         np.matmul,
@@ -212,39 +277,48 @@ def rotate(
             from_origin_matrix,
         ) 
         )
-
+    
     warp_affine_fn = _maybe_process_by_channel(
-        ndimage.affine_transform, input=img, matrix=matrix, order=interpolation, mode=border_mode, cval=value
+        ndimage.affine_transform, matrix=matrix, order=interpolation, mode=border_mode, cval=value, output_shape = out_shape
     )
     return warp_affine_fn(img)
 
 
-def bbox_rotate(bbox: BoxInternalType, angle: float, method: str, axes: str, rows: int, cols: int, slices: int) -> BoxInternalType:
+def bbox_rotate(bbox: BoxInternalType, angle: float, method: str, axes: str, crop_to_border: bool, rows: int, cols: int, slices: int) -> BoxInternalType:
     """Rotates a bounding box by angle degrees.
 
     Args:
-        bbox: A bounding box `(x_min, y_min, x_max, y_max)`.
+        bbox: A bounding box `(x_min, y_min, z_min, x_max, y_max, z_min)`.
         angle: Angle of rotation in degrees.
+        axes: The axis of rotation. Must be one of `{'xy', 'xz', 'yz'}`.
+        crop_to_border: If True, bbox is normalized to fit new image shape. See `rotate(crop_to_border=True)`
         method: Rotation method used. Should be one of: "largest_box", "ellipse". Default: "largest_box".
         rows: Image rows.
         cols: Image cols.
+        slices: Image slices
 
     Returns:
-        A bounding box `(x_min, y_min, x_max, y_max)`.
+        A bounding box `(x_min, y_min, z_min, x_max, y_max, z_min)`.
 
     References:
         https://arxiv.org/abs/2109.13488
 
     """
     x_min, y_min, z_min, x_max, y_max, z_max = denormalize_bbox(list(map(lambda x: x - 0.5, bbox[:6])), rows, cols, slices)
-    #scale = cols / float(rows)
     if method == "largest_box":
         bbox_points = np.array(
             [
-                [x_min, y_min, z_min, 1],
-                [x_max, y_max, z_max, 1]
+                [y_min, x_min,  z_min, 1],
+                [y_min, x_min,  z_max, 1],
+                [y_max, x_min,  z_min, 1],
+                [y_max, x_min,  z_max, 1],
+                [y_min, x_max,  z_min, 1],
+                [y_min, x_max,  z_max, 1],
+                [y_max, x_max,  z_min, 1],
+                [y_max, x_max,  z_max, 1]
             ]
         )
+
     elif method == "ellipse":
         w = (x_max - x_min) / 2
         h = (y_max - y_min) / 2
@@ -255,11 +329,11 @@ def bbox_rotate(bbox: BoxInternalType, angle: float, method: str, axes: str, row
             x = np.tile(w * np.sin(np.radians(data)) + (w + x_min), 2)
             y = np.tile(h * np.cos(np.radians(data)) + (h + y_min), 2)
             z = np.concatenate((np.full((360,), z_min), np.full((360,), z_max)))
-        elif axes == "xz":
+        elif axes == "yz":
             x = np.tile(w * np.sin(np.radians(data)) + (w + x_min), 2)
             y = np.concatenate((np.full((360,), y_min), np.full((360,), y_max)))
             z = np.tile(d * np.cos(np.radians(data)) + (d + z_min), 2)
-        elif axes == "yz":
+        elif axes == "xz":
             x = np.concatenate((np.full((360,), x_min), np.full((360,), x_max)))
             y = np.tile(h * np.cos(np.radians(data)) + (h + y_min), 2)
             z = np.tile(d * np.sin(np.radians(data)) + (d + z_min), 2)
@@ -267,21 +341,25 @@ def bbox_rotate(bbox: BoxInternalType, angle: float, method: str, axes: str, row
             raise ValueError("Parameter axes must be one of {'xy','yz','xz'}")
         
         bbox_points = np.column_stack(
-                [x,y,z, np.ones(720)],
+                [y,x,z, np.ones(720)],
             )
     else:
         raise ValueError(f"Method {method} is not a valid rotation method.")
     
     
     angle = np.deg2rad(angle)
+    rotation_matrix = _get_rotation_matrix(angle, axes)
 
-    bbox_points_t = np.matmul(bbox_points, _get_rotation_matrix(angle, axes))
+    bbox_points_t = np.matmul(bbox_points, rotation_matrix)
 
-    x_min, x_max = np.min(bbox_points_t[:,0]), np.max(bbox_points_t[:,0])
-    y_min, y_max = np.min(bbox_points_t[:,1]), np.max(bbox_points_t[:,1])
+    x_min, x_max = np.min(bbox_points_t[:,1]), np.max(bbox_points_t[:,1])
+    y_min, y_max = np.min(bbox_points_t[:,0]), np.max(bbox_points_t[:,0])
     z_min, z_max = np.min(bbox_points_t[:,2]), np.max(bbox_points_t[:,2])
-
     bbox = x_min, y_min, z_min, x_max, y_max, z_max
+
+    if crop_to_border:
+        rows, cols, slices = _get_new_image_shape(rows, cols, slices, rotation_matrix)
+    
     return list(map(lambda x: x + 0.5, normalize_bbox(bbox, rows, cols, slices)))
 
 
@@ -356,6 +434,24 @@ def _get_scale_matrix(dx,dy,dz):
         [ 0,  0,  0, 1],
     ],
     dtype= np.float32)
+
+
+def _get_shear_matrix(mode, sx = None, sy = None, sz = None):
+
+    if len(list(map(lambda x: x != None, [sx,sy,sz]))) != 2:
+        raise ValueError("Expected two of (sx,sy,sz) to be non-null arguments. Got sx={}, sy={}, sz={}".format(sx,sy,sz))
+    
+    if mode == "xy":
+        assert sx != None and sy != None
+        
+    elif mode == "xz":
+        assert sx != None and sz != None
+
+    elif mode == "yz":
+        assert sy != None and sz != None
+    
+    else:
+        raise ValueError("Parameter axes must be one of {'xy','yz','xz'}")
 
 
 @preserve_channel_dim

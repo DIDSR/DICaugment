@@ -11,6 +11,7 @@ from ...core.transforms_interface import (
     FillValueType,
     KeypointInternalType,
     to_tuple,
+    INTER_LINEAR
 )
 from ..crops import functional as FCrops
 from . import functional as F
@@ -87,19 +88,31 @@ class Rotate(DualTransform):
     Args:
         limit ((int, int) or int): range from which a random angle is picked. If limit is a single int
             an angle is picked from (-limit, limit). Default: (-90, 90)
-        interpolation (OpenCV flag): flag that is used to specify the interpolation algorithm. Should be one of:
-            cv2.INTER_NEAREST, cv2.INTER_LINEAR, cv2.INTER_CUBIC, cv2.INTER_AREA, cv2.INTER_LANCZOS4.
-            Default: cv2.INTER_LINEAR.
-        border_mode (OpenCV flag): flag that is used to specify the pixel extrapolation method. Should be one of:
-            cv2.BORDER_CONSTANT, cv2.BORDER_REPLICATE, cv2.BORDER_REFLECT, cv2.BORDER_WRAP, cv2.BORDER_REFLECT_101.
-            Default: cv2.BORDER_REFLECT_101
-        value (int, float, list of ints, list of float): padding value if border_mode is cv2.BORDER_CONSTANT.
+        axes (str, list of str): Defines the axis of rotation. Must be one of `{'xy','yz','xz'}` or a list of them.
+            If a single str is passed, then all rotations will occur on that axis
+            If a list is passed, then one axis of rotation will be chosen at random for each call of the transformation
+        interpolation (int): scipy interpolation method (e.g. albumenations3d.INTER_NEAREST). Default: albumentations3d.INTER_LINEAR
+        border_mode (str): scipy parameter to determine how the input image is extended during convolution or padding to maintain image shape
+            Must be one of the following:
+                `reflect` (d c b a | a b c d | d c b a)
+                    The input is extended by reflecting about the edge of the last pixel. This mode is also sometimes referred to as half-sample symmetric.
+                `constant` (k k k k | a b c d | k k k k)
+                    The input is extended by filling all values beyond the edge with the same constant value, defined by the cval parameter.
+                `nearest` (a a a a | a b c d | d d d d)
+                    The input is extended by replicating the last pixel.
+                `mirror` (d c b | a b c d | c b a)
+                    The input is extended by reflecting about the center of the last pixel. This mode is also sometimes referred to as whole-sample symmetric.
+                `wrap` (a b c d | a b c d | a b c d)
+                    The input is extended by wrapping around to the opposite edge.
+                https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.median_filter.html
+        value (int, float, list of ints, list of float): The fill value when border_mode = `constant`. Default: 0.
         mask_value (int, float,
                     list of ints,
-                    list of float): padding value if border_mode is cv2.BORDER_CONSTANT applied for masks.
+                    list of float): The fill value when border_mode = `constant` applied for masks. Default: 0.
         rotate_method (str): rotation method used for the bounding boxes. Should be one of "largest_box" or "ellipse".
             Default: "largest_box"
-        crop_border (bool): If True would make a largest possible crop within rotated image
+        crop_to_border (bool): If True, then the image is cropped to fit the entire rotation. If False, then original image shape is
+            maintained and some portions of the image may be cropped away. Default: False
         p (float): probability of applying the transform. Default: 0.5.
 
     Targets:
@@ -112,102 +125,132 @@ class Rotate(DualTransform):
     def __init__(
         self,
         limit=90,
-        interpolation=cv2.INTER_LINEAR,
-        border_mode=cv2.BORDER_REFLECT_101,
-        value=None,
-        mask_value=None,
+        axes="xy",
+        interpolation=INTER_LINEAR,
+        border_mode= "constant",
+        value= 0,
+        mask_value=0,
         rotate_method="largest_box",
-        crop_border=False,
+        crop_to_border=False,
         always_apply=False,
         p=0.5,
     ):
         super(Rotate, self).__init__(always_apply, p)
         self.limit = to_tuple(limit)
+        self.axes = axes
         self.interpolation = interpolation
         self.border_mode = border_mode
         self.value = value
         self.mask_value = mask_value
         self.rotate_method = rotate_method
-        self.crop_border = crop_border
+        self.crop_to_border = crop_to_border
 
+        if isinstance(axes, str) and axes not in {"xy", "yz", "xz"}:
+            raise ValueError("Parameter axes must be one of {'xy','yz','xz'} or a list of these elements")
+        if isinstance(axes, Sequence) and len(set(axes).difference({"xy", "yz", "xz"})) != 0:
+            raise ValueError("Parameter axes contains one or more elements that are not allowed. Got {}".format(set(axes).difference({"xy", "yz", "xz"})))
         if rotate_method not in ["largest_box", "ellipse"]:
             raise ValueError(f"Rotation method {self.rotate_method} is not valid.")
 
-    def apply(
-        self, img, angle=0, interpolation=cv2.INTER_LINEAR, x_min=None, x_max=None, y_min=None, y_max=None, **params
-    ):
-        img_out = F.rotate(img, angle, interpolation, self.border_mode, self.value)
-        if self.crop_border:
-            img_out = FCrops.crop(img_out, x_min, y_min, x_max, y_max)
-        return img_out
+    def apply(self, img, angle=0, axes = "xy", **params):
+        return F.rotate(
+            img,
+            angle=angle,
+            axes=axes,
+            crop_to_border=self.crop_to_border,
+            interpolation=self.interpolation,
+            border_mode=self.border_mode,
+            value=self.value
+            )
+    
+    def apply_to_mask(self, img, angle=0, axes = "xy", **params):
+        return F.rotate(
+            img,
+            angle=angle,
+            axes=axes,
+            crop_to_border=self.crop_to_border,
+            interpolation=self.interpolation,
+            border_mode=self.border_mode,
+            value=self.value
+            )
+        
 
-    def apply_to_mask(self, img, angle=0, x_min=None, x_max=None, y_min=None, y_max=None, **params):
-        img_out = F.rotate(img, angle, cv2.INTER_NEAREST, self.border_mode, self.mask_value)
-        if self.crop_border:
-            img_out = FCrops.crop(img_out, x_min, y_min, x_max, y_max)
-        return img_out
+    def apply_to_bbox(self, bbox, angle=0, axes= "xy", cols=0, rows=0, slices=0, **params):
+        return F.bbox_rotate(
+            bbox=bbox,
+            angle=angle,
+            method=self.rotate_method,
+            axes=axes,
+            rows=rows,
+            cols=cols,
+            slices=slices
+        )
 
-    def apply_to_bbox(self, bbox, angle=0, x_min=None, x_max=None, y_min=None, y_max=None, cols=0, rows=0, **params):
-        bbox_out = F.bbox_rotate(bbox, angle, self.rotate_method, rows, cols)
-        if self.crop_border:
-            bbox_out = FCrops.bbox_crop(bbox_out, x_min, y_min, x_max, y_max, rows, cols)
-        return bbox_out
+        # bbox_rotate(bbox: BoxInternalType, angle: float, method: str, axes: str, crop_to_border: bool, rows: int, cols: int, slices: int
+        # bbox_out = F.bbox_rotate(bbox, angle, self.rotate_method, rows, cols)
+        # if self.crop_border:
+        #     bbox_out = FCrops.bbox_crop(bbox_out, x_min, y_min, x_max, y_max, rows, cols)
+        # return bbox_out
 
     def apply_to_keypoint(
         self, keypoint, angle=0, x_min=None, x_max=None, y_min=None, y_max=None, cols=0, rows=0, **params
     ):
-        keypoint_out = F.keypoint_rotate(keypoint, angle, rows, cols, **params)
-        if self.crop_border:
-            keypoint_out = FCrops.crop_keypoint_by_coords(keypoint_out, (x_min, y_min, x_max, y_max))
-        return keypoint_out
+        raise NotImplementedError()
+        # keypoint_out = F.keypoint_rotate(keypoint, angle, rows, cols, **params)
+        # if self.crop_border:
+        #     keypoint_out = FCrops.crop_keypoint_by_coords(keypoint_out, (x_min, y_min, x_max, y_max))
+        # return keypoint_out
 
-    @staticmethod
-    def _rotated_rect_with_max_area(h, w, angle):
-        """
-        Given a rectangle of size wxh that has been rotated by 'angle' (in
-        degrees), computes the width and height of the largest possible
-        axis-aligned rectangle (maximal area) within the rotated rectangle.
+    # @staticmethod
+    # def _rotated_rect_with_max_area(h, w, angle):
+    #     """
+    #     Given a rectangle of size wxh that has been rotated by 'angle' (in
+    #     degrees), computes the width and height of the largest possible
+    #     axis-aligned rectangle (maximal area) within the rotated rectangle.
 
-        Code from: https://stackoverflow.com/questions/16702966/rotate-image-and-crop-out-black-borders
-        """
+    #     Code from: https://stackoverflow.com/questions/16702966/rotate-image-and-crop-out-black-borders
+    #     """
 
-        angle = math.radians(angle)
-        width_is_longer = w >= h
-        side_long, side_short = (w, h) if width_is_longer else (h, w)
+    #     angle = math.radians(angle)
+    #     width_is_longer = w >= h
+    #     side_long, side_short = (w, h) if width_is_longer else (h, w)
 
-        # since the solutions for angle, -angle and 180-angle are all the same,
-        # it is sufficient to look at the first quadrant and the absolute values of sin,cos:
-        sin_a, cos_a = abs(math.sin(angle)), abs(math.cos(angle))
-        if side_short <= 2.0 * sin_a * cos_a * side_long or abs(sin_a - cos_a) < 1e-10:
-            # half constrained case: two crop corners touch the longer side,
-            # the other two corners are on the mid-line parallel to the longer line
-            x = 0.5 * side_short
-            wr, hr = (x / sin_a, x / cos_a) if width_is_longer else (x / cos_a, x / sin_a)
-        else:
-            # fully constrained case: crop touches all 4 sides
-            cos_2a = cos_a * cos_a - sin_a * sin_a
-            wr, hr = (w * cos_a - h * sin_a) / cos_2a, (h * cos_a - w * sin_a) / cos_2a
+    #     # since the solutions for angle, -angle and 180-angle are all the same,
+    #     # it is sufficient to look at the first quadrant and the absolute values of sin,cos:
+    #     sin_a, cos_a = abs(math.sin(angle)), abs(math.cos(angle))
+    #     if side_short <= 2.0 * sin_a * cos_a * side_long or abs(sin_a - cos_a) < 1e-10:
+    #         # half constrained case: two crop corners touch the longer side,
+    #         # the other two corners are on the mid-line parallel to the longer line
+    #         x = 0.5 * side_short
+    #         wr, hr = (x / sin_a, x / cos_a) if width_is_longer else (x / cos_a, x / sin_a)
+    #     else:
+    #         # fully constrained case: crop touches all 4 sides
+    #         cos_2a = cos_a * cos_a - sin_a * sin_a
+    #         wr, hr = (w * cos_a - h * sin_a) / cos_2a, (h * cos_a - w * sin_a) / cos_2a
 
-        return dict(
-            x_min=max(0, int(w / 2 - wr / 2)),
-            x_max=min(w, int(w / 2 + wr / 2)),
-            y_min=max(0, int(h / 2 - hr / 2)),
-            y_max=min(h, int(h / 2 + hr / 2)),
-        )
+    #     return dict(
+    #         x_min=max(0, int(w / 2 - wr / 2)),
+    #         x_max=min(w, int(w / 2 + wr / 2)),
+    #         y_min=max(0, int(h / 2 - hr / 2)),
+    #         y_max=min(h, int(h / 2 + hr / 2)),
+    #     )
 
     @property
     def targets_as_params(self) -> List[str]:
         return ["image"]
 
     def get_params_dependent_on_targets(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        out_params = {"angle": random.uniform(self.limit[0], self.limit[1])}
-        if self.crop_border:
-            h, w = params["image"].shape[:2]
-            out_params.update(self._rotated_rect_with_max_area(h, w, out_params["angle"]))
-        return out_params
+        return {
+            "angle": random.uniform(self.limit[0], self.limit[1]),
+            "axes" : self.axes if isinstance(self.axes, str) else random.choice(self.axes)
+            }
+        # if self.crop_border:
+        #     h, w = params["image"].shape[:2]
+        #     out_params.update(self._rotated_rect_with_max_area(h, w, out_params["angle"]))
+        # return out_params
 
     def get_transform_init_args_names(self):
-        return ("limit", "interpolation", "border_mode", "value", "mask_value", "rotate_method", "crop_border")
+        return ("limit", "interpolation", "axes", "border_mode", "value", "mask_value", "rotate_method", "crop_to_border")
 
 
 class SafeRotate(DualTransform):
