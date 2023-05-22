@@ -12,7 +12,7 @@
 * InvertImg
 * MedianBlur
 * MultiplicativeNoise
-* RandomBrightnessContrast (ColorJitter?)
+* RandomBrightnessContrast
 * Sharpen
 * ToFloat
 * UnsharpMask
@@ -29,6 +29,17 @@
 * BBoxSafeRandomCrop
 * RandomSizedBBoxSafeCrop
 * Rotate
+* Flip
+* HorizontalFlip
+* LongestMaxSize
+* PadIfNeeded
+* RandomScale
+* Resize
+* SmallestMaxSize
+* Transpose
+* VerticalFlip
+* RandomGamma
+* NoOp
 
 # ADD:
 * Datasets Class and Subclasses
@@ -36,26 +47,13 @@
 
 # ALTER:
 
-* **ColorJitter** - Remove Hue and Saturation
-* RandomGamma
 * Affine
-* Flip
-* HorizontalFlip
-* NoOp
-* LongestMaxSize
-* PadIfNeeded
 * Perspective
-* RandomGridShuffle
-* RandomScale
-* Resize
 * ShiftScaleRotate
-* SmallestMaxSize
-* Transpose
-* VerticalFlip
-
 
 # UNKNOWN:
 
+* **ColorJitter** - Remove Hue and Saturation
 * FDA
 * CLAHE
 * HistogramMatching
@@ -67,6 +65,7 @@
 
 # REMOVE:
 
+* RandomGridShuffle
 * MotionBlur
 * Emboss
 * PixelDistributionAdaptation
