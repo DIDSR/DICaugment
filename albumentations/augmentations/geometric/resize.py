@@ -9,6 +9,7 @@ from ...core.transforms_interface import (
     DualTransform,
     KeypointInternalType,
     to_tuple,
+    INTER_LINEAR
 )
 from . import functional as F
 
@@ -23,9 +24,7 @@ class RandomScale(DualTransform):
             range will be (-scale_limit, scale_limit). Note that the scale_limit will be biased by 1.
             If scale_limit is a tuple, like (low, high), sampling will be done from the range (1 + low, 1 + high).
             Default: (-0.1, 0.1).
-        interpolation (OpenCV flag): flag that is used to specify the interpolation algorithm. Should be one of:
-            cv2.INTER_NEAREST, cv2.INTER_LINEAR, cv2.INTER_CUBIC, cv2.INTER_AREA, cv2.INTER_LANCZOS4.
-            Default: cv2.INTER_LINEAR.
+        interpolation (int): scipy interpolation method (e.g. albumenations3d.INTER_NEAREST). Default: albumentations3d.INTER_LINEAR
         p (float): probability of applying the transform. Default: 0.5.
 
     Targets:
@@ -43,7 +42,7 @@ class RandomScale(DualTransform):
     def get_params(self):
         return {"scale": random.uniform(self.scale_limit[0], self.scale_limit[1])}
 
-    def apply(self, img, scale=0, interpolation=cv2.INTER_LINEAR, **params):
+    def apply(self, img, scale=0, interpolation=INTER_LINEAR, **params):
         return F.scale(img, scale, interpolation)
 
     def apply_to_bbox(self, bbox, **params):
@@ -51,7 +50,7 @@ class RandomScale(DualTransform):
         return bbox
 
     def apply_to_keypoint(self, keypoint, scale=0, **params):
-        return F.keypoint_scale(keypoint, scale, scale)
+        return F.keypoint_scale(keypoint, scale, scale, scale)
 
     def get_transform_init_args(self):
         return {"interpolation": self.interpolation, "scale_limit": to_tuple(self.scale_limit, bias=-1.0)}
@@ -63,7 +62,7 @@ class LongestMaxSize(DualTransform):
     Args:
         max_size (int, list of int): maximum size of the image after the transformation. When using a list, max size
             will be randomly selected from the values in the list.
-        interpolation (OpenCV flag): interpolation method. Default: cv2.INTER_LINEAR.
+        interpolation (int): scipy interpolation method (e.g. albumenations3d.INTER_NEAREST). Default: albumentations3d.INTER_LINEAR
         p (float): probability of applying the transform. Default: 1.
 
     Targets:
@@ -85,7 +84,7 @@ class LongestMaxSize(DualTransform):
         self.max_size = max_size
 
     def apply(
-        self, img: np.ndarray, max_size: int = 1024, interpolation: int = cv2.INTER_LINEAR, **params
+        self, img: np.ndarray, max_size: int = 1024, interpolation: int = INTER_LINEAR, **params
     ) -> np.ndarray:
         return F.longest_max_size(img, max_size=max_size, interpolation=interpolation)
 
@@ -96,9 +95,10 @@ class LongestMaxSize(DualTransform):
     def apply_to_keypoint(self, keypoint: KeypointInternalType, max_size: int = 1024, **params) -> KeypointInternalType:
         height = params["rows"]
         width = params["cols"]
+        depth = params["slices"]
 
-        scale = max_size / max([height, width])
-        return F.keypoint_scale(keypoint, scale, scale)
+        scale = max_size / max([height, width, depth])
+        return F.keypoint_scale(keypoint, scale, scale, scale)
 
     def get_params(self) -> Dict[str, int]:
         return {"max_size": self.max_size if isinstance(self.max_size, int) else random.choice(self.max_size)}
@@ -113,7 +113,7 @@ class SmallestMaxSize(DualTransform):
     Args:
         max_size (int, list of int): maximum size of smallest side of the image after the transformation. When using a
             list, max size will be randomly selected from the values in the list.
-        interpolation (OpenCV flag): interpolation method. Default: cv2.INTER_LINEAR.
+        interpolation (int): scipy interpolation method (e.g. albumenations3d.INTER_NEAREST). Default: albumentations3d.INTER_LINEAR
         p (float): probability of applying the transform. Default: 1.
 
     Targets:
@@ -145,9 +145,10 @@ class SmallestMaxSize(DualTransform):
     def apply_to_keypoint(self, keypoint: KeypointInternalType, max_size: int = 1024, **params) -> KeypointInternalType:
         height = params["rows"]
         width = params["cols"]
+        depth = params["slices"]
 
-        scale = max_size / min([height, width])
-        return F.keypoint_scale(keypoint, scale, scale)
+        scale = max_size / min([height, width, depth])
+        return F.keypoint_scale(keypoint, scale, scale, scale)
 
     def get_params(self) -> Dict[str, int]:
         return {"max_size": self.max_size if isinstance(self.max_size, int) else random.choice(self.max_size)}
@@ -157,14 +158,13 @@ class SmallestMaxSize(DualTransform):
 
 
 class Resize(DualTransform):
-    """Resize the input to the given height and width.
+    """Resize the input to the given height, width, depth.
 
     Args:
         height (int): desired height of the output.
         width (int): desired width of the output.
-        interpolation (OpenCV flag): flag that is used to specify the interpolation algorithm. Should be one of:
-            cv2.INTER_NEAREST, cv2.INTER_LINEAR, cv2.INTER_CUBIC, cv2.INTER_AREA, cv2.INTER_LANCZOS4.
-            Default: cv2.INTER_LINEAR.
+        depth (int): desired depth of the output.
+        interpolation (int): scipy interpolation method (e.g. albumenations3d.INTER_NEAREST). Default: albumentations3d.INTER_LINEAR
         p (float): probability of applying the transform. Default: 1.
 
     Targets:
@@ -174,14 +174,15 @@ class Resize(DualTransform):
         uint8, float32
     """
 
-    def __init__(self, height, width, interpolation=cv2.INTER_LINEAR, always_apply=False, p=1):
+    def __init__(self, height, width, depth, interpolation=INTER_LINEAR, always_apply=False, p=1):
         super(Resize, self).__init__(always_apply, p)
         self.height = height
         self.width = width
+        self.depth = depth
         self.interpolation = interpolation
 
     def apply(self, img, interpolation=cv2.INTER_LINEAR, **params):
-        return F.resize(img, height=self.height, width=self.width, interpolation=interpolation)
+        return F.resize(img, height=self.height, width=self.width, depth=self.depth, interpolation=interpolation)
 
     def apply_to_bbox(self, bbox, **params):
         # Bounding box coordinates are scale invariant
@@ -190,9 +191,11 @@ class Resize(DualTransform):
     def apply_to_keypoint(self, keypoint, **params):
         height = params["rows"]
         width = params["cols"]
+        depth = params["depth"]
         scale_x = self.width / width
         scale_y = self.height / height
-        return F.keypoint_scale(keypoint, scale_x, scale_y)
+        scale_z = self.depth / depth
+        return F.keypoint_scale(keypoint, scale_x, scale_y, scale_z)
 
     def get_transform_init_args_names(self):
-        return ("height", "width", "interpolation")
+        return ("height", "width", "depth", "interpolation")

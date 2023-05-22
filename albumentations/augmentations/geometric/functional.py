@@ -348,13 +348,13 @@ def bbox_rotate(bbox: BoxInternalType, angle: float, method: str, axes: str, cro
     
     
     angle = np.deg2rad(angle)
-    rotation_matrix = _get_rotation_matrix(angle, axes)
+    rotation_matrix = _get_rotation_matrix(angle, axes, dir=-1)
 
-    bbox_points_t = np.matmul(bbox_points, rotation_matrix)
+    bbox_points_t = np.matmul(rotation_matrix, bbox_points.T)
 
-    x_min, x_max = np.min(bbox_points_t[:,1]), np.max(bbox_points_t[:,1])
-    y_min, y_max = np.min(bbox_points_t[:,0]), np.max(bbox_points_t[:,0])
-    z_min, z_max = np.min(bbox_points_t[:,2]), np.max(bbox_points_t[:,2])
+    x_min, x_max = np.min(bbox_points_t[1]), np.max(bbox_points_t[1])
+    y_min, y_max = np.min(bbox_points_t[0]), np.max(bbox_points_t[0])
+    z_min, z_max = np.min(bbox_points_t[2]), np.max(bbox_points_t[2])
     bbox = x_min, y_min, z_min, x_max, y_max, z_max
 
     if crop_to_border:
@@ -364,24 +364,47 @@ def bbox_rotate(bbox: BoxInternalType, angle: float, method: str, axes: str, cro
 
 
 @angle_2pi_range
-def keypoint_rotate(keypoint, angle, rows, cols, **params):
+def keypoint_rotate(keypoint, angle: float, axes: str, crop_to_border: bool, rows: int, cols: int, slices: int, **params):
     """Rotate a keypoint by angle.
 
     Args:
-        keypoint (tuple): A keypoint `(x, y, angle, scale)`.
+        keypoint (tuple): A keypoint `(x, y, z, angle, scale)`.
         angle (float): Rotation angle.
+        axes: The axis of rotation. Must be one of `{'xy', 'xz', 'yz'}`.
+        crop_to_border: If True, bbox is normalized to fit new image shape. See `rotate(crop_to_border=True)`
         rows (int): Image height.
         cols (int): Image width.
+        slices: Image slices
 
     Returns:
-        tuple: A keypoint `(x, y, angle, scale)`.
+        tuple: A keypoint `(x, y, z, angle, scale)`.
 
     """
-    center = (cols - 1) * 0.5, (rows - 1) * 0.5
-    matrix = cv2.getRotationMatrix2D(center, angle, 1.0)
-    x, y, a, s = keypoint[:4]
-    x, y = cv2.transform(np.array([[[x, y]]]), matrix).squeeze()
-    return x, y, a + math.radians(angle), s
+    center = (rows - 1) * 0.5, (cols - 1) * 0.5, (slices - 1) * 0.5
+    to_origin_matrix = _get_translation_matrix(*center)
+    rotation_matrix = _get_rotation_matrix(angle, axes)
+
+    if crop_to_border:
+        out_shape = _get_new_image_shape(rows, cols, slices, rotation_matrix)
+        height, width, depth = out_shape[:3]
+        center = (height/2, width/2, depth/2)
+
+    from_origin_matrix = _get_translation_matrix(*[-c for c in center])
+
+    matrix = reduce(
+        np.matmul,
+        (
+            to_origin_matrix,
+            rotation_matrix,
+            from_origin_matrix,
+        ) 
+        )
+    
+    x, y, z, a, s = keypoint[:5]
+    y,x,z = np.matmul([[y,x,z,1]], matrix).flatten()[:3]
+
+
+    return x, y, a + math.radians(angle), s  
 
 
 def _get_rotation_matrix(theta, axes, dir = 1):
@@ -654,26 +677,28 @@ def resize(img, height, width, depth, interpolation=INTER_LINEAR):
 
 
 @preserve_channel_dim
-def scale(img: np.ndarray, scale: float, interpolation: int = cv2.INTER_LINEAR) -> np.ndarray:
-    height, width = img.shape[:2]
-    new_height, new_width = int(height * scale), int(width * scale)
-    return resize(img, new_height, new_width, interpolation)
+def scale(img: np.ndarray, scale: Union[float, Tuple[float]], interpolation: int = INTER_LINEAR) -> np.ndarray:
+    
+    scale_fn = _maybe_process_by_channel(ndimage.zoom, zoom = scale, order=interpolation)
+    return scale_fn(img)
 
 
-def keypoint_scale(keypoint: KeypointInternalType, scale_x: float, scale_y: float) -> KeypointInternalType:
+
+def keypoint_scale(keypoint: KeypointInternalType, scale_x: float, scale_y: float, scale_z: float) -> KeypointInternalType:
     """Scales a keypoint by scale_x and scale_y.
 
     Args:
-        keypoint: A keypoint `(x, y, angle, scale)`.
+        keypoint: A keypoint `(x, y, z, angle, scale)`.
         scale_x: Scale coefficient x-axis.
         scale_y: Scale coefficient y-axis.
+        scale_z: Scale coefficient y-axis.
 
     Returns:
-        A keypoint `(x, y, angle, scale)`.
+        A keypoint `(x, y, z, angle, scale)`.
 
     """
-    x, y, angle, scale = keypoint[:4]
-    return x * scale_x, y * scale_y, angle, scale * max(scale_x, scale_y)
+    x, y, z, angle, scale = keypoint[:5]
+    return x * scale_x, y * scale_y, z * scale_z, angle, scale * max((scale_x, scale_y, scale_z))
 
 
 def py3round(number):
@@ -685,13 +710,12 @@ def py3round(number):
 
 
 def _func_max_size(img, max_size, interpolation, func):
-    height, width = img.shape[:2]
+    height, width, depth = img.shape[:3]
 
-    scale = max_size / float(func(width, height))
+    s = max_size / float(func((width, height, depth)))
 
-    if scale != 1.0:
-        new_height, new_width = tuple(py3round(dim * scale) for dim in (height, width))
-        img = resize(img, height=new_height, width=new_width, interpolation=interpolation)
+    if s != 1.0:
+        img = scale(img=img, scale=s, interpolation=interpolation)
     return img
 
 

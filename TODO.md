@@ -28,6 +28,7 @@
 * RandomSizedCrop
 * BBoxSafeRandomCrop
 * RandomSizedBBoxSafeCrop
+* Rotate
 
 # ADD:
 * Datasets Class and Subclasses
@@ -38,7 +39,6 @@
 * **ColorJitter** - Remove Hue and Saturation
 * RandomGamma
 * Affine
-* ElasticTransform
 * Flip
 * HorizontalFlip
 * NoOp
@@ -48,8 +48,6 @@
 * RandomGridShuffle
 * RandomScale
 * Resize
-* Rotate
-* SafeRotate
 * ShiftScaleRotate
 * SmallestMaxSize
 * Transpose
@@ -64,7 +62,8 @@
 * TemplateTransform
 * PiecewiseAffine
 * RandomToneCurve
-
+* ElasticTransform
+* SafeRotate
 
 # REMOVE:
 
