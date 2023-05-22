@@ -1149,22 +1149,36 @@ def bbox_piecewise_affine(
 def vflip(img: np.ndarray) -> np.ndarray:
     return np.ascontiguousarray(img[::-1, ...])
 
-
 def hflip(img: np.ndarray) -> np.ndarray:
     return np.ascontiguousarray(img[:, ::-1, ...])
 
+def zflip(img: np.ndarray) -> np.ndarray:
+    return np.ascontiguousarray(img[:, :, ::-1, ...])
 
 def hflip_cv2(img: np.ndarray) -> np.ndarray:
     return cv2.flip(img, 1)
 
 
 @preserve_shape
-def random_flip(img: np.ndarray, code: int) -> np.ndarray:
-    return cv2.flip(img, code)
+def random_flip(img: np.ndarray, d: int) -> np.ndarray:
+
+    if d == 0:
+        img = vflip(img)
+    elif d == 1:
+        img = hflip(img)
+    elif d == 2:
+        img = zflip(img)
+    elif d == -1:
+        img = hflip(img)
+        img = vflip(img)
+        img = zflip(img)
+    else:
+        raise ValueError("Invalid d value {}. Valid values are -1, 0, 1, and 2".format(d))
+    return img
 
 
 def transpose(img: np.ndarray) -> np.ndarray:
-    return img.transpose(1, 0, 2) if len(img.shape) > 2 else img.transpose(1, 0)
+    return img.transpose(1, 0, 2, 3) if len(img.shape) > 3 else img.transpose(1, 0, 2)
 
 
 def rot90(img: np.ndarray, factor: int) -> np.ndarray:
@@ -1172,158 +1186,204 @@ def rot90(img: np.ndarray, factor: int) -> np.ndarray:
     return np.ascontiguousarray(img)
 
 
-def bbox_vflip(bbox: BoxInternalType, rows: int, cols: int) -> BoxInternalType:  # skipcq: PYL-W0613
+def bbox_vflip(bbox: BoxInternalType, rows: int, cols: int, slices: int) -> BoxInternalType:  # skipcq: PYL-W0613
     """Flip a bounding box vertically around the x-axis.
 
     Args:
-        bbox: A bounding box `(x_min, y_min, x_max, y_max)`.
+        bbox: A bounding box `(x_min, y_min, z_min, x_max, y_max, z_max)`.
         rows: Image rows.
         cols: Image cols.
+        slices: Image slices
 
     Returns:
-        tuple: A bounding box `(x_min, y_min, x_max, y_max)`.
+        tuple: A bounding box `(x_min, y_min, z_min, x_max, y_max, z_max)`.
 
     """
-    x_min, y_min, x_max, y_max = bbox[:4]
-    return x_min, 1 - y_max, x_max, 1 - y_min
+    x_min, y_min, z_min, x_max, y_max, z_max = bbox[:6]
+    return x_min, 1 - y_max, z_min, x_max, 1 - y_min, z_max
 
 
-def bbox_hflip(bbox: BoxInternalType, rows: int, cols: int) -> BoxInternalType:  # skipcq: PYL-W0613
+def bbox_hflip(bbox: BoxInternalType, rows: int, cols: int, slices: int) -> BoxInternalType:  # skipcq: PYL-W0613
     """Flip a bounding box horizontally around the y-axis.
 
     Args:
-        bbox: A bounding box `(x_min, y_min, x_max, y_max)`.
+        bbox: A bounding box `(x_min, y_min, z_min, x_max, y_max, z_max)`.
         rows: Image rows.
         cols: Image cols.
+        slices: Image slices
 
     Returns:
-        A bounding box `(x_min, y_min, x_max, y_max)`.
+        A bounding box `(x_min, y_min, z_min, x_max, y_max, z_max)`.
 
     """
-    x_min, y_min, x_max, y_max = bbox[:4]
-    return 1 - x_max, y_min, 1 - x_min, y_max
+    x_min, y_min, z_min, x_max, y_max, z_max = bbox[:6]
+    return 1 - x_max, y_min, z_min, 1 - x_min, y_max, z_max
 
-
-def bbox_flip(bbox: BoxInternalType, d: int, rows: int, cols: int) -> BoxInternalType:
-    """Flip a bounding box either vertically, horizontally or both depending on the value of `d`.
+def bbox_zflip(bbox: BoxInternalType, rows: int, cols: int, slices: int) -> BoxInternalType:  # skipcq: PYL-W0613
+    """Flip a bounding box on the z-axis.
 
     Args:
-        bbox: A bounding box `(x_min, y_min, x_max, y_max)`.
-        d: dimension. 0 for vertical flip, 1 for horizontal, -1 for transpose
+        bbox: A bounding box `(x_min, y_min, z_min, x_max, y_max, z_max)`.
         rows: Image rows.
         cols: Image cols.
+        slices: Image slices
 
     Returns:
-        A bounding box `(x_min, y_min, x_max, y_max)`.
+        A bounding box `(x_min, y_min, z_min, x_max, y_max, z_max)`.
+
+    """
+    x_min, y_min, z_min, x_max, y_max, z_max = bbox[:6]
+    return x_min, y_min, 1 - z_max, x_max, y_max, 1 - z_min
+
+
+def bbox_flip(bbox: BoxInternalType, d: int, rows: int, cols: int, slices: int) -> BoxInternalType:
+    """Flip a bounding box either vertically, horizontally, along the slice axis, or all depending on the value of `d`.
+
+    Args:
+        bbox: A bounding box `(x_min, y_min, z_min, x_max, y_max, z_max)`.
+        d: dimension. 0 for vertical flip, 1 for horizontal, 2 for z-axis, -1 for transpose
+        rows: Image rows.
+        cols: Image cols.
+        slices: Image slices
+
+    Returns:
+        A bounding box `(x_min, y_min, z_min, x_max, y_max, z_max)`.
 
     Raises:
-        ValueError: if value of `d` is not -1, 0 or 1.
+        ValueError: if value of `d` is not -1, 0, 1, 2.
 
     """
     if d == 0:
-        bbox = bbox_vflip(bbox, rows, cols)
+        bbox = bbox_vflip(bbox, rows, cols, slices)
     elif d == 1:
-        bbox = bbox_hflip(bbox, rows, cols)
+        bbox = bbox_hflip(bbox, rows, cols, slices)
+    elif d == 2:
+        bbox = bbox_zflip(bbox, rows, cols, slices)
     elif d == -1:
-        bbox = bbox_hflip(bbox, rows, cols)
-        bbox = bbox_vflip(bbox, rows, cols)
+        bbox = bbox_hflip(bbox, rows, cols, slices)
+        bbox = bbox_vflip(bbox, rows, cols, slices)
+        bbox = bbox_zflip(bbox, rows, cols, slices)
     else:
-        raise ValueError("Invalid d value {}. Valid values are -1, 0 and 1".format(d))
+        raise ValueError("Invalid d value {}. Valid values are -1, 0, 1, and 2".format(d))
     return bbox
 
 
 def bbox_transpose(
-    bbox: KeypointInternalType, axis: int, rows: int, cols: int
+    bbox: KeypointInternalType, axis: int, rows: int, cols: int, slices: int
 ) -> KeypointInternalType:  # skipcq: PYL-W0613
     """Transposes a bounding box along given axis.
 
     Args:
-        bbox: A bounding box `(x_min, y_min, x_max, y_max)`.
+        bbox: A bounding box `(x_min, y_min, z_min, x_max, y_max, z_max)`.
         axis: 0 - main axis, 1 - secondary axis.
         rows: Image rows.
         cols: Image cols.
 
     Returns:
-        A bounding box tuple `(x_min, y_min, x_max, y_max)`.
+        A bounding box tuple `(x_min, y_min, z_min, x_max, y_max, z_max)`.
 
     Raises:
         ValueError: If axis not equal to 0 or 1.
 
     """
-    x_min, y_min, x_max, y_max = bbox[:4]
-    if axis not in {0, 1}:
-        raise ValueError("Axis must be either 0 or 1.")
+    x_min, y_min, z_min, x_max, y_max, z_max = bbox[:6]
+    if axis not in {0,1}:
+        raise ValueError("Parameter axes must be one of {0,1}")
     if axis == 0:
-        bbox = (y_min, x_min, y_max, x_max)
+        bbox = (y_min, x_min, z_min, y_max, x_max, z_max)
     if axis == 1:
-        bbox = (1 - y_max, 1 - x_max, 1 - y_min, 1 - x_min)
+        bbox = (1 - y_max, 1 - x_max, z_min, 1 - y_min, 1 - x_min, z_max)
     return bbox
 
 
 @angle_2pi_range
-def keypoint_vflip(keypoint: KeypointInternalType, rows: int, cols: int) -> KeypointInternalType:
+def keypoint_vflip(keypoint: KeypointInternalType, rows: int, cols: int, slices: int) -> KeypointInternalType:
     """Flip a keypoint vertically around the x-axis.
 
     Args:
-        keypoint: A keypoint `(x, y, angle, scale)`.
+        keypoint: A keypoint `(x, y, z, angle, scale)`.
         rows: Image height.
         cols: Image width.
+        slices: Image depth
 
     Returns:
-        tuple: A keypoint `(x, y, angle, scale)`.
+        tuple: A keypoint `(x, y, z, angle, scale)`.
 
     """
-    x, y, angle, scale = keypoint[:4]
+    x, y, z, angle, scale = keypoint[:5]
     angle = -angle
-    return x, (rows - 1) - y, angle, scale
+    return x, (rows - 1) - y, z, angle, scale
 
 
 @angle_2pi_range
-def keypoint_hflip(keypoint: KeypointInternalType, rows: int, cols: int) -> KeypointInternalType:
+def keypoint_hflip(keypoint: KeypointInternalType, rows: int, cols: int, slices: int) -> KeypointInternalType:
     """Flip a keypoint horizontally around the y-axis.
 
     Args:
-        keypoint: A keypoint `(x, y, angle, scale)`.
+        keypoint: A keypoint `(x, y, z, angle, scale)`.
         rows: Image height.
         cols: Image width.
+        slices: Image depth
 
     Returns:
-        A keypoint `(x, y, angle, scale)`.
+        A keypoint `(x, y, z, angle, scale)`.
 
     """
-    x, y, angle, scale = keypoint[:4]
+    x, y, z, angle, scale = keypoint[:5]
     angle = math.pi - angle
-    return (cols - 1) - x, y, angle, scale
+    return (cols - 1) - x, y, z, angle, scale
 
-
-def keypoint_flip(keypoint: KeypointInternalType, d: int, rows: int, cols: int) -> KeypointInternalType:
-    """Flip a keypoint either vertically, horizontally or both depending on the value of `d`.
+@angle_2pi_range
+def keypoint_zflip(keypoint: KeypointInternalType, rows: int, cols: int, slices: int) -> KeypointInternalType:
+    """Flip a keypoint along the z-axis.
 
     Args:
-        keypoint: A keypoint `(x, y, angle, scale)`.
+        keypoint: A keypoint `(x, y, z, angle, scale)`.
+        rows: Image height.
+        cols: Image width.
+        slices: Image depth
+
+    Returns:
+        A keypoint `(x, y, z, angle, scale)`.
+
+    """
+    x, y, z, angle, scale = keypoint[:5]
+    return x, y, slices - z, angle, scale
+
+
+def keypoint_flip(keypoint: KeypointInternalType, d: int, rows: int, cols: int, slices: int) -> KeypointInternalType:
+    """Flip a keypoint either vertically, horizontally, along the slice axis, or all depending on the value of `d`.
+
+    Args:
+        keypoint: A keypoint `(x, y, z, angle, scale)`.
         d: Number of flip. Must be -1, 0 or 1:
             * 0 - vertical flip,
             * 1 - horizontal flip,
-            * -1 - vertical and horizontal flip.
+            * 2 - z-axis flip,
+            * -1 - vertical, horizontal, and z-axis flip.
         rows: Image height.
         cols: Image width.
+        slices: Image depth
 
     Returns:
-        A keypoint `(x, y, angle, scale)`.
+        A keypoint `(x, y, z, angle, scale)`.
 
     Raises:
-        ValueError: if value of `d` is not -1, 0 or 1.
+        ValueError: if value of `d` is not -1, 0, 1 or 2.
 
     """
     if d == 0:
-        keypoint = keypoint_vflip(keypoint, rows, cols)
+        keypoint = keypoint_vflip(keypoint, rows, cols, slices)
     elif d == 1:
-        keypoint = keypoint_hflip(keypoint, rows, cols)
+        keypoint = keypoint_hflip(keypoint, rows, cols, slices)
+    elif d == 2:
+        keypoint = keypoint_zflip(keypoint, rows, cols, slices)
     elif d == -1:
-        keypoint = keypoint_hflip(keypoint, rows, cols)
-        keypoint = keypoint_vflip(keypoint, rows, cols)
+        keypoint = keypoint_hflip(keypoint, rows, cols, slices)
+        keypoint = keypoint_vflip(keypoint, rows, cols, slices)
+        keypoint = keypoint_zflip(keypoint, rows, cols, slices)
     else:
-        raise ValueError(f"Invalid d value {d}. Valid values are -1, 0 and 1")
+        raise ValueError(f"Invalid d value {d}. Valid values are -1, 0, 1, and 2")
     return keypoint
 
 
@@ -1344,7 +1404,7 @@ def keypoint_transpose(keypoint: KeypointInternalType) -> KeypointInternalType:
     else:
         angle = 3 * np.pi - angle
 
-    return y, x, angle, scale
+    return y, x, z, angle, scale
 
 
 @preserve_channel_dim
@@ -1409,14 +1469,14 @@ def pad_with_params(
     h_pad_bottom: int,
     w_pad_left: int,
     w_pad_right: int,
-    d_pad_close: int,
-    d_pad_far: int,
+    d_pad_front: int,
+    d_pad_back: int,
     border_mode: str = 'constant',
     value: Union[float,int] = None,
 ) -> np.ndarray:
     pad_fn = _maybe_process_by_channel(
         _pad,
-        pad_width=((h_pad_top, h_pad_bottom),(w_pad_left, w_pad_right),(d_pad_close, d_pad_far)),
+        pad_width=((h_pad_top, h_pad_bottom),(w_pad_left, w_pad_right),(d_pad_front, d_pad_back)),
         border_mode=border_mode,
         value=value)
     return pad_fn(img)

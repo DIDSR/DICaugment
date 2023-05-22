@@ -142,131 +142,131 @@ class ShiftScaleRotate(DualTransform):
         }
 
 
-class ElasticTransform(DualTransform):
-    """Elastic deformation of images as described in [Simard2003]_ (with modifications).
-    Based on https://gist.github.com/ernestum/601cdf56d2b424757de5
+# class ElasticTransform(DualTransform):
+#     """Elastic deformation of images as described in [Simard2003]_ (with modifications).
+#     Based on https://gist.github.com/ernestum/601cdf56d2b424757de5
 
-    .. [Simard2003] Simard, Steinkraus and Platt, "Best Practices for
-         Convolutional Neural Networks applied to Visual Document Analysis", in
-         Proc. of the International Conference on Document Analysis and
-         Recognition, 2003.
+#     .. [Simard2003] Simard, Steinkraus and Platt, "Best Practices for
+#          Convolutional Neural Networks applied to Visual Document Analysis", in
+#          Proc. of the International Conference on Document Analysis and
+#          Recognition, 2003.
 
-    Args:
-        alpha (float):
-        sigma (float): Gaussian filter parameter.
-        alpha_affine (float): The range will be (-alpha_affine, alpha_affine)
-        interpolation (OpenCV flag): flag that is used to specify the interpolation algorithm. Should be one of:
-            cv2.INTER_NEAREST, cv2.INTER_LINEAR, cv2.INTER_CUBIC, cv2.INTER_AREA, cv2.INTER_LANCZOS4.
-            Default: cv2.INTER_LINEAR.
-        border_mode (OpenCV flag): flag that is used to specify the pixel extrapolation method. Should be one of:
-            cv2.BORDER_CONSTANT, cv2.BORDER_REPLICATE, cv2.BORDER_REFLECT, cv2.BORDER_WRAP, cv2.BORDER_REFLECT_101.
-            Default: cv2.BORDER_REFLECT_101
-        value (int, float, list of ints, list of float): padding value if border_mode is cv2.BORDER_CONSTANT.
-        mask_value (int, float,
-                    list of ints,
-                    list of float): padding value if border_mode is cv2.BORDER_CONSTANT applied for masks.
-        approximate (boolean): Whether to smooth displacement map with fixed kernel size.
-                               Enabling this option gives ~2X speedup on large images.
-        same_dxdy (boolean): Whether to use same random generated shift for x and y.
-                             Enabling this option gives ~2X speedup.
+#     Args:
+#         alpha (float):
+#         sigma (float): Gaussian filter parameter.
+#         alpha_affine (float): The range will be (-alpha_affine, alpha_affine)
+#         interpolation (OpenCV flag): flag that is used to specify the interpolation algorithm. Should be one of:
+#             cv2.INTER_NEAREST, cv2.INTER_LINEAR, cv2.INTER_CUBIC, cv2.INTER_AREA, cv2.INTER_LANCZOS4.
+#             Default: cv2.INTER_LINEAR.
+#         border_mode (OpenCV flag): flag that is used to specify the pixel extrapolation method. Should be one of:
+#             cv2.BORDER_CONSTANT, cv2.BORDER_REPLICATE, cv2.BORDER_REFLECT, cv2.BORDER_WRAP, cv2.BORDER_REFLECT_101.
+#             Default: cv2.BORDER_REFLECT_101
+#         value (int, float, list of ints, list of float): padding value if border_mode is cv2.BORDER_CONSTANT.
+#         mask_value (int, float,
+#                     list of ints,
+#                     list of float): padding value if border_mode is cv2.BORDER_CONSTANT applied for masks.
+#         approximate (boolean): Whether to smooth displacement map with fixed kernel size.
+#                                Enabling this option gives ~2X speedup on large images.
+#         same_dxdy (boolean): Whether to use same random generated shift for x and y.
+#                              Enabling this option gives ~2X speedup.
 
-    Targets:
-        image, mask, bbox
+#     Targets:
+#         image, mask, bbox
 
-    Image types:
-        uint8, float32
-    """
+#     Image types:
+#         uint8, float32
+#     """
 
-    def __init__(
-        self,
-        alpha=1,
-        sigma=50,
-        alpha_affine=50,
-        interpolation=cv2.INTER_LINEAR,
-        border_mode=cv2.BORDER_REFLECT_101,
-        value=None,
-        mask_value=None,
-        always_apply=False,
-        approximate=False,
-        same_dxdy=False,
-        p=0.5,
-    ):
-        super(ElasticTransform, self).__init__(always_apply, p)
-        self.alpha = alpha
-        self.alpha_affine = alpha_affine
-        self.sigma = sigma
-        self.interpolation = interpolation
-        self.border_mode = border_mode
-        self.value = value
-        self.mask_value = mask_value
-        self.approximate = approximate
-        self.same_dxdy = same_dxdy
+#     def __init__(
+#         self,
+#         alpha=1,
+#         sigma=50,
+#         alpha_affine=50,
+#         interpolation=cv2.INTER_LINEAR,
+#         border_mode=cv2.BORDER_REFLECT_101,
+#         value=None,
+#         mask_value=None,
+#         always_apply=False,
+#         approximate=False,
+#         same_dxdy=False,
+#         p=0.5,
+#     ):
+#         super(ElasticTransform, self).__init__(always_apply, p)
+#         self.alpha = alpha
+#         self.alpha_affine = alpha_affine
+#         self.sigma = sigma
+#         self.interpolation = interpolation
+#         self.border_mode = border_mode
+#         self.value = value
+#         self.mask_value = mask_value
+#         self.approximate = approximate
+#         self.same_dxdy = same_dxdy
 
-    def apply(self, img, random_state=None, interpolation=cv2.INTER_LINEAR, **params):
-        return F.elastic_transform(
-            img,
-            self.alpha,
-            self.sigma,
-            self.alpha_affine,
-            interpolation,
-            self.border_mode,
-            self.value,
-            np.random.RandomState(random_state),
-            self.approximate,
-            self.same_dxdy,
-        )
+#     def apply(self, img, random_state=None, interpolation=cv2.INTER_LINEAR, **params):
+#         return F.elastic_transform(
+#             img,
+#             self.alpha,
+#             self.sigma,
+#             self.alpha_affine,
+#             interpolation,
+#             self.border_mode,
+#             self.value,
+#             np.random.RandomState(random_state),
+#             self.approximate,
+#             self.same_dxdy,
+#         )
 
-    def apply_to_mask(self, img, random_state=None, **params):
-        return F.elastic_transform(
-            img,
-            self.alpha,
-            self.sigma,
-            self.alpha_affine,
-            cv2.INTER_NEAREST,
-            self.border_mode,
-            self.mask_value,
-            np.random.RandomState(random_state),
-            self.approximate,
-            self.same_dxdy,
-        )
+#     def apply_to_mask(self, img, random_state=None, **params):
+#         return F.elastic_transform(
+#             img,
+#             self.alpha,
+#             self.sigma,
+#             self.alpha_affine,
+#             cv2.INTER_NEAREST,
+#             self.border_mode,
+#             self.mask_value,
+#             np.random.RandomState(random_state),
+#             self.approximate,
+#             self.same_dxdy,
+#         )
 
-    def apply_to_bbox(self, bbox, random_state=None, **params):
-        rows, cols = params["rows"], params["cols"]
-        mask = np.zeros((rows, cols), dtype=np.uint8)
-        bbox_denorm = F.denormalize_bbox(bbox, rows, cols)
-        x_min, y_min, x_max, y_max = bbox_denorm[:4]
-        x_min, y_min, x_max, y_max = int(x_min), int(y_min), int(x_max), int(y_max)
-        mask[y_min:y_max, x_min:x_max] = 1
-        mask = F.elastic_transform(
-            mask,
-            self.alpha,
-            self.sigma,
-            self.alpha_affine,
-            cv2.INTER_NEAREST,
-            self.border_mode,
-            self.mask_value,
-            np.random.RandomState(random_state),
-            self.approximate,
-        )
-        bbox_returned = bbox_from_mask(mask)
-        bbox_returned = F.normalize_bbox(bbox_returned, rows, cols)
-        return bbox_returned
+#     def apply_to_bbox(self, bbox, random_state=None, **params):
+#         rows, cols = params["rows"], params["cols"]
+#         mask = np.zeros((rows, cols), dtype=np.uint8)
+#         bbox_denorm = F.denormalize_bbox(bbox, rows, cols)
+#         x_min, y_min, x_max, y_max = bbox_denorm[:4]
+#         x_min, y_min, x_max, y_max = int(x_min), int(y_min), int(x_max), int(y_max)
+#         mask[y_min:y_max, x_min:x_max] = 1
+#         mask = F.elastic_transform(
+#             mask,
+#             self.alpha,
+#             self.sigma,
+#             self.alpha_affine,
+#             cv2.INTER_NEAREST,
+#             self.border_mode,
+#             self.mask_value,
+#             np.random.RandomState(random_state),
+#             self.approximate,
+#         )
+#         bbox_returned = bbox_from_mask(mask)
+#         bbox_returned = F.normalize_bbox(bbox_returned, rows, cols)
+#         return bbox_returned
 
-    def get_params(self):
-        return {"random_state": random.randint(0, 10000)}
+#     def get_params(self):
+#         return {"random_state": random.randint(0, 10000)}
 
-    def get_transform_init_args_names(self):
-        return (
-            "alpha",
-            "sigma",
-            "alpha_affine",
-            "interpolation",
-            "border_mode",
-            "value",
-            "mask_value",
-            "approximate",
-            "same_dxdy",
-        )
+#     def get_transform_init_args_names(self):
+#         return (
+#             "alpha",
+#             "sigma",
+#             "alpha_affine",
+#             "interpolation",
+#             "border_mode",
+#             "value",
+#             "mask_value",
+#             "approximate",
+#             "same_dxdy",
+#         )
 
 
 class Perspective(DualTransform):
@@ -792,185 +792,185 @@ class Affine(DualTransform):
         return matrix, output_shape_tuple
 
 
-class PiecewiseAffine(DualTransform):
-    """Apply affine transformations that differ between local neighbourhoods.
-    This augmentation places a regular grid of points on an image and randomly moves the neighbourhood of these point
-    around via affine transformations. This leads to local distortions.
+# class PiecewiseAffine(DualTransform):
+#     """Apply affine transformations that differ between local neighbourhoods.
+#     This augmentation places a regular grid of points on an image and randomly moves the neighbourhood of these point
+#     around via affine transformations. This leads to local distortions.
 
-    This is mostly a wrapper around scikit-image's ``PiecewiseAffine``.
-    See also ``Affine`` for a similar technique.
+#     This is mostly a wrapper around scikit-image's ``PiecewiseAffine``.
+#     See also ``Affine`` for a similar technique.
 
-    Note:
-        This augmenter is very slow. Try to use ``ElasticTransformation`` instead, which is at least 10x faster.
+#     Note:
+#         This augmenter is very slow. Try to use ``ElasticTransformation`` instead, which is at least 10x faster.
 
-    Note:
-        For coordinate-based inputs (keypoints, bounding boxes, polygons, ...),
-        this augmenter still has to perform an image-based augmentation,
-        which will make it significantly slower and not fully correct for such inputs than other transforms.
+#     Note:
+#         For coordinate-based inputs (keypoints, bounding boxes, polygons, ...),
+#         this augmenter still has to perform an image-based augmentation,
+#         which will make it significantly slower and not fully correct for such inputs than other transforms.
 
-    Args:
-        scale (float, tuple of float): Each point on the regular grid is moved around via a normal distribution.
-            This scale factor is equivalent to the normal distribution's sigma.
-            Note that the jitter (how far each point is moved in which direction) is multiplied by the height/width of
-            the image if ``absolute_scale=False`` (default), so this scale can be the same for different sized images.
-            Recommended values are in the range ``0.01`` to ``0.05`` (weak to strong augmentations).
-                * If a single ``float``, then that value will always be used as the scale.
-                * If a tuple ``(a, b)`` of ``float`` s, then a random value will
-                  be uniformly sampled per image from the interval ``[a, b]``.
-        nb_rows (int, tuple of int): Number of rows of points that the regular grid should have.
-            Must be at least ``2``. For large images, you might want to pick a higher value than ``4``.
-            You might have to then adjust scale to lower values.
-                * If a single ``int``, then that value will always be used as the number of rows.
-                * If a tuple ``(a, b)``, then a value from the discrete interval
-                  ``[a..b]`` will be uniformly sampled per image.
-        nb_cols (int, tuple of int): Number of columns. Analogous to `nb_rows`.
-        interpolation (int): The order of interpolation. The order has to be in the range 0-5:
-             - 0: Nearest-neighbor
-             - 1: Bi-linear (default)
-             - 2: Bi-quadratic
-             - 3: Bi-cubic
-             - 4: Bi-quartic
-             - 5: Bi-quintic
-        mask_interpolation (int): same as interpolation but for mask.
-        cval (number): The constant value to use when filling in newly created pixels.
-        cval_mask (number): Same as cval but only for masks.
-        mode (str): {'constant', 'edge', 'symmetric', 'reflect', 'wrap'}, optional
-            Points outside the boundaries of the input are filled according
-            to the given mode.  Modes match the behaviour of `numpy.pad`.
-        absolute_scale (bool): Take `scale` as an absolute value rather than a relative value.
-        keypoints_threshold (float): Used as threshold in conversion from distance maps to keypoints.
-            The search for keypoints works by searching for the
-            argmin (non-inverted) or argmax (inverted) in each channel. This
-            parameters contains the maximum (non-inverted) or minimum (inverted) value to accept in order to view a hit
-            as a keypoint. Use ``None`` to use no min/max. Default: 0.01
+#     Args:
+#         scale (float, tuple of float): Each point on the regular grid is moved around via a normal distribution.
+#             This scale factor is equivalent to the normal distribution's sigma.
+#             Note that the jitter (how far each point is moved in which direction) is multiplied by the height/width of
+#             the image if ``absolute_scale=False`` (default), so this scale can be the same for different sized images.
+#             Recommended values are in the range ``0.01`` to ``0.05`` (weak to strong augmentations).
+#                 * If a single ``float``, then that value will always be used as the scale.
+#                 * If a tuple ``(a, b)`` of ``float`` s, then a random value will
+#                   be uniformly sampled per image from the interval ``[a, b]``.
+#         nb_rows (int, tuple of int): Number of rows of points that the regular grid should have.
+#             Must be at least ``2``. For large images, you might want to pick a higher value than ``4``.
+#             You might have to then adjust scale to lower values.
+#                 * If a single ``int``, then that value will always be used as the number of rows.
+#                 * If a tuple ``(a, b)``, then a value from the discrete interval
+#                   ``[a..b]`` will be uniformly sampled per image.
+#         nb_cols (int, tuple of int): Number of columns. Analogous to `nb_rows`.
+#         interpolation (int): The order of interpolation. The order has to be in the range 0-5:
+#              - 0: Nearest-neighbor
+#              - 1: Bi-linear (default)
+#              - 2: Bi-quadratic
+#              - 3: Bi-cubic
+#              - 4: Bi-quartic
+#              - 5: Bi-quintic
+#         mask_interpolation (int): same as interpolation but for mask.
+#         cval (number): The constant value to use when filling in newly created pixels.
+#         cval_mask (number): Same as cval but only for masks.
+#         mode (str): {'constant', 'edge', 'symmetric', 'reflect', 'wrap'}, optional
+#             Points outside the boundaries of the input are filled according
+#             to the given mode.  Modes match the behaviour of `numpy.pad`.
+#         absolute_scale (bool): Take `scale` as an absolute value rather than a relative value.
+#         keypoints_threshold (float): Used as threshold in conversion from distance maps to keypoints.
+#             The search for keypoints works by searching for the
+#             argmin (non-inverted) or argmax (inverted) in each channel. This
+#             parameters contains the maximum (non-inverted) or minimum (inverted) value to accept in order to view a hit
+#             as a keypoint. Use ``None`` to use no min/max. Default: 0.01
 
-    Targets:
-        image, mask, keypoints, bboxes
+#     Targets:
+#         image, mask, keypoints, bboxes
 
-    Image types:
-        uint8, float32
+#     Image types:
+#         uint8, float32
 
-    """
+#     """
 
-    def __init__(
-        self,
-        scale: ScaleFloatType = (0.03, 0.05),
-        nb_rows: Union[int, Sequence[int]] = 4,
-        nb_cols: Union[int, Sequence[int]] = 4,
-        interpolation: int = 1,
-        mask_interpolation: int = 0,
-        cval: int = 0,
-        cval_mask: int = 0,
-        mode: str = "constant",
-        absolute_scale: bool = False,
-        always_apply: bool = False,
-        keypoints_threshold: float = 0.01,
-        p: float = 0.5,
-    ):
-        super(PiecewiseAffine, self).__init__(always_apply, p)
+#     def __init__(
+#         self,
+#         scale: ScaleFloatType = (0.03, 0.05),
+#         nb_rows: Union[int, Sequence[int]] = 4,
+#         nb_cols: Union[int, Sequence[int]] = 4,
+#         interpolation: int = 1,
+#         mask_interpolation: int = 0,
+#         cval: int = 0,
+#         cval_mask: int = 0,
+#         mode: str = "constant",
+#         absolute_scale: bool = False,
+#         always_apply: bool = False,
+#         keypoints_threshold: float = 0.01,
+#         p: float = 0.5,
+#     ):
+#         super(PiecewiseAffine, self).__init__(always_apply, p)
 
-        self.scale = to_tuple(scale, scale)
-        self.nb_rows = to_tuple(nb_rows, nb_rows)
-        self.nb_cols = to_tuple(nb_cols, nb_cols)
-        self.interpolation = interpolation
-        self.mask_interpolation = mask_interpolation
-        self.cval = cval
-        self.cval_mask = cval_mask
-        self.mode = mode
-        self.absolute_scale = absolute_scale
-        self.keypoints_threshold = keypoints_threshold
+#         self.scale = to_tuple(scale, scale)
+#         self.nb_rows = to_tuple(nb_rows, nb_rows)
+#         self.nb_cols = to_tuple(nb_cols, nb_cols)
+#         self.interpolation = interpolation
+#         self.mask_interpolation = mask_interpolation
+#         self.cval = cval
+#         self.cval_mask = cval_mask
+#         self.mode = mode
+#         self.absolute_scale = absolute_scale
+#         self.keypoints_threshold = keypoints_threshold
 
-    def get_transform_init_args_names(self):
-        return (
-            "scale",
-            "nb_rows",
-            "nb_cols",
-            "interpolation",
-            "mask_interpolation",
-            "cval",
-            "cval_mask",
-            "mode",
-            "absolute_scale",
-            "keypoints_threshold",
-        )
+#     def get_transform_init_args_names(self):
+#         return (
+#             "scale",
+#             "nb_rows",
+#             "nb_cols",
+#             "interpolation",
+#             "mask_interpolation",
+#             "cval",
+#             "cval_mask",
+#             "mode",
+#             "absolute_scale",
+#             "keypoints_threshold",
+#         )
 
-    @property
-    def targets_as_params(self):
-        return ["image"]
+#     @property
+#     def targets_as_params(self):
+#         return ["image"]
 
-    def get_params_dependent_on_targets(self, params) -> dict:
-        h, w = params["image"].shape[:2]
+#     def get_params_dependent_on_targets(self, params) -> dict:
+#         h, w = params["image"].shape[:2]
 
-        nb_rows = np.clip(random.randint(*self.nb_rows), 2, None)
-        nb_cols = np.clip(random.randint(*self.nb_cols), 2, None)
-        nb_cells = nb_cols * nb_rows
-        scale = random.uniform(*self.scale)
+#         nb_rows = np.clip(random.randint(*self.nb_rows), 2, None)
+#         nb_cols = np.clip(random.randint(*self.nb_cols), 2, None)
+#         nb_cells = nb_cols * nb_rows
+#         scale = random.uniform(*self.scale)
 
-        jitter: np.ndarray = random_utils.normal(0, scale, (nb_cells, 2))
-        if not np.any(jitter > 0):
-            return {"matrix": None}
+#         jitter: np.ndarray = random_utils.normal(0, scale, (nb_cells, 2))
+#         if not np.any(jitter > 0):
+#             return {"matrix": None}
 
-        y = np.linspace(0, h, nb_rows)
-        x = np.linspace(0, w, nb_cols)
+#         y = np.linspace(0, h, nb_rows)
+#         x = np.linspace(0, w, nb_cols)
 
-        # (H, W) and (H, W) for H=rows, W=cols
-        xx_src, yy_src = np.meshgrid(x, y)
+#         # (H, W) and (H, W) for H=rows, W=cols
+#         xx_src, yy_src = np.meshgrid(x, y)
 
-        # (1, HW, 2) => (HW, 2) for H=rows, W=cols
-        points_src = np.dstack([yy_src.flat, xx_src.flat])[0]
+#         # (1, HW, 2) => (HW, 2) for H=rows, W=cols
+#         points_src = np.dstack([yy_src.flat, xx_src.flat])[0]
 
-        if self.absolute_scale:
-            jitter[:, 0] = jitter[:, 0] / h if h > 0 else 0.0
-            jitter[:, 1] = jitter[:, 1] / w if w > 0 else 0.0
+#         if self.absolute_scale:
+#             jitter[:, 0] = jitter[:, 0] / h if h > 0 else 0.0
+#             jitter[:, 1] = jitter[:, 1] / w if w > 0 else 0.0
 
-        jitter[:, 0] = jitter[:, 0] * h
-        jitter[:, 1] = jitter[:, 1] * w
+#         jitter[:, 0] = jitter[:, 0] * h
+#         jitter[:, 1] = jitter[:, 1] * w
 
-        points_dest = np.copy(points_src)
-        points_dest[:, 0] = points_dest[:, 0] + jitter[:, 0]
-        points_dest[:, 1] = points_dest[:, 1] + jitter[:, 1]
+#         points_dest = np.copy(points_src)
+#         points_dest[:, 0] = points_dest[:, 0] + jitter[:, 0]
+#         points_dest[:, 1] = points_dest[:, 1] + jitter[:, 1]
 
-        # Restrict all destination points to be inside the image plane.
-        # This is necessary, as otherwise keypoints could be augmented
-        # outside of the image plane and these would be replaced by
-        # (-1, -1), which would not conform with the behaviour of the other augmenters.
-        points_dest[:, 0] = np.clip(points_dest[:, 0], 0, h - 1)
-        points_dest[:, 1] = np.clip(points_dest[:, 1], 0, w - 1)
+#         # Restrict all destination points to be inside the image plane.
+#         # This is necessary, as otherwise keypoints could be augmented
+#         # outside of the image plane and these would be replaced by
+#         # (-1, -1), which would not conform with the behaviour of the other augmenters.
+#         points_dest[:, 0] = np.clip(points_dest[:, 0], 0, h - 1)
+#         points_dest[:, 1] = np.clip(points_dest[:, 1], 0, w - 1)
 
-        matrix = skimage.transform.PiecewiseAffineTransform()
-        matrix.estimate(points_src[:, ::-1], points_dest[:, ::-1])
+#         matrix = skimage.transform.PiecewiseAffineTransform()
+#         matrix.estimate(points_src[:, ::-1], points_dest[:, ::-1])
 
-        return {
-            "matrix": matrix,
-        }
+#         return {
+#             "matrix": matrix,
+#         }
 
-    def apply(self, img: np.ndarray, matrix: skimage.transform.PiecewiseAffineTransform = None, **params) -> np.ndarray:
-        return F.piecewise_affine(img, matrix, self.interpolation, self.mode, self.cval)
+#     def apply(self, img: np.ndarray, matrix: skimage.transform.PiecewiseAffineTransform = None, **params) -> np.ndarray:
+#         return F.piecewise_affine(img, matrix, self.interpolation, self.mode, self.cval)
 
-    def apply_to_mask(
-        self, img: np.ndarray, matrix: skimage.transform.PiecewiseAffineTransform = None, **params
-    ) -> np.ndarray:
-        return F.piecewise_affine(img, matrix, self.mask_interpolation, self.mode, self.cval_mask)
+#     def apply_to_mask(
+#         self, img: np.ndarray, matrix: skimage.transform.PiecewiseAffineTransform = None, **params
+#     ) -> np.ndarray:
+#         return F.piecewise_affine(img, matrix, self.mask_interpolation, self.mode, self.cval_mask)
 
-    def apply_to_bbox(
-        self,
-        bbox: BoxInternalType,
-        rows: int = 0,
-        cols: int = 0,
-        matrix: skimage.transform.PiecewiseAffineTransform = None,
-        **params
-    ) -> BoxInternalType:
-        return F.bbox_piecewise_affine(bbox, matrix, rows, cols, self.keypoints_threshold)
+#     def apply_to_bbox(
+#         self,
+#         bbox: BoxInternalType,
+#         rows: int = 0,
+#         cols: int = 0,
+#         matrix: skimage.transform.PiecewiseAffineTransform = None,
+#         **params
+#     ) -> BoxInternalType:
+#         return F.bbox_piecewise_affine(bbox, matrix, rows, cols, self.keypoints_threshold)
 
-    def apply_to_keypoint(
-        self,
-        keypoint: KeypointInternalType,
-        rows: int = 0,
-        cols: int = 0,
-        matrix: skimage.transform.PiecewiseAffineTransform = None,
-        **params
-    ):
-        return F.keypoint_piecewise_affine(keypoint, matrix, rows, cols, self.keypoints_threshold)
+#     def apply_to_keypoint(
+#         self,
+#         keypoint: KeypointInternalType,
+#         rows: int = 0,
+#         cols: int = 0,
+#         matrix: skimage.transform.PiecewiseAffineTransform = None,
+#         **params
+#     ):
+#         return F.keypoint_piecewise_affine(keypoint, matrix, rows, cols, self.keypoints_threshold)
 
 
 class PadIfNeeded(DualTransform):
@@ -1000,22 +1000,28 @@ class PadIfNeeded(DualTransform):
 
     class PositionType(Enum):
         CENTER = "center"
-        TOP_LEFT = "top_left"
-        TOP_RIGHT = "top_right"
-        BOTTOM_LEFT = "bottom_left"
-        BOTTOM_RIGHT = "bottom_right"
+        FRONT_TOP_LEFT = "front_top_left"
+        FRONT_TOP_RIGHT = "front_top_right"
+        FRONT_BOTTOM_LEFT = "front_bottom_left"
+        FRONT_BOTTOM_RIGHT = "front_bottom_right"
+        BACK_TOP_LEFT = "back_top_left"
+        BACK_TOP_RIGHT = "back_top_right"
+        BACK_BOTTOM_LEFT = "back_bottom_left"
+        BACK_BOTTOM_RIGHT = "back_bottom_right"
         RANDOM = "random"
 
     def __init__(
         self,
         min_height: Optional[int] = 1024,
         min_width: Optional[int] = 1024,
+        min_depth: Optional[int] = 1024,
         pad_height_divisor: Optional[int] = None,
         pad_width_divisor: Optional[int] = None,
+        pad_depth_divisor: Optional[int] = None,
         position: Union[PositionType, str] = PositionType.CENTER,
-        border_mode: int = cv2.BORDER_REFLECT_101,
-        value: Optional[ImageColorType] = None,
-        mask_value: Optional[ImageColorType] = None,
+        border_mode: int = "constant",
+        value: Union[float, int ] = 0,
+        mask_value: Union[float, int ] = 0,
         always_apply: bool = False,
         p: float = 1.0,
     ):
@@ -1024,12 +1030,17 @@ class PadIfNeeded(DualTransform):
 
         if (min_width is None) == (pad_width_divisor is None):
             raise ValueError("Only one of 'min_width' and 'pad_width_divisor' parameters must be set")
+        
+        if (min_depth is None) == (pad_depth_divisor is None):
+            raise ValueError("Only one of 'min_depth' and 'pad_depth_divisor' parameters must be set")
 
         super(PadIfNeeded, self).__init__(always_apply, p)
         self.min_height = min_height
         self.min_width = min_width
-        self.pad_width_divisor = pad_width_divisor
+        self.min_depth = min_depth
         self.pad_height_divisor = pad_height_divisor
+        self.pad_width_divisor = pad_width_divisor
+        self.pad_depth_divisor = pad_depth_divisor
         self.position = PadIfNeeded.PositionType(position)
         self.border_mode = border_mode
         self.value = value
@@ -1039,6 +1050,7 @@ class PadIfNeeded(DualTransform):
         params = super(PadIfNeeded, self).update_params(params, **kwargs)
         rows = params["rows"]
         cols = params["cols"]
+        slices = params["slices"]
 
         if self.min_height is not None:
             if rows < self.min_height:
@@ -1068,8 +1080,27 @@ class PadIfNeeded(DualTransform):
             w_pad_left = pad_cols // 2
             w_pad_right = pad_cols - w_pad_left
 
-        h_pad_top, h_pad_bottom, w_pad_left, w_pad_right = self.__update_position_params(
-            h_top=h_pad_top, h_bottom=h_pad_bottom, w_left=w_pad_left, w_right=w_pad_right
+        if self.min_depth is not None:
+            if slices < self.min_depth:
+                d_pad_front = int((self.min_depth - slices) / 2.0)
+                d_pad_back = self.min_depth - slices - d_pad_front
+            else:
+                d_pad_front = 0
+                d_pad_back = 0
+        else:
+            pad_remained = slices % self.pad_depth_divisor
+            pad_slices = self.pad_depth_divisor - pad_remained if pad_remained > 0 else 0
+
+            d_pad_front = pad_slices // 2
+            d_pad_back = pad_slices - h_pad_top
+
+        h_pad_top, h_pad_bottom, w_pad_left, w_pad_right, d_pad_front, d_pad_back = self.__update_position_params(
+            h_top=h_pad_top,
+            h_bottom=h_pad_bottom,
+            w_left=w_pad_left,
+            w_right=w_pad_right,
+            d_front=d_pad_front,
+            d_back=d_pad_back
         )
 
         params.update(
@@ -1078,12 +1109,14 @@ class PadIfNeeded(DualTransform):
                 "pad_bottom": h_pad_bottom,
                 "pad_left": w_pad_left,
                 "pad_right": w_pad_right,
+                "pad_front" : d_pad_front,
+                "pad_back": d_pad_back,
             }
         )
         return params
 
     def apply(
-        self, img: np.ndarray, pad_top: int = 0, pad_bottom: int = 0, pad_left: int = 0, pad_right: int = 0, **params
+        self, img: np.ndarray, pad_top: int = 0, pad_bottom: int = 0, pad_left: int = 0, pad_right: int = 0, pad_front: int = 0, pad_back: int = 0, **params
     ) -> np.ndarray:
         return F.pad_with_params(
             img,
@@ -1091,12 +1124,14 @@ class PadIfNeeded(DualTransform):
             pad_bottom,
             pad_left,
             pad_right,
+            pad_front,
+            pad_back,
             border_mode=self.border_mode,
             value=self.value,
         )
 
     def apply_to_mask(
-        self, img: np.ndarray, pad_top: int = 0, pad_bottom: int = 0, pad_left: int = 0, pad_right: int = 0, **params
+        self, img: np.ndarray, pad_top: int = 0, pad_bottom: int = 0, pad_left: int = 0, pad_right: int = 0, pad_front: int = 0, pad_back: int = 0, **params
     ) -> np.ndarray:
         return F.pad_with_params(
             img,
@@ -1104,6 +1139,8 @@ class PadIfNeeded(DualTransform):
             pad_bottom,
             pad_left,
             pad_right,
+            pad_front,
+            pad_back,
             border_mode=self.border_mode,
             value=self.mask_value,
         )
@@ -1115,13 +1152,16 @@ class PadIfNeeded(DualTransform):
         pad_bottom: int = 0,
         pad_left: int = 0,
         pad_right: int = 0,
+        pad_front: int = 0,
+        pad_back: int = 0,
         rows: int = 0,
         cols: int = 0,
+        slices: int = 0,
         **params
     ) -> BoxInternalType:
-        x_min, y_min, x_max, y_max = denormalize_bbox(bbox, rows, cols)[:4]
-        bbox = x_min + pad_left, y_min + pad_top, x_max + pad_left, y_max + pad_top
-        return normalize_bbox(bbox, rows + pad_top + pad_bottom, cols + pad_left + pad_right)
+        x_min, y_min, z_min, x_max, y_max, z_max = denormalize_bbox(bbox, rows, cols, slices)[:6]
+        bbox = x_min + pad_left, y_min + pad_top, z_min + pad_front, x_max + pad_left, y_max + pad_top, z_max + pad_front
+        return normalize_bbox(bbox, rows + pad_top + pad_bottom, cols + pad_left + pad_right, slices + pad_front + pad_back)
 
     def apply_to_keypoint(
         self,
@@ -1130,58 +1170,112 @@ class PadIfNeeded(DualTransform):
         pad_bottom: int = 0,
         pad_left: int = 0,
         pad_right: int = 0,
+        pad_front: int = 0,
+        pad_back: int = 0,
         **params
     ) -> KeypointInternalType:
-        x, y, angle, scale = keypoint[:4]
-        return x + pad_left, y + pad_top, angle, scale
+        x, y, z, angle, scale = keypoint[:5]
+        return x + pad_left, y + pad_top, z+ pad_front, angle, scale
 
     def get_transform_init_args_names(self):
         return (
             "min_height",
             "min_width",
+            "min_depth",
             "pad_height_divisor",
             "pad_width_divisor",
+            "pad_depth_divisor",
             "border_mode",
             "value",
             "mask_value",
         )
 
     def __update_position_params(
-        self, h_top: int, h_bottom: int, w_left: int, w_right: int
+        self, h_top: int, h_bottom: int, w_left: int, w_right: int, d_front: int, d_back: int
     ) -> Tuple[int, int, int, int]:
-        if self.position == PadIfNeeded.PositionType.TOP_LEFT:
+        if self.position == PadIfNeeded.PositionType.FRONT_TOP_LEFT:
             h_bottom += h_top
             w_right += w_left
+            d_back += d_front
+            
             h_top = 0
             w_left = 0
+            d_front = 0
+        
+        elif self.position == PadIfNeeded.PositionType.BACK_TOP_LEFT:
+            h_bottom += h_top
+            w_right += w_left
+            d_front += d_back
+            
+            h_top = 0
+            w_left = 0
+            d_back = 0
 
-        elif self.position == PadIfNeeded.PositionType.TOP_RIGHT:
+        elif self.position == PadIfNeeded.PositionType.FRONT_TOP_RIGHT:
             h_bottom += h_top
             w_left += w_right
+            d_back += d_front
+            
             h_top = 0
             w_right = 0
+            d_front = 0
 
-        elif self.position == PadIfNeeded.PositionType.BOTTOM_LEFT:
+        elif self.position == PadIfNeeded.PositionType.BACK_TOP_RIGHT:
+            h_bottom += h_top
+            w_left += w_right 
+            d_front += d_back
+            
+            h_top = 0
+            w_right = 0
+            d_back = 0
+
+        elif self.position == PadIfNeeded.PositionType.FRONT_BOTTOM_LEFT:
             h_top += h_bottom
             w_right += w_left
+            d_back += d_front
+            
             h_bottom = 0
             w_left = 0
+            d_front = 0
 
-        elif self.position == PadIfNeeded.PositionType.BOTTOM_RIGHT:
+        elif self.position == PadIfNeeded.PositionType.BACK_BOTTOM_LEFT:
             h_top += h_bottom
-            w_left += w_right
+            w_right += w_left
+            d_front += d_back
+            
+            h_bottom = 0
+            w_left = 0
+            d_back = 0
+
+        elif self.position == PadIfNeeded.PositionType.FRONT_BOTTOM_RIGHT:
+            h_top += h_bottom
+            w_left += w_right 
+            d_back += d_front
+            
             h_bottom = 0
             w_right = 0
+            d_front = 0
+
+        elif self.position == PadIfNeeded.PositionType.BACK_BOTTOM_RIGHT:
+            h_top += h_bottom
+            w_left += w_right 
+            d_front += d_back
+            
+            h_bottom = 0
+            w_right = 0
+            d_back = 0
 
         elif self.position == PadIfNeeded.PositionType.RANDOM:
             h_pad = h_top + h_bottom
             w_pad = w_left + w_right
+            d_pad = d_front + d_back
             h_top = random.randint(0, h_pad)
             h_bottom = h_pad - h_top
             w_left = random.randint(0, w_pad)
             w_right = w_pad - w_left
-
-        return h_top, h_bottom, w_left, w_right
+            d_front = random.randint(0, d_pad)
+            d_back = d_pad - d_front
+        return h_top, h_bottom, w_left, w_right, d_front, d_back
 
 
 class VerticalFlip(DualTransform):
@@ -1224,11 +1318,6 @@ class HorizontalFlip(DualTransform):
     """
 
     def apply(self, img: np.ndarray, **params) -> np.ndarray:
-        if img.ndim == 3 and img.shape[2] > 1 and img.dtype == np.uint8:
-            # Opencv is faster than numpy only in case of
-            # non-gray scale 8bits images
-            return F.hflip_cv2(img)
-
         return F.hflip(img)
 
     def apply_to_bbox(self, bbox: BoxInternalType, **params) -> BoxInternalType:
@@ -1239,10 +1328,35 @@ class HorizontalFlip(DualTransform):
 
     def get_transform_init_args_names(self):
         return ()
+    
+class SliceFlip(DualTransform):
+    """Flip the input along the slice dimension.
+
+    Args:
+        p (float): probability of applying the transform. Default: 0.5.
+
+    Targets:
+        image, mask, bboxes, keypoints
+
+    Image types:
+        uint8, float32
+    """
+
+    def apply(self, img: np.ndarray, **params) -> np.ndarray:
+        return F.zflip(img)
+
+    def apply_to_bbox(self, bbox: BoxInternalType, **params) -> BoxInternalType:
+        return F.bbox_zflip(bbox, **params)
+
+    def apply_to_keypoint(self, keypoint: KeypointInternalType, **params) -> KeypointInternalType:
+        return F.keypoint_zflip(keypoint, **params)
+
+    def get_transform_init_args_names(self):
+        return ()
 
 
 class Flip(DualTransform):
-    """Flip the input either horizontally, vertically or both horizontally and vertically.
+    """Flip the input either horizontally, vertically, along the z-axis, or all.
 
     Args:
         p (float): probability of applying the transform. Default: 0.5.
@@ -1257,14 +1371,13 @@ class Flip(DualTransform):
     def apply(self, img: np.ndarray, d: int = 0, **params) -> np.ndarray:
         """Args:
         d (int): code that specifies how to flip the input. 0 for vertical flipping, 1 for horizontal flipping,
-                -1 for both vertical and horizontal flipping (which is also could be seen as rotating the input by
-                180 degrees).
+                2 for z-axis flip, or -1 for vertical, horizontal, and z-axis flipping
         """
         return F.random_flip(img, d)
 
     def get_params(self):
         # Random int in the range [-1, 1]
-        return {"d": random.randint(-1, 1)}
+        return {"d": random.randint(-1, 2)}
 
     def apply_to_bbox(self, bbox: BoxInternalType, **params) -> BoxInternalType:
         return F.bbox_flip(bbox, **params)
@@ -1277,7 +1390,7 @@ class Flip(DualTransform):
 
 
 class Transpose(DualTransform):
-    """Transpose the input by swapping rows and columns.
+    """Transpose the input by swapping rows and columns. Slice dimension remains unaffected
 
     Args:
         p (float): probability of applying the transform. Default: 0.5.
@@ -1302,192 +1415,192 @@ class Transpose(DualTransform):
         return ()
 
 
-class OpticalDistortion(DualTransform):
-    """
-    Args:
-        distort_limit (float, (float, float)): If distort_limit is a single float, the range
-            will be (-distort_limit, distort_limit). Default: (-0.05, 0.05).
-        shift_limit (float, (float, float))): If shift_limit is a single float, the range
-            will be (-shift_limit, shift_limit). Default: (-0.05, 0.05).
-        interpolation (OpenCV flag): flag that is used to specify the interpolation algorithm. Should be one of:
-            cv2.INTER_NEAREST, cv2.INTER_LINEAR, cv2.INTER_CUBIC, cv2.INTER_AREA, cv2.INTER_LANCZOS4.
-            Default: cv2.INTER_LINEAR.
-        border_mode (OpenCV flag): flag that is used to specify the pixel extrapolation method. Should be one of:
-            cv2.BORDER_CONSTANT, cv2.BORDER_REPLICATE, cv2.BORDER_REFLECT, cv2.BORDER_WRAP, cv2.BORDER_REFLECT_101.
-            Default: cv2.BORDER_REFLECT_101
-        value (int, float, list of ints, list of float): padding value if border_mode is cv2.BORDER_CONSTANT.
-        mask_value (int, float,
-                    list of ints,
-                    list of float): padding value if border_mode is cv2.BORDER_CONSTANT applied for masks.
+# class OpticalDistortion(DualTransform):
+#     """
+#     Args:
+#         distort_limit (float, (float, float)): If distort_limit is a single float, the range
+#             will be (-distort_limit, distort_limit). Default: (-0.05, 0.05).
+#         shift_limit (float, (float, float))): If shift_limit is a single float, the range
+#             will be (-shift_limit, shift_limit). Default: (-0.05, 0.05).
+#         interpolation (OpenCV flag): flag that is used to specify the interpolation algorithm. Should be one of:
+#             cv2.INTER_NEAREST, cv2.INTER_LINEAR, cv2.INTER_CUBIC, cv2.INTER_AREA, cv2.INTER_LANCZOS4.
+#             Default: cv2.INTER_LINEAR.
+#         border_mode (OpenCV flag): flag that is used to specify the pixel extrapolation method. Should be one of:
+#             cv2.BORDER_CONSTANT, cv2.BORDER_REPLICATE, cv2.BORDER_REFLECT, cv2.BORDER_WRAP, cv2.BORDER_REFLECT_101.
+#             Default: cv2.BORDER_REFLECT_101
+#         value (int, float, list of ints, list of float): padding value if border_mode is cv2.BORDER_CONSTANT.
+#         mask_value (int, float,
+#                     list of ints,
+#                     list of float): padding value if border_mode is cv2.BORDER_CONSTANT applied for masks.
 
-    Targets:
-        image, mask, bbox
+#     Targets:
+#         image, mask, bbox
 
-    Image types:
-        uint8, float32
-    """
+#     Image types:
+#         uint8, float32
+#     """
 
-    def __init__(
-        self,
-        distort_limit: ScaleFloatType = 0.05,
-        shift_limit: ScaleFloatType = 0.05,
-        interpolation: int = cv2.INTER_LINEAR,
-        border_mode: int = cv2.BORDER_REFLECT_101,
-        value: Optional[ImageColorType] = None,
-        mask_value: Optional[ImageColorType] = None,
-        always_apply: bool = False,
-        p: float = 0.5,
-    ):
-        super(OpticalDistortion, self).__init__(always_apply, p)
-        self.shift_limit = to_tuple(shift_limit)
-        self.distort_limit = to_tuple(distort_limit)
-        self.interpolation = interpolation
-        self.border_mode = border_mode
-        self.value = value
-        self.mask_value = mask_value
+#     def __init__(
+#         self,
+#         distort_limit: ScaleFloatType = 0.05,
+#         shift_limit: ScaleFloatType = 0.05,
+#         interpolation: int = cv2.INTER_LINEAR,
+#         border_mode: int = cv2.BORDER_REFLECT_101,
+#         value: Optional[ImageColorType] = None,
+#         mask_value: Optional[ImageColorType] = None,
+#         always_apply: bool = False,
+#         p: float = 0.5,
+#     ):
+#         super(OpticalDistortion, self).__init__(always_apply, p)
+#         self.shift_limit = to_tuple(shift_limit)
+#         self.distort_limit = to_tuple(distort_limit)
+#         self.interpolation = interpolation
+#         self.border_mode = border_mode
+#         self.value = value
+#         self.mask_value = mask_value
 
-    def apply(
-        self, img: np.ndarray, k: int = 0, dx: int = 0, dy: int = 0, interpolation: int = cv2.INTER_LINEAR, **params
-    ) -> np.ndarray:
-        return F.optical_distortion(img, k, dx, dy, interpolation, self.border_mode, self.value)
+#     def apply(
+#         self, img: np.ndarray, k: int = 0, dx: int = 0, dy: int = 0, interpolation: int = cv2.INTER_LINEAR, **params
+#     ) -> np.ndarray:
+#         return F.optical_distortion(img, k, dx, dy, interpolation, self.border_mode, self.value)
 
-    def apply_to_mask(self, img: np.ndarray, k: int = 0, dx: int = 0, dy: int = 0, **params) -> np.ndarray:
-        return F.optical_distortion(img, k, dx, dy, cv2.INTER_NEAREST, self.border_mode, self.mask_value)
+#     def apply_to_mask(self, img: np.ndarray, k: int = 0, dx: int = 0, dy: int = 0, **params) -> np.ndarray:
+#         return F.optical_distortion(img, k, dx, dy, cv2.INTER_NEAREST, self.border_mode, self.mask_value)
 
-    def apply_to_bbox(self, bbox: BoxInternalType, k: int = 0, dx: int = 0, dy: int = 0, **params) -> BoxInternalType:
-        rows, cols = params["rows"], params["cols"]
-        mask = np.zeros((rows, cols), dtype=np.uint8)
-        bbox_denorm = F.denormalize_bbox(bbox, rows, cols)
-        x_min, y_min, x_max, y_max = bbox_denorm[:4]
-        x_min, y_min, x_max, y_max = int(x_min), int(y_min), int(x_max), int(y_max)
-        mask[y_min:y_max, x_min:x_max] = 1
-        mask = F.optical_distortion(mask, k, dx, dy, cv2.INTER_NEAREST, self.border_mode, self.mask_value)
-        bbox_returned = bbox_from_mask(mask)
-        bbox_returned = F.normalize_bbox(bbox_returned, rows, cols)
-        return bbox_returned
+#     def apply_to_bbox(self, bbox: BoxInternalType, k: int = 0, dx: int = 0, dy: int = 0, **params) -> BoxInternalType:
+#         rows, cols = params["rows"], params["cols"]
+#         mask = np.zeros((rows, cols), dtype=np.uint8)
+#         bbox_denorm = F.denormalize_bbox(bbox, rows, cols)
+#         x_min, y_min, x_max, y_max = bbox_denorm[:4]
+#         x_min, y_min, x_max, y_max = int(x_min), int(y_min), int(x_max), int(y_max)
+#         mask[y_min:y_max, x_min:x_max] = 1
+#         mask = F.optical_distortion(mask, k, dx, dy, cv2.INTER_NEAREST, self.border_mode, self.mask_value)
+#         bbox_returned = bbox_from_mask(mask)
+#         bbox_returned = F.normalize_bbox(bbox_returned, rows, cols)
+#         return bbox_returned
 
-    def get_params(self):
-        return {
-            "k": random.uniform(self.distort_limit[0], self.distort_limit[1]),
-            "dx": round(random.uniform(self.shift_limit[0], self.shift_limit[1])),
-            "dy": round(random.uniform(self.shift_limit[0], self.shift_limit[1])),
-        }
+#     def get_params(self):
+#         return {
+#             "k": random.uniform(self.distort_limit[0], self.distort_limit[1]),
+#             "dx": round(random.uniform(self.shift_limit[0], self.shift_limit[1])),
+#             "dy": round(random.uniform(self.shift_limit[0], self.shift_limit[1])),
+#         }
 
-    def get_transform_init_args_names(self):
-        return (
-            "distort_limit",
-            "shift_limit",
-            "interpolation",
-            "border_mode",
-            "value",
-            "mask_value",
-        )
+#     def get_transform_init_args_names(self):
+#         return (
+#             "distort_limit",
+#             "shift_limit",
+#             "interpolation",
+#             "border_mode",
+#             "value",
+#             "mask_value",
+#         )
 
 
-class GridDistortion(DualTransform):
-    """
-    Args:
-        num_steps (int): count of grid cells on each side.
-        distort_limit (float, (float, float)): If distort_limit is a single float, the range
-            will be (-distort_limit, distort_limit). Default: (-0.03, 0.03).
-        interpolation (OpenCV flag): flag that is used to specify the interpolation algorithm. Should be one of:
-            cv2.INTER_NEAREST, cv2.INTER_LINEAR, cv2.INTER_CUBIC, cv2.INTER_AREA, cv2.INTER_LANCZOS4.
-            Default: cv2.INTER_LINEAR.
-        border_mode (OpenCV flag): flag that is used to specify the pixel extrapolation method. Should be one of:
-            cv2.BORDER_CONSTANT, cv2.BORDER_REPLICATE, cv2.BORDER_REFLECT, cv2.BORDER_WRAP, cv2.BORDER_REFLECT_101.
-            Default: cv2.BORDER_REFLECT_101
-        value (int, float, list of ints, list of float): padding value if border_mode is cv2.BORDER_CONSTANT.
-        mask_value (int, float,
-                    list of ints,
-                    list of float): padding value if border_mode is cv2.BORDER_CONSTANT applied for masks.
-        normalized (bool): if true, distortion will be normalized to do not go outside the image. Default: False
-            See for more information: https://github.com/albumentations-team/albumentations/pull/722
+# class GridDistortion(DualTransform):
+#     """
+#     Args:
+#         num_steps (int): count of grid cells on each side.
+#         distort_limit (float, (float, float)): If distort_limit is a single float, the range
+#             will be (-distort_limit, distort_limit). Default: (-0.03, 0.03).
+#         interpolation (OpenCV flag): flag that is used to specify the interpolation algorithm. Should be one of:
+#             cv2.INTER_NEAREST, cv2.INTER_LINEAR, cv2.INTER_CUBIC, cv2.INTER_AREA, cv2.INTER_LANCZOS4.
+#             Default: cv2.INTER_LINEAR.
+#         border_mode (OpenCV flag): flag that is used to specify the pixel extrapolation method. Should be one of:
+#             cv2.BORDER_CONSTANT, cv2.BORDER_REPLICATE, cv2.BORDER_REFLECT, cv2.BORDER_WRAP, cv2.BORDER_REFLECT_101.
+#             Default: cv2.BORDER_REFLECT_101
+#         value (int, float, list of ints, list of float): padding value if border_mode is cv2.BORDER_CONSTANT.
+#         mask_value (int, float,
+#                     list of ints,
+#                     list of float): padding value if border_mode is cv2.BORDER_CONSTANT applied for masks.
+#         normalized (bool): if true, distortion will be normalized to do not go outside the image. Default: False
+#             See for more information: https://github.com/albumentations-team/albumentations/pull/722
 
-    Targets:
-        image, mask
+#     Targets:
+#         image, mask
 
-    Image types:
-        uint8, float32
-    """
+#     Image types:
+#         uint8, float32
+#     """
 
-    def __init__(
-        self,
-        num_steps: int = 5,
-        distort_limit: ScaleFloatType = 0.3,
-        interpolation: int = cv2.INTER_LINEAR,
-        border_mode: int = cv2.BORDER_REFLECT_101,
-        value: Optional[ImageColorType] = None,
-        mask_value: Optional[ImageColorType] = None,
-        normalized: bool = False,
-        always_apply: bool = False,
-        p: float = 0.5,
-    ):
-        super(GridDistortion, self).__init__(always_apply, p)
-        self.num_steps = num_steps
-        self.distort_limit = to_tuple(distort_limit)
-        self.interpolation = interpolation
-        self.border_mode = border_mode
-        self.value = value
-        self.mask_value = mask_value
-        self.normalized = normalized
+#     def __init__(
+#         self,
+#         num_steps: int = 5,
+#         distort_limit: ScaleFloatType = 0.3,
+#         interpolation: int = cv2.INTER_LINEAR,
+#         border_mode: int = cv2.BORDER_REFLECT_101,
+#         value: Optional[ImageColorType] = None,
+#         mask_value: Optional[ImageColorType] = None,
+#         normalized: bool = False,
+#         always_apply: bool = False,
+#         p: float = 0.5,
+#     ):
+#         super(GridDistortion, self).__init__(always_apply, p)
+#         self.num_steps = num_steps
+#         self.distort_limit = to_tuple(distort_limit)
+#         self.interpolation = interpolation
+#         self.border_mode = border_mode
+#         self.value = value
+#         self.mask_value = mask_value
+#         self.normalized = normalized
 
-    def apply(
-        self, img: np.ndarray, stepsx: Tuple = (), stepsy: Tuple = (), interpolation: int = cv2.INTER_LINEAR, **params
-    ) -> np.ndarray:
-        return F.grid_distortion(img, self.num_steps, stepsx, stepsy, interpolation, self.border_mode, self.value)
+#     def apply(
+#         self, img: np.ndarray, stepsx: Tuple = (), stepsy: Tuple = (), interpolation: int = cv2.INTER_LINEAR, **params
+#     ) -> np.ndarray:
+#         return F.grid_distortion(img, self.num_steps, stepsx, stepsy, interpolation, self.border_mode, self.value)
 
-    def apply_to_mask(self, img: np.ndarray, stepsx: Tuple = (), stepsy: Tuple = (), **params) -> np.ndarray:
-        return F.grid_distortion(
-            img, self.num_steps, stepsx, stepsy, cv2.INTER_NEAREST, self.border_mode, self.mask_value
-        )
+#     def apply_to_mask(self, img: np.ndarray, stepsx: Tuple = (), stepsy: Tuple = (), **params) -> np.ndarray:
+#         return F.grid_distortion(
+#             img, self.num_steps, stepsx, stepsy, cv2.INTER_NEAREST, self.border_mode, self.mask_value
+#         )
 
-    def apply_to_bbox(self, bbox: BoxInternalType, stepsx: Tuple = (), stepsy: Tuple = (), **params) -> BoxInternalType:
-        rows, cols = params["rows"], params["cols"]
-        mask = np.zeros((rows, cols), dtype=np.uint8)
-        bbox_denorm = F.denormalize_bbox(bbox, rows, cols)
-        x_min, y_min, x_max, y_max = bbox_denorm[:4]
-        x_min, y_min, x_max, y_max = int(x_min), int(y_min), int(x_max), int(y_max)
-        mask[y_min:y_max, x_min:x_max] = 1
-        mask = F.grid_distortion(
-            mask, self.num_steps, stepsx, stepsy, cv2.INTER_NEAREST, self.border_mode, self.mask_value
-        )
-        bbox_returned = bbox_from_mask(mask)
-        bbox_returned = F.normalize_bbox(bbox_returned, rows, cols)
-        return bbox_returned
+#     def apply_to_bbox(self, bbox: BoxInternalType, stepsx: Tuple = (), stepsy: Tuple = (), **params) -> BoxInternalType:
+#         rows, cols = params["rows"], params["cols"]
+#         mask = np.zeros((rows, cols), dtype=np.uint8)
+#         bbox_denorm = F.denormalize_bbox(bbox, rows, cols)
+#         x_min, y_min, x_max, y_max = bbox_denorm[:4]
+#         x_min, y_min, x_max, y_max = int(x_min), int(y_min), int(x_max), int(y_max)
+#         mask[y_min:y_max, x_min:x_max] = 1
+#         mask = F.grid_distortion(
+#             mask, self.num_steps, stepsx, stepsy, cv2.INTER_NEAREST, self.border_mode, self.mask_value
+#         )
+#         bbox_returned = bbox_from_mask(mask)
+#         bbox_returned = F.normalize_bbox(bbox_returned, rows, cols)
+#         return bbox_returned
 
-    def _normalize(self, h, w, xsteps, ysteps):
+#     def _normalize(self, h, w, xsteps, ysteps):
 
-        # compensate for smaller last steps in source image.
-        x_step = w // self.num_steps
-        last_x_step = min(w, ((self.num_steps + 1) * x_step)) - (self.num_steps * x_step)
-        xsteps[-1] *= last_x_step / x_step
+#         # compensate for smaller last steps in source image.
+#         x_step = w // self.num_steps
+#         last_x_step = min(w, ((self.num_steps + 1) * x_step)) - (self.num_steps * x_step)
+#         xsteps[-1] *= last_x_step / x_step
 
-        y_step = h // self.num_steps
-        last_y_step = min(h, ((self.num_steps + 1) * y_step)) - (self.num_steps * y_step)
-        ysteps[-1] *= last_y_step / y_step
+#         y_step = h // self.num_steps
+#         last_y_step = min(h, ((self.num_steps + 1) * y_step)) - (self.num_steps * y_step)
+#         ysteps[-1] *= last_y_step / y_step
 
-        # now normalize such that distortion never leaves image bounds.
-        tx = w / math.floor(w / self.num_steps)
-        ty = h / math.floor(h / self.num_steps)
-        xsteps = np.array(xsteps) * (tx / np.sum(xsteps))
-        ysteps = np.array(ysteps) * (ty / np.sum(ysteps))
+#         # now normalize such that distortion never leaves image bounds.
+#         tx = w / math.floor(w / self.num_steps)
+#         ty = h / math.floor(h / self.num_steps)
+#         xsteps = np.array(xsteps) * (tx / np.sum(xsteps))
+#         ysteps = np.array(ysteps) * (ty / np.sum(ysteps))
 
-        return {"stepsx": xsteps, "stepsy": ysteps}
+#         return {"stepsx": xsteps, "stepsy": ysteps}
 
-    @property
-    def targets_as_params(self):
-        return ["image"]
+#     @property
+#     def targets_as_params(self):
+#         return ["image"]
 
-    def get_params_dependent_on_targets(self, params):
-        h, w = params["image"].shape[:2]
+#     def get_params_dependent_on_targets(self, params):
+#         h, w = params["image"].shape[:2]
 
-        stepsx = [1 + random.uniform(self.distort_limit[0], self.distort_limit[1]) for _ in range(self.num_steps + 1)]
-        stepsy = [1 + random.uniform(self.distort_limit[0], self.distort_limit[1]) for _ in range(self.num_steps + 1)]
+#         stepsx = [1 + random.uniform(self.distort_limit[0], self.distort_limit[1]) for _ in range(self.num_steps + 1)]
+#         stepsy = [1 + random.uniform(self.distort_limit[0], self.distort_limit[1]) for _ in range(self.num_steps + 1)]
 
-        if self.normalized:
-            return self._normalize(h, w, stepsx, stepsy)
+#         if self.normalized:
+#             return self._normalize(h, w, stepsx, stepsy)
 
-        return {"stepsx": stepsx, "stepsy": stepsy}
+#         return {"stepsx": stepsx, "stepsy": stepsy}
 
-    def get_transform_init_args_names(self):
-        return "num_steps", "distort_limit", "interpolation", "border_mode", "value", "mask_value", "normalized"
+#     def get_transform_init_args_names(self):
+#         return "num_steps", "distort_limit", "interpolation", "border_mode", "value", "mask_value", "normalized"
