@@ -15,7 +15,12 @@ from albumentations.augmentations.utils import (
     preserve_shape,
 )
 
-__all__ = ["blur", "median_blur", "gaussian_blur", "glass_blur"]
+__all__ = [
+    "blur",
+    "median_blur",
+    "gaussian_blur",
+    #"glass_blur"
+    ]
 
 
 @preserve_shape
@@ -47,7 +52,7 @@ def gaussian_blur(img: np.ndarray, ksize: int, sigma: float = 0, by_slice: bool 
         sigma = 0.3*((ksize-1)*0.5 - 1) + 0.8
 
     if by_slice:
-        radius = ((ksize - 1)//2, (ksize - 1)//2, 1)
+        radius = ((ksize - 1)//2, (ksize - 1)//2, 0)
     else:
         radius = ((ksize - 1)//2,)*3
     

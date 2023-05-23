@@ -40,6 +40,7 @@
 * VerticalFlip
 * RandomGamma
 * NoOp
+* ShiftScaleRotate
 
 # ADD:
 * Datasets Class and Subclasses
@@ -48,8 +49,9 @@
 # ALTER:
 
 * Affine
-* Perspective
-* ShiftScaleRotate
+* GridDropout
+* MaskDropout
+
 
 # UNKNOWN:
 
@@ -62,6 +64,7 @@
 * RandomToneCurve
 * ElasticTransform
 * SafeRotate
+* Perspective
 
 # REMOVE:
 
@@ -96,8 +99,6 @@
 * CoarseDropout
 * CropNonEmptyMaskIfExists
 * GridDistortion
-* GridDropout
-* MaskDropout
 * OpticalDistortion
 * Solarize
 * Lambda

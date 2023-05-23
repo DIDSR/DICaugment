@@ -9,9 +9,11 @@ from albumentations.core.keypoints_utils import angle_to_2pi_range
 from albumentations.core.transforms_interface import KeypointInternalType
 
 __all__ = [
-    "read_bgr_image",
-    "read_rgb_image",
+    "read_dcm_image",
+    # "read_bgr_image",
+    # "read_rgb_image",
     "MAX_VALUES_BY_DTYPE",
+    "NPDTYPE_TO_OPENCV_DTYPE",
     "NPDTYPE_TO_OPENCV_DTYPE",
     "clipped",
     "get_opencv_dtype_from_numpy",
@@ -26,6 +28,7 @@ __all__ = [
     "get_num_channels",
     "non_rgb_warning",
     "_maybe_process_in_chunks",
+    "_maybe_process_by_channel"
 ]
 
 P = ParamSpec("P")
@@ -73,13 +76,13 @@ SCIPY_MODE_TO_NUMPY_MODE = {
 }
 
 
-def read_bgr_image(path):
-    return cv2.imread(path, cv2.IMREAD_COLOR)
+# def read_bgr_image(path):
+#     return cv2.imread(path, cv2.IMREAD_COLOR)
 
 
-def read_rgb_image(path):
-    image = cv2.imread(path, cv2.IMREAD_COLOR)
-    return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+# def read_rgb_image(path):
+#     image = cv2.imread(path, cv2.IMREAD_COLOR)
+#     return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
 def read_dcm_image(path: str, include_header: bool = True):
     pass
@@ -100,15 +103,15 @@ def clip(img: np.ndarray, dtype: np.dtype, minval: float, maxval: float) -> np.n
     return np.clip(img, minval, maxval).astype(dtype)
 
 
-def get_opencv_dtype_from_numpy(value: Union[np.ndarray, int, np.dtype, object]) -> int:
-    """
-    Return a corresponding OpenCV dtype for a numpy's dtype
-    :param value: Input dtype of numpy array
-    :return: Corresponding dtype for OpenCV
-    """
-    if isinstance(value, np.ndarray):
-        value = value.dtype
-    return NPDTYPE_TO_OPENCV_DTYPE[value]
+# def get_opencv_dtype_from_numpy(value: Union[np.ndarray, int, np.dtype, object]) -> int:
+#     """
+#     Return a corresponding OpenCV dtype for a numpy's dtype
+#     :param value: Input dtype of numpy array
+#     :return: Corresponding dtype for OpenCV
+#     """
+#     if isinstance(value, np.ndarray):
+#         value = value.dtype
+#     return NPDTYPE_TO_OPENCV_DTYPE[value]
 
 
 def angle_2pi_range(
@@ -116,7 +119,7 @@ def angle_2pi_range(
 ) -> Callable[Concatenate[KeypointInternalType, P], KeypointInternalType]:
     @wraps(func)
     def wrapped_function(keypoint: KeypointInternalType, *args: P.args, **kwargs: P.kwargs) -> KeypointInternalType:
-        (x, y, a, s) = func(keypoint, *args, **kwargs)[:4]
+        (x, y, z, a, s) = func(keypoint, *args, **kwargs)[:5]
         return (x, y, angle_to_2pi_range(a), s)
 
     return wrapped_function

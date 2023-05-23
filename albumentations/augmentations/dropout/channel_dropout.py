@@ -7,7 +7,9 @@ from albumentations.core.transforms_interface import ImageOnlyTransform
 
 from .functional import channel_dropout
 
-__all__ = ["ChannelDropout"]
+__all__ = [
+    # "ChannelDropout"
+    ]
 
 
 class ChannelDropout(ImageOnlyTransform):

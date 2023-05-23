@@ -401,7 +401,7 @@ def keypoint_rotate(keypoint, angle: float, axes: str, crop_to_border: bool, row
         )
     
     x, y, z, a, s = keypoint[:5]
-    y,x,z = np.matmul([[y,x,z,1]], matrix).flatten()[:3]
+    y,x,z = np.matmul(matrix, np.array([[y,x,z,1]]).T).flatten()[:3]
 
 
     return x, y, a + math.radians(angle), s  
@@ -461,7 +461,7 @@ def _get_scale_matrix(dx,dy,dz):
 
 def _get_shear_matrix(mode, sx = None, sy = None, sz = None):
 
-    if len(list(map(lambda x: x != None, [sx,sy,sz]))) != 2:
+    if sum(list(map(lambda x: x != None, [sx,sy,sz]))) != 2:
         raise ValueError("Expected two of (sx,sy,sz) to be non-null arguments. Got sx={}, sy={}, sz={}".format(sx,sy,sz))
     
     if mode == "xy":
@@ -479,15 +479,26 @@ def _get_shear_matrix(mode, sx = None, sy = None, sz = None):
 
 @preserve_channel_dim
 def shift_scale_rotate(
-    img, angle, scale, dx, dy, dz, axes = "xy", interpolation=INTER_LINEAR, border_mode="constant", value=0
+    img, angle, scale, dx, dy, dz, axes = "xy", crop_to_border = False, interpolation=INTER_LINEAR, border_mode="constant", value=0
 ):
-    height, width, depth = img.shape[:3]
+    out_shape = img.shape[:3]
+    height, width, depth = out_shape
     center = (height/2, width/2, depth/2)
+    scale = (scale,)*3
+    angle = np.deg2rad(angle)
+
     to_origin_matrix = _get_translation_matrix(*center)
-    from_origin_matrix = _get_translation_matrix(*[-c for c in center])
     rotation_matrix = _get_rotation_matrix(angle, axes)
     scale_matrix = _get_scale_matrix(*scale)
-    translation_matrix = _get_translation_matrix(dy*height, dx*width, dz*depth)
+
+    if crop_to_border:
+        out_shape = _get_new_image_shape(height, width, depth, rotation_matrix, *scale)
+        height, width, depth = out_shape[:3]
+        center = (height/2, width/2, depth/2)
+
+    from_origin_matrix = _get_translation_matrix(*[-c for c in center])
+
+    translation_matrix = _get_translation_matrix(dx*width, dy*height, dz*depth)
 
     matrix = reduce(
         np.matmul,
@@ -501,76 +512,146 @@ def shift_scale_rotate(
         )
 
     warp_affine_fn = _maybe_process_by_channel(
-        ndimage.affine_transform, input=img, matrix=matrix, order=interpolation, mode=border_mode, cval=value
+        ndimage.affine_transform, input=img, matrix=matrix, order=interpolation, output_shape=out_shape, mode=border_mode, cval=value
     )
     return warp_affine_fn(img)
 
 
 @angle_2pi_range
-def keypoint_shift_scale_rotate(keypoint, angle, scale, dx, dy, rows, cols, **params):
-    (
-        x,
-        y,
-        a,
-        s,
-    ) = keypoint[:4]
-    height, width = rows, cols
-    center = (cols - 1) * 0.5, (rows - 1) * 0.5
-    matrix = cv2.getRotationMatrix2D(center, angle, scale)
-    matrix[0, 2] += dx * width
-    matrix[1, 2] += dy * height
+def keypoint_shift_scale_rotate(keypoint, angle, scale, dx, dy, dz, axes = "xy", crop_to_border = False, rows=0, cols=0, slices=0,**params):
+    
+    x, y, z, a, s = keypoint[:5]
+    height, width, depth= rows, cols, slices
+    center = (height/2, width/2, depth/2)
+    scale = (scale,)*3
+    angle = np.deg2rad(angle)
 
-    x, y = cv2.transform(np.array([[[x, y]]]), matrix).squeeze()
-    angle = a + math.radians(angle)
-    scale = s * scale
+    to_origin_matrix = _get_translation_matrix(*center)
+    rotation_matrix = _get_rotation_matrix(angle, axes)
+    scale_matrix = _get_scale_matrix(*scale)
 
-    return x, y, angle, scale
+    if crop_to_border:
+        out_shape = _get_new_image_shape(height, width, depth, rotation_matrix, *scale)
+        height, width, depth = out_shape[:3]
+        center = (height/2, width/2, depth/2)
+
+    from_origin_matrix = _get_translation_matrix(*[-c for c in center])
+
+    translation_matrix = _get_translation_matrix(dy*height, dx*width, dz*depth)
+
+    matrix = reduce(
+        np.matmul,
+        (
+            to_origin_matrix,
+            rotation_matrix,
+            scale_matrix,
+            from_origin_matrix,
+            translation_matrix
+        ) 
+        )
+    
+    y,x,z = np.matmul(matrix, np.array([[y,x,z,1]]).T).flatten()[:3]
+    s *= scale[0]
+    a += angle
+
+    return x, y, z, a, s
 
 
-def bbox_shift_scale_rotate(bbox, angle, scale, dx, dy, rotate_method, rows, cols, **kwargs):  # skipcq: PYL-W0613
+def bbox_shift_scale_rotate(bbox, angle, scale, dx, dy, dz, axes="xy", crop_to_border=False, rotate_method="largest_box", rows=0, cols=0, slices=0, **kwargs):  # skipcq: PYL-W0613
     """Rotates, shifts and scales a bounding box. Rotation is made by angle degrees,
     scaling is made by scale factor and shifting is made by dx and dy.
 
 
     Args:
-        bbox (tuple): A bounding box `(x_min, y_min, x_max, y_max)`.
+        bbox (tuple): A bounding box `(x_min, y_min, z_min, x_max, y_max, z_max)`.
         angle (int): Angle of rotation in degrees.
         scale (int): Scale factor.
-        dx (int): Shift along x-axis in pixel units.
-        dy (int): Shift along y-axis in pixel units.
+        dx (int): Shift along x-axis.
+        dy (int): Shift along y-axis.
+        dz (int): Shift along z-axis.
+        axes: The axis of rotation. Must be one of `{'xy', 'xz', 'yz'}`.
+        crop_to_border: If True, bbox is normalized to fit new image shape. See `rotate(crop_to_border=True)`
         rotate_method(str): Rotation method used. Should be one of: "largest_box", "ellipse".
             Default: "largest_box".
         rows (int): Image rows.
         cols (int): Image cols.
+        slices (int): Image slices
 
     Returns:
-        A bounding box `(x_min, y_min, x_max, y_max)`.
+        A bounding box `(x_min, y_min, z_min, x_max, y_max, z_max)`.
 
     """
-    height, width = rows, cols
-    center = (width / 2, height / 2)
-    if rotate_method == "ellipse":
-        x_min, y_min, x_max, y_max = bbox_rotate(bbox, angle, rotate_method, rows, cols)
-        matrix = cv2.getRotationMatrix2D(center, 0, scale)
+
+    x_min, y_min, z_min, x_max, y_max, z_max = denormalize_bbox(list(map(lambda x: x - 0.5, bbox[:6])), rows, cols, slices)
+
+    if rotate_method == "largest_box":
+        bbox_points = np.array(
+            [
+                [y_min, x_min,  z_min, 1],
+                [y_min, x_min,  z_max, 1],
+                [y_max, x_min,  z_min, 1],
+                [y_max, x_min,  z_max, 1],
+                [y_min, x_max,  z_min, 1],
+                [y_min, x_max,  z_max, 1],
+                [y_max, x_max,  z_min, 1],
+                [y_max, x_max,  z_max, 1]
+            ]
+        )
+
+    elif rotate_method == "ellipse":
+        w = (x_max - x_min) / 2
+        h = (y_max - y_min) / 2
+        d = (z_max - z_min) / 2
+        data = np.arange(0, 360, dtype=np.float32)
+
+        if axes == "xy":
+            x = np.tile(w * np.sin(np.radians(data)) + (w + x_min), 2)
+            y = np.tile(h * np.cos(np.radians(data)) + (h + y_min), 2)
+            z = np.concatenate((np.full((360,), z_min), np.full((360,), z_max)))
+        elif axes == "yz":
+            x = np.tile(w * np.sin(np.radians(data)) + (w + x_min), 2)
+            y = np.concatenate((np.full((360,), y_min), np.full((360,), y_max)))
+            z = np.tile(d * np.cos(np.radians(data)) + (d + z_min), 2)
+        elif axes == "xz":
+            x = np.concatenate((np.full((360,), x_min), np.full((360,), x_max)))
+            y = np.tile(h * np.cos(np.radians(data)) + (h + y_min), 2)
+            z = np.tile(d * np.sin(np.radians(data)) + (d + z_min), 2)
+        else:
+            raise ValueError("Parameter axes must be one of {'xy','yz','xz'}")
+        
+        bbox_points = np.column_stack(
+                [y,x,z, np.ones(720)],
+            )
     else:
-        x_min, y_min, x_max, y_max = bbox[:4]
-        matrix = cv2.getRotationMatrix2D(center, angle, scale)
-    matrix[0, 2] += dx * width
-    matrix[1, 2] += dy * height
-    x = np.array([x_min, x_max, x_max, x_min])
-    y = np.array([y_min, y_min, y_max, y_max])
-    ones = np.ones(shape=(len(x)))
-    points_ones = np.vstack([x, y, ones]).transpose()
-    points_ones[:, 0] *= width
-    points_ones[:, 1] *= height
-    tr_points = matrix.dot(points_ones.T).T
-    tr_points[:, 0] /= width
-    tr_points[:, 1] /= height
+        raise ValueError(f"Method {rotate_method} is not a valid rotation method.")
+    
+    
+    angle = np.deg2rad(angle)
+    scale = (scale,)*3
+    rotation_matrix = _get_rotation_matrix(angle, axes, dir=-1)
+    scale_matrix = _get_scale_matrix(*scale)
+    translation_matrix = _get_translation_matrix(dx,dy,dz)
 
-    x_min, x_max = min(tr_points[:, 0]), max(tr_points[:, 0])
-    y_min, y_max = min(tr_points[:, 1]), max(tr_points[:, 1])
+    matrix = reduce(
+        np.matmul,
+        (
+            rotation_matrix,
+            scale_matrix,
+            translation_matrix
+        ) 
+        )
 
-    return x_min, y_min, x_max, y_max
+    bbox_points_t = np.matmul(matrix, bbox_points.T)
+
+    x_min, x_max = np.min(bbox_points_t[1]), np.max(bbox_points_t[1])
+    y_min, y_max = np.min(bbox_points_t[0]), np.max(bbox_points_t[0])
+    z_min, z_max = np.min(bbox_points_t[2]), np.max(bbox_points_t[2])
+    bbox = x_min, y_min, z_min, x_max, y_max, z_max
+
+    if crop_to_border:
+        rows, cols, slices = _get_new_image_shape(rows, cols, slices, rotation_matrix, *scale)
+    
+    return list(map(lambda x: x + 0.5, normalize_bbox(bbox, rows, cols, slices)))
 
 
 @preserve_shape

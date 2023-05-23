@@ -17,22 +17,24 @@ from ...core.transforms_interface import (
     KeypointInternalType,
     ScaleFloatType,
     to_tuple,
+    INTER_LINEAR,
+    INTER_NEAREST
 )
 from ..functional import bbox_from_mask
 from . import functional as F
 
 __all__ = [
     "ShiftScaleRotate",
-    "ElasticTransform",
-    "Perspective",
-    "Affine",
-    "PiecewiseAffine",
+    #"ElasticTransform",
+    #"Perspective",
+    #"Affine",
+    #"PiecewiseAffine",
     "VerticalFlip",
     "HorizontalFlip",
     "Flip",
     "Transpose",
-    "OpticalDistortion",
-    "GridDistortion",
+    #"OpticalDistortion",
+    #"GridDistortion",
     "PadIfNeeded",
 ]
 
@@ -50,16 +52,32 @@ class ShiftScaleRotate(DualTransform):
             Default: (-0.1, 0.1).
         rotate_limit ((int, int) or int): rotation range. If rotate_limit is a single int value, the
             range will be (-rotate_limit, rotate_limit). Default: (-45, 45).
-        interpolation (OpenCV flag): flag that is used to specify the interpolation algorithm. Should be one of:
-            cv2.INTER_NEAREST, cv2.INTER_LINEAR, cv2.INTER_CUBIC, cv2.INTER_AREA, cv2.INTER_LANCZOS4.
-            Default: cv2.INTER_LINEAR.
-        border_mode (OpenCV flag): flag that is used to specify the pixel extrapolation method. Should be one of:
-            cv2.BORDER_CONSTANT, cv2.BORDER_REPLICATE, cv2.BORDER_REFLECT, cv2.BORDER_WRAP, cv2.BORDER_REFLECT_101.
-            Default: cv2.BORDER_REFLECT_101
-        value (int, float, list of int, list of float): padding value if border_mode is cv2.BORDER_CONSTANT.
+        axes (str, list of str): Defines the axis of rotation. Must be one of `{'xy','yz','xz'}` or a list of them.
+            If a single str is passed, then all rotations will occur on that axis
+            If a list is passed, then one axis of rotation will be chosen at random for each call of the transformation.
+            Default: "xy"
+        interpolation: scipy interpolation method (e.g. albumenations3d.INTER_NEAREST). default: albumenations3d.INTER_LINEAR
+        border_mode: scipy parameter to determine how the input image is extended during convolution to maintain image shape
+            Must be one of the following:
+                `reflect` (d c b a | a b c d | d c b a)
+                    The input is extended by reflecting about the edge of the last pixel. This mode is also sometimes referred to as half-sample symmetric.
+                `constant` (k k k k | a b c d | k k k k)
+                    The input is extended by filling all values beyond the edge with the same constant value, defined by the cval parameter.
+                `nearest` (a a a a | a b c d | d d d d)
+                    The input is extended by replicating the last pixel.
+                `mirror` (d c b | a b c d | c b a)
+                    The input is extended by reflecting about the center of the last pixel. This mode is also sometimes referred to as whole-sample symmetric.
+                `wrap` (a b c d | a b c d | a b c d)
+                    The input is extended by wrapping around to the opposite edge.
+                https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.median_filter.html
+            Default: `constant`
+        value (int, float, list of int, list of float): padding value if border_mode is "constant.
         mask_value (int, float,
                     list of int,
-                    list of float): padding value if border_mode is cv2.BORDER_CONSTANT applied for masks.
+                    list of float): padding value if border_mode is "constant" applied for masks.
+        crop_to_border (bool): If True, then the image is padded or cropped to fit the entire rotation. If False, then original image shape is
+            maintained and some portions of the image may be cropped away. Note that any translations are applied after the image is reshaped.
+            Default: False
         shift_limit_x ((float, float) or float): shift factor range for width. If it is set then this value
             instead of shift_limit will be used for shifting width.  If shift_limit_x is a single float value,
             the range will be (-shift_limit_x, shift_limit_x). Absolute values for lower and upper bounds should lie in
@@ -67,6 +85,10 @@ class ShiftScaleRotate(DualTransform):
         shift_limit_y ((float, float) or float): shift factor range for height. If it is set then this value
             instead of shift_limit will be used for shifting height.  If shift_limit_y is a single float value,
             the range will be (-shift_limit_y, shift_limit_y). Absolute values for lower and upper bounds should lie
+            in the range [0, 1]. Default: None.
+        shift_limit_z ((float, float) or float): shift factor range for depth. If it is set then this value
+            instead of shift_limit will be used for shifting depth.  If shift_limit_z is a single float value,
+            the range will be (-shift_limit_z, shift_limit_z). Absolute values for lower and upper bounds should lie
             in the range [0, 1]. Default: None.
         rotate_method (str): rotation method used for the bounding boxes. Should be one of "largest_box" or "ellipse".
             Default: "largest_box"
@@ -84,12 +106,15 @@ class ShiftScaleRotate(DualTransform):
         shift_limit=0.0625,
         scale_limit=0.1,
         rotate_limit=45,
-        interpolation=cv2.INTER_LINEAR,
-        border_mode=cv2.BORDER_REFLECT_101,
-        value=None,
-        mask_value=None,
+        axes="xy",
+        interpolation=INTER_LINEAR,
+        border_mode="constant",
+        crop_to_border=False,
+        value=0,
+        mask_value=0,
         shift_limit_x=None,
         shift_limit_y=None,
+        shift_limit_z=None,
         rotate_method="largest_box",
         always_apply=False,
         p=0.5,
@@ -97,25 +122,30 @@ class ShiftScaleRotate(DualTransform):
         super(ShiftScaleRotate, self).__init__(always_apply, p)
         self.shift_limit_x = to_tuple(shift_limit_x if shift_limit_x is not None else shift_limit)
         self.shift_limit_y = to_tuple(shift_limit_y if shift_limit_y is not None else shift_limit)
+        self.shift_limit_z = to_tuple(shift_limit_z if shift_limit_z is not None else shift_limit)
         self.scale_limit = to_tuple(scale_limit, bias=1.0)
         self.rotate_limit = to_tuple(rotate_limit)
         self.interpolation = interpolation
+        self.crop_to_border = crop_to_border
         self.border_mode = border_mode
         self.value = value
+        self.axes = axes if isinstance(axes, Sequence) else (axes,)
         self.mask_value = mask_value
         self.rotate_method = rotate_method
 
         if self.rotate_method not in ["largest_box", "ellipse"]:
             raise ValueError(f"Rotation method {self.rotate_method} is not valid.")
+        if len(set(axes).difference({"xy", "yz", "xz"})) != 0:
+            raise ValueError("Parameter axes contains one or more elements that are not allowed. Got {}".format(set(axes).difference({"xy", "yz", "xz"})))
 
-    def apply(self, img, angle=0, scale=0, dx=0, dy=0, interpolation=cv2.INTER_LINEAR, **params):
-        return F.shift_scale_rotate(img, angle, scale, dx, dy, interpolation, self.border_mode, self.value)
+    def apply(self, img, angle=0, axes="xy", scale=0, dx=0, dy=0, dz=0, interpolation=INTER_LINEAR, **params):
+        return F.shift_scale_rotate(img, angle, axes, scale, dx, dy, dz, interpolation, self.border_mode, self.value)
 
-    def apply_to_mask(self, img, angle=0, scale=0, dx=0, dy=0, **params):
-        return F.shift_scale_rotate(img, angle, scale, dx, dy, cv2.INTER_NEAREST, self.border_mode, self.mask_value)
+    def apply_to_mask(self, img, angle=0, axes="xy",  scale=0, dx=0, dy=0, dz=0, **params):
+        return F.shift_scale_rotate(img, angle, axes, scale, dx, dy, dz, INTER_NEAREST, self.border_mode, self.mask_value)
 
-    def apply_to_keypoint(self, keypoint, angle=0, scale=0, dx=0, dy=0, rows=0, cols=0, **params):
-        return F.keypoint_shift_scale_rotate(keypoint, angle, scale, dx, dy, rows, cols)
+    def apply_to_keypoint(self, keypoint, angle=0, axes="xy", scale=0, dx=0, dy=0, dz=0, rows=0, cols=0, slices=0, **params):
+        return F.keypoint_shift_scale_rotate(keypoint, angle, axes, scale, dx, dy, dz, rows, cols, slices)
 
     def get_params(self):
         return {
@@ -123,17 +153,21 @@ class ShiftScaleRotate(DualTransform):
             "scale": random.uniform(self.scale_limit[0], self.scale_limit[1]),
             "dx": random.uniform(self.shift_limit_x[0], self.shift_limit_x[1]),
             "dy": random.uniform(self.shift_limit_y[0], self.shift_limit_y[1]),
+            "dz": random.uniform(self.shift_limit_z[0], self.shift_limit_z[1]),
+            "axes": random.choice(self.axes)
         }
 
-    def apply_to_bbox(self, bbox, angle, scale, dx, dy, **params):
-        return F.bbox_shift_scale_rotate(bbox, angle, scale, dx, dy, self.rotate_method, **params)
+    def apply_to_bbox(self, bbox, angle, axes, scale, dx, dy, dz, **params):
+        return F.bbox_shift_scale_rotate(bbox, angle, axes, scale, dx, dy, dz, self.rotate_method, **params)
 
     def get_transform_init_args(self):
         return {
             "shift_limit_x": self.shift_limit_x,
             "shift_limit_y": self.shift_limit_y,
+            "shift_limit_z": self.shift_limit_z,
             "scale_limit": to_tuple(self.scale_limit, bias=-1.0),
             "rotate_limit": self.rotate_limit,
+            "axes": self.axes,
             "interpolation": self.interpolation,
             "border_mode": self.border_mode,
             "value": self.value,
