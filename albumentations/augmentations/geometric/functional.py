@@ -33,9 +33,9 @@ from ...core.transforms_interface import (
 )
 
 __all__ = [
-    "optical_distortion",
-    "elastic_transform_approx",
-    "grid_distortion",
+    #"optical_distortion",
+    #"elastic_transform_approx",
+    #"grid_distortion",
     "pad",
     "pad_with_params",
     "bbox_rot90",
@@ -46,7 +46,7 @@ __all__ = [
     "shift_scale_rotate",
     "keypoint_shift_scale_rotate",
     "bbox_shift_scale_rotate",
-    "elastic_transform",
+    #"elastic_transform",
     "resize",
     "scale",
     "keypoint_scale",
@@ -54,33 +54,37 @@ __all__ = [
     "_func_max_size",
     "longest_max_size",
     "smallest_max_size",
-    "perspective",
-    "perspective_bbox",
-    "rotation2DMatrixToEulerAngles",
-    "perspective_keypoint",
-    "_is_identity_matrix",
-    "warp_affine",
-    "keypoint_affine",
-    "bbox_affine",
-    "safe_rotate",
-    "bbox_safe_rotate",
-    "keypoint_safe_rotate",
-    "piecewise_affine",
-    "to_distance_maps",
-    "from_distance_maps",
-    "keypoint_piecewise_affine",
-    "bbox_piecewise_affine",
+    #"perspective",
+    #"perspective_bbox",
+    #"rotation2DMatrixToEulerAngles",
+    #"perspective_keypoint",
+    #"_is_identity_matrix",
+    #"warp_affine",
+    #"keypoint_affine",
+    #"bbox_affine",
+    #"safe_rotate",
+    #"bbox_safe_rotate",
+    #"keypoint_safe_rotate",
+    #"piecewise_affine",
+    #"to_distance_maps",
+    #"from_distance_maps",
+    #"keypoint_piecewise_affine",
+    #"bbox_piecewise_affine",
     "bbox_flip",
     "bbox_hflip",
     "bbox_transpose",
     "bbox_vflip",
+    "bbox_zflip",
     "hflip",
-    "hflip_cv2",
+    "vflip",
+    "zflip",
+    #"hflip_cv2",
     "transpose",
     "keypoint_flip",
     "keypoint_hflip",
     "keypoint_transpose",
     "keypoint_vflip",
+    "keypoint_zflip",
 ]
 
 
@@ -512,7 +516,7 @@ def shift_scale_rotate(
         )
 
     warp_affine_fn = _maybe_process_by_channel(
-        ndimage.affine_transform, input=img, matrix=matrix, order=interpolation, output_shape=out_shape, mode=border_mode, cval=value
+        ndimage.affine_transform, matrix=matrix, order=interpolation, output_shape=out_shape, mode=border_mode, cval=value
     )
     return warp_affine_fn(img)
 
@@ -1534,7 +1538,7 @@ def pad(
 
 def _pad(
     img: np.ndarray,
-    pad_width: List[Tuple,Tuple,Tuple],
+    pad_width: Tuple[Tuple,Tuple,Tuple],
     border_mode: str = 'constant',
     value: Union[float,int] = 0
 ) -> np.ndarray:

@@ -16,7 +16,7 @@ __all__ = [
     "NPDTYPE_TO_OPENCV_DTYPE",
     "NPDTYPE_TO_OPENCV_DTYPE",
     "clipped",
-    "get_opencv_dtype_from_numpy",
+    # "get_opencv_dtype_from_numpy",
     "angle_2pi_range",
     "clip",
     "preserve_shape",

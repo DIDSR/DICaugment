@@ -333,10 +333,10 @@ def crop_and_pad_keypoint(
         top, bottom, left, right, close, far = pad_params
         x, y, z = x + left, y + top, z + close
 
-    if keep_size and (result_cols != cols or result_rows != rows):
+    if keep_size and (result_cols != cols or result_rows != rows or result_cols != slices):
         scale_x = cols / result_cols
         scale_y = rows / result_rows
-        scale_z = rows / result_slices
+        scale_z = slices / result_slices
         return FGeometric.keypoint_scale((x, y, z, angle, scale), scale_x, scale_y, scale_z)
 
     return x, y, z, angle, scale

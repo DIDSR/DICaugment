@@ -42,8 +42,8 @@ __all__ = [
     "RandomGamma",
     #"HueSaturationValue",
     #"RGBShift",
-    "RandomBrightness",
-    "RandomContrast",
+    #"RandomBrightness",
+    #"RandomContrast",
     "GaussNoise",
     #"CLAHE",
     #"ChannelShuffle",
@@ -69,7 +69,7 @@ __all__ = [
     "Equalize",
     #"Posterize",
     "Downscale",
-    "MultiplicativeNoise",
+    #"MultiplicativeNoise",
     #"FancyPCA",
     #"ColorJitter",
     "Sharpen",
@@ -1264,7 +1264,7 @@ class GaussNoise(ImageOnlyTransform):
 
     def __init__(
             self,
-            var_limit: Union[float, Sequence[float,float]] = (10.0, 50.0),
+            var_limit: Union[float, Tuple[float,float]] = (10.0, 50.0),
             mean: float = 0,
             apply_to_channel_idx: Union[None,int] = None,
             per_channel: bool = True,
@@ -1608,7 +1608,7 @@ class FromFloat(ImageOnlyTransform):
         min_value (float): minimum possible input value. Default: None.
         max_value (float): maximum possible input value. Default: None.
         dtype (string or numpy data type): data type of the output. See the `'Data types' page from the NumPy docs`_.
-            Default: 'uint8'.
+            Default: 'int16'.
         p (float): probability of applying the transform. Default: 1.0.
 
     Targets:
@@ -1621,7 +1621,7 @@ class FromFloat(ImageOnlyTransform):
        https://docs.scipy.org/doc/numpy/user/basics.types.html
     """
 
-    def __init__(self, dtype="uint8", min_value = None, max_value=None, always_apply=False, p=1.0):
+    def __init__(self, dtype="int16", min_value = None, max_value=None, always_apply=False, p=1.0):
         super(FromFloat, self).__init__(always_apply, p)
         self.dtype = np.dtype(dtype)
         self.min_value = min_value

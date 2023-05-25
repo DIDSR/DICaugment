@@ -1,9 +1,12 @@
 from __future__ import division
-
 import numpy as np
 import torch
 import torchvision.transforms.functional as F
 
+__all__ = [
+    "img_to_tensor",
+    "mask_to_tensor",
+]
 
 def img_to_tensor(im, normalize=None):
     tensor = torch.from_numpy(np.moveaxis(im / (255.0 if im.dtype == np.uint8 else 1), -1, 0).astype(np.float32))

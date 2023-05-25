@@ -129,23 +129,23 @@ class ShiftScaleRotate(DualTransform):
         self.crop_to_border = crop_to_border
         self.border_mode = border_mode
         self.value = value
-        self.axes = axes if isinstance(axes, Sequence) else (axes,)
+        self.axes = (axes,) if isinstance(axes, str) else axes
         self.mask_value = mask_value
         self.rotate_method = rotate_method
 
         if self.rotate_method not in ["largest_box", "ellipse"]:
             raise ValueError(f"Rotation method {self.rotate_method} is not valid.")
-        if len(set(axes).difference({"xy", "yz", "xz"})) != 0:
-            raise ValueError("Parameter axes contains one or more elements that are not allowed. Got {}".format(set(axes).difference({"xy", "yz", "xz"})))
+        if len(set(self.axes).difference({"xy", "yz", "xz"})) != 0:
+            raise ValueError("Parameter axes contains one or more elements that are not allowed. Got {}".format(set(self.axes).difference({"xy", "yz", "xz"})))
 
     def apply(self, img, angle=0, axes="xy", scale=0, dx=0, dy=0, dz=0, interpolation=INTER_LINEAR, **params):
-        return F.shift_scale_rotate(img, angle, axes, scale, dx, dy, dz, interpolation, self.border_mode, self.value)
+        return F.shift_scale_rotate(img, angle, scale, dx, dy, dz, axes, self.crop_to_border, interpolation, self.border_mode, self.value)
 
     def apply_to_mask(self, img, angle=0, axes="xy",  scale=0, dx=0, dy=0, dz=0, **params):
-        return F.shift_scale_rotate(img, angle, axes, scale, dx, dy, dz, INTER_NEAREST, self.border_mode, self.mask_value)
+        return F.shift_scale_rotate(img, angle, scale, dx, dy, dz, axes, self.crop_to_border, INTER_LINEAR, self.border_mode, self.value)
 
     def apply_to_keypoint(self, keypoint, angle=0, axes="xy", scale=0, dx=0, dy=0, dz=0, rows=0, cols=0, slices=0, **params):
-        return F.keypoint_shift_scale_rotate(keypoint, angle, axes, scale, dx, dy, dz, rows, cols, slices)
+        return F.keypoint_shift_scale_rotate(keypoint, angle, scale, dx, dy, dz, axes, rows, cols, slices)
 
     def get_params(self):
         return {

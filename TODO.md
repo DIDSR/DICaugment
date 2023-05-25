@@ -41,6 +41,7 @@
 * RandomGamma
 * NoOp
 * ShiftScaleRotate
+* GridDropout
 
 # ADD:
 * Datasets Class and Subclasses
@@ -49,8 +50,10 @@
 # ALTER:
 
 * Affine
-* GridDropout
 * MaskDropout
+* RandomBrightness
+* RandomContrast
+* MultiplicativeNoise
 
 
 # UNKNOWN:

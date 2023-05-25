@@ -55,7 +55,7 @@ def get_install_requirements(install_requires, choose_install_requires):
 
 
 setup(
-    name="albumentations",
+    name="albumentations3D",
     version=get_version(),
     description="Fast image augmentation library and easy to use wrapper around other libraries",
     long_description=get_long_description(),

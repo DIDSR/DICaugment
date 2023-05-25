@@ -24,7 +24,7 @@ from albumentations.augmentations.utils import (
     preserve_shape,
 )
 
-from core.transforms_interface import(
+from ..core.transforms_interface import(
     INTER_NEAREST,
     INTER_LINEAR,
     INTER_QUADRATIC,
@@ -965,8 +965,8 @@ def to_float(img, min_value = None, max_value=None):
 def from_float(img, dtype, min_value = None, max_value=None):
     if max_value is None or min_value is None:
         try:
-            max_value = MAX_VALUES_BY_DTYPE[dtype]
-            min_value = MIN_VALUES_BY_DTYPE[img.dtype]
+            max_value = MAX_VALUES_BY_DTYPE[np.dtype(dtype)]
+            min_value = MIN_VALUES_BY_DTYPE[np.dtype(dtype)]
         except KeyError:
             raise RuntimeError(
                 "Can't infer the minimum and maximum value for dtype {}. You need to specify the minimum and maximum value manually by "

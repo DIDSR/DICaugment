@@ -27,9 +27,9 @@ __all__ = [
     "RandomCrop",
     "CenterCrop",
     "Crop",
-    "CropNonEmptyMaskIfExists",
+    # "CropNonEmptyMaskIfExists",
     "RandomSizedCrop",
-    "RandomResizedCrop",
+    # "RandomResizedCrop",
     "RandomCropNearBBox",
     "RandomSizedBBoxSafeCrop",
     "CropAndPad",
@@ -285,6 +285,7 @@ class RandomSizedCrop(_BaseRandomSizedCrop):
         min_max_height ((int, int)): crop size limits.
         height (int): height after crop and resize.
         width (int): width after crop and resize.
+        depth (int): depth after crop and resize.
         w2h_ratio (float): width aspect ratio of crop.
         d2h_ratio (float): depth aspect ratio of crop.
         interpolation (int) : scipy interpolation method (e.g. albumenations3d.INTER_NEAREST)
@@ -499,7 +500,7 @@ class RandomCropNearBBox(DualTransform):
         z_max: int = 0,
         **params
     ) -> Tuple[float, float, float, float]:
-        return F.crop_keypoint_by_coords(keypoint, crop_coords=(x_min, y_min, z_min, x_max, y_max, z_min))
+        return F.crop_keypoint_by_coords(keypoint, crop_coords=(x_min, y_min, z_min, x_max, y_max, z_max))
 
     @property
     def targets_as_params(self) -> List[str]:

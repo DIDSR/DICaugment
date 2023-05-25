@@ -16,7 +16,11 @@ from ...core.transforms_interface import (
 from ..crops import functional as FCrops
 from . import functional as F
 
-__all__ = ["Rotate", "RandomRotate90", "SafeRotate"]
+__all__ = [
+    "Rotate",
+    "RandomRotate90",
+    #"SafeRotate"
+    ]
 
 
 class RandomRotate90(DualTransform):
