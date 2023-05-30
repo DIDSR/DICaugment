@@ -76,13 +76,13 @@ __all__ = [
 ]
 
 
-def normalize(img, mean, std, max_pixel_value):
+def normalize(img, mean, std):
 
     ndim = img.ndim
     axis = None if ndim == 3 else tuple(range(ndim - 1))
 
-    if max_pixel_value == None:
-        max_pixel_value = np.max(img, axis = axis)
+    # if max_pixel_value == None:
+    #     max_pixel_value = np.max(img, axis = axis)
 
     if mean == None:
         mean = np.mean(img, axis = axis)
@@ -91,10 +91,10 @@ def normalize(img, mean, std, max_pixel_value):
         std = np.std(img, axis = axis)
     
     mean = np.array(mean, dtype=np.float32)
-    mean *= max_pixel_value
+    # mean *= max_pixel_value
 
     std = np.array(std, dtype=np.float32)
-    std *= max_pixel_value
+    # std *= max_pixel_value
 
     denominator = np.reciprocal(std, dtype=np.float32)
 

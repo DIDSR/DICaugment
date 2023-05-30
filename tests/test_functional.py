@@ -13,75 +13,93 @@ from albumentations.augmentations.utils import (
     is_multispectral_image,
 )
 from albumentations.core.bbox_utils import filter_bboxes
-from tests.utils import convert_2d_to_target_format
+from tests.utils import convert_3d_to_target_format
 
 
 @pytest.mark.parametrize("target", ["image", "mask"])
 def test_vflip(target):
-    img = np.array([[1, 1, 1], [0, 1, 1], [0, 0, 1]], dtype=np.uint8)
-    expected = np.array([[0, 0, 1], [0, 1, 1], [1, 1, 1]], dtype=np.uint8)
-    img, expected = convert_2d_to_target_format([img, expected], target=target)
+    img = np.array([[[1, 0],[1, 0], [1, 0]], [[0, 1], [1, 0], [1, 0]], [[0, 1], [0, 1], [1, 0]]], dtype=np.uint8)
+    expected = np.array([[[0, 1], [0, 1], [1, 0]], [[0, 1], [1, 0], [1, 0]], [[1, 0], [1, 0], [1, 0]]], dtype=np.uint8)
+    img, expected = convert_3d_to_target_format([img, expected], target=target)
     flipped_img = FGeometric.vflip(img)
     assert np.array_equal(flipped_img, expected)
 
 
 @pytest.mark.parametrize("target", ["image", "image_4_channels"])
 def test_vflip_float(target):
-    img = np.array([[0.4, 0.4, 0.4], [0.0, 0.4, 0.4], [0.0, 0.0, 0.4]], dtype=np.float32)
-    expected = np.array([[0.0, 0.0, 0.4], [0.0, 0.4, 0.4], [0.4, 0.4, 0.4]], dtype=np.float32)
-    img, expected = convert_2d_to_target_format([img, expected], target=target)
+    img = np.array([[[0.4, 0], [0.4, 0], [0.4, 0]], [[0.0, 0.4], [0.4, 0], [0.4, 0]], [[0.0, 0.4], [0.0, 0.4], [0.4, 0]]], dtype=np.float32)
+    expected = np.array([[[0.0, 0.4], [0.0, 0.4], [0.4, 0]], [[0.0, 0.4], [0.4, 0], [0.4, 0]], [[0.4, 0], [0.4, 0], [0.4, 0]]], dtype=np.float32)
+    img, expected = convert_3d_to_target_format([img, expected], target=target)
     flipped_img = FGeometric.vflip(img)
     assert_array_almost_equal_nulp(flipped_img, expected)
 
 
 @pytest.mark.parametrize("target", ["image", "mask"])
 def test_hflip(target):
-    img = np.array([[1, 1, 1], [0, 1, 1], [0, 0, 1]], dtype=np.uint8)
-    expected = np.array([[1, 1, 1], [1, 1, 0], [1, 0, 0]], dtype=np.uint8)
-    img, expected = convert_2d_to_target_format([img, expected], target=target)
+    img = np.array([[[1, 0], [1, 0], [1, 0]], [[0, 1], [1, 0], [1, 0]], [[0, 1], [0, 1], [1, 0]]], dtype=np.uint8)
+    expected = np.array([[[1, 0], [1, 0], [1, 0]], [[1, 0], [1, 0], [0, 1]], [[1, 0], [0, 1], [0, 1]]], dtype=np.uint8)
+    img, expected = convert_3d_to_target_format([img, expected], target=target)
     flipped_img = FGeometric.hflip(img)
     assert np.array_equal(flipped_img, expected)
 
 
 @pytest.mark.parametrize("target", ["image", "image_4_channels"])
 def test_hflip_float(target):
-    img = np.array([[0.4, 0.4, 0.4], [0.0, 0.4, 0.4], [0.0, 0.0, 0.4]], dtype=np.float32)
-    expected = np.array([[0.4, 0.4, 0.4], [0.4, 0.4, 0.0], [0.4, 0.0, 0.0]], dtype=np.float32)
-    img, expected = convert_2d_to_target_format([img, expected], target=target)
+    img = np.array([[[0.4, 0], [0.4, 0], [0.4, 0]], [[0.0, 0.4], [0.4, 0], [0.4, 0]], [[0.0, 0.4], [0.0, 0.4], [0.4, 0]]], dtype=np.float32)
+    expected = np.array([[[0.4, 0], [0.4, 0], [0.4, 0]], [[0.4, 0], [0.4, 0], [0.0, 0.4]], [[0.4, 0], [0.0, 0.4], [0.0, 0.4]]], dtype=np.float32)
+    img, expected = convert_3d_to_target_format([img, expected], target=target)
     flipped_img = FGeometric.hflip(img)
+    assert_array_almost_equal_nulp(flipped_img, expected)
+
+
+@pytest.mark.parametrize("target", ["image", "mask"])
+def test_zflip(target):
+    img = np.array([[[1, 0], [1, 0], [1, 0]], [[0, 1], [1, 0], [1, 0]], [[0, 1], [0, 1], [1, 0]]], dtype=np.uint8)
+    expected = np.array([[[0, 1], [0, 1], [0, 1]], [[1, 0], [0, 1], [0, 1]], [[1, 0], [1, 0], [0, 1]]], dtype=np.uint8)
+    img, expected = convert_3d_to_target_format([img, expected], target=target)
+    flipped_img = FGeometric.zflip(img)
+    assert np.array_equal(flipped_img, expected)
+
+
+@pytest.mark.parametrize("target", ["image", "image_4_channels"])
+def test_zflip_float(target):
+    img = np.array([[[0.4, 0], [0.4, 0], [0.4, 0]], [[0.0, 0.4], [0.4, 0], [0.4, 0]], [[0.0, 0.4], [0.0, 0.4], [0.4, 0]]], dtype=np.float32)
+    expected = np.array([[[0, 0.4], [0, 0.4], [0, 0.4]], [[0.4, 0.0], [0, 0.4], [0, 0.4]], [[0.4, 0.0], [0.4, 0.0], [0, 0.4]]], dtype=np.float32)
+    img, expected = convert_3d_to_target_format([img, expected], target=target)
+    flipped_img = FGeometric.zflip(img)
     assert_array_almost_equal_nulp(flipped_img, expected)
 
 
 @pytest.mark.parametrize("target", ["image", "mask"])
 @pytest.mark.parametrize(
     ["code", "func"],
-    [[0, FGeometric.vflip], [1, FGeometric.hflip], [-1, lambda img: FGeometric.vflip(FGeometric.hflip(img))]],
+    [[0, FGeometric.vflip], [1, FGeometric.hflip], [2, FGeometric.zflip], [-1, lambda img: FGeometric.zflip(FGeometric.vflip(FGeometric.hflip(img)))]],
 )
 def test_random_flip(code, func, target):
-    img = np.array([[1, 1, 1], [0, 1, 1], [0, 0, 1]], dtype=np.uint8)
-    img = convert_2d_to_target_format([img], target=target)
+    img = np.array([[[1, 0], [1, 0], [1, 0]], [[0, 1], [1, 0], [1, 0]], [[0, 1], [0, 1], [1, 0]]], dtype=np.uint8)
+    img = convert_3d_to_target_format([img], target=target)
     assert np.array_equal(FGeometric.random_flip(img, code), func(img))
 
 
 @pytest.mark.parametrize("target", ["image", "image_4_channels"])
 @pytest.mark.parametrize(
     ["code", "func"],
-    [[0, FGeometric.vflip], [1, FGeometric.hflip], [-1, lambda img: FGeometric.vflip(FGeometric.hflip(img))]],
+    [[0, FGeometric.vflip], [1, FGeometric.hflip], [2, FGeometric.zflip], [-1, lambda img: FGeometric.zflip(FGeometric.vflip(FGeometric.hflip(img)))]],
 )
 def test_random_flip_float(code, func, target):
-    img = np.array([[0.4, 0.4, 0.4], [0.0, 0.4, 0.4], [0.0, 0.0, 0.4]], dtype=np.float32)
-    img = convert_2d_to_target_format([img], target=target)
+    img = np.array([[[0.4, 0], [0.4, 0], [0.4, 0]], [[0.0, 0.4], [0.4, 0], [0.4, 0]], [[0.0, 0.4], [0.0, 0.4], [0.4, 0]]], dtype=np.float32)
+    img = convert_3d_to_target_format([img], target=target)
     assert_array_almost_equal_nulp(FGeometric.random_flip(img, code), func(img))
 
 
-@pytest.mark.parametrize(["input_shape", "expected_shape"], [[(128, 64), (64, 128)], [(128, 64, 3), (64, 128, 3)]])
+@pytest.mark.parametrize(["input_shape", "expected_shape"], [[(128, 64, 100), (64, 128, 100)], [(128, 64, 100, 3), (64, 128, 100, 3)]])
 def test_transpose(input_shape, expected_shape):
     img = np.random.randint(low=0, high=256, size=input_shape, dtype=np.uint8)
     transposed = FGeometric.transpose(img)
     assert transposed.shape == expected_shape
 
 
-@pytest.mark.parametrize(["input_shape", "expected_shape"], [[(128, 64), (64, 128)], [(128, 64, 3), (64, 128, 3)]])
+@pytest.mark.parametrize(["input_shape", "expected_shape"], [[(128, 64, 100), (64, 128, 100)], [(128, 64, 100, 3), (64, 128, 100, 3)]])
 def test_transpose_float(input_shape, expected_shape):
     img = np.random.uniform(low=0.0, high=1.0, size=input_shape).astype("float32")
     transposed = FGeometric.transpose(img)
@@ -90,155 +108,168 @@ def test_transpose_float(input_shape, expected_shape):
 
 @pytest.mark.parametrize("target", ["image", "mask"])
 def test_rot90(target):
-    img = np.array([[0, 0, 1], [0, 0, 1], [0, 0, 1]], dtype=np.uint8)
-    expected = np.array([[1, 1, 1], [0, 0, 0], [0, 0, 0]], dtype=np.uint8)
-    img, expected = convert_2d_to_target_format([img, expected], target=target)
+    img = np.array([[[0, 1], [0, 1], [1, 0]], [[0, 1], [0, 1], [1, 0]], [[0, 1], [0, 1], [1, 0]]], dtype=np.uint8)
+    expected = np.array([[[1, 0], [1, 0], [1, 0]], [[0, 1], [0, 1], [0, 1]], [[0, 1], [0, 1], [0, 1]]], dtype=np.uint8)
+    img, expected = convert_3d_to_target_format([img, expected], target=target)
     rotated = FGeometric.rot90(img, factor=1)
     assert np.array_equal(rotated, expected)
 
 
 @pytest.mark.parametrize("target", ["image", "image_4_channels"])
 def test_rot90_float(target):
-    img = np.array([[0.0, 0.0, 0.4], [0.0, 0.0, 0.4], [0.0, 0.0, 0.4]], dtype=np.float32)
-    expected = np.array([[0.4, 0.4, 0.4], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]], dtype=np.float32)
-    img, expected = convert_2d_to_target_format([img, expected], target=target)
+    img = np.array([[[0.0, 0.4], [0.0, 0.4], [0.4, 0]], [[0.0, 0.4], [0.0, 0.4], [0.4, 0]], [[0.0, 0.4], [0.0, 0.4], [0.4, 0]]], dtype=np.float32)
+    expected = np.array([[[0.4, 0], [0.4, 0], [0.4, 0]], [[0.0, 0.4], [0.0, 0.4], [0.0, 0.4]], [[0.0, 0.4], [0.0, 0.4], [0.0, 0.4]]], dtype=np.float32)
+    img, expected = convert_3d_to_target_format([img, expected], target=target)
     rotated = FGeometric.rot90(img, factor=1)
     assert_array_almost_equal_nulp(rotated, expected)
 
 
 def test_normalize():
-    img = np.ones((100, 100, 3), dtype=np.uint8) * 127
+    img = np.ones((100, 100, 100), dtype=np.uint8) * 127
     normalized = F.normalize(img, mean=50, std=3)
-    expected = (np.ones((100, 100, 3), dtype=np.float32) * 127 / 255 - 50) / 3
+    expected = (np.ones((100, 100, 100), dtype=np.float32) * (127 - 50)) / 3
     assert_array_almost_equal_nulp(normalized, expected)
 
 
 def test_normalize_float():
-    img = np.ones((100, 100, 3), dtype=np.float32) * 0.4
-    normalized = F.normalize(img, mean=50, std=3, max_pixel_value=1.0)
-    expected = (np.ones((100, 100, 3), dtype=np.float32) * 0.4 - 50) / 3
+    img = np.ones((100, 100, 100), dtype=np.float32) * 0.4
+    normalized = F.normalize(img, mean=50, std=3 )
+    expected = ((np.ones((100, 100, 100), dtype=np.float32) * 0.4) - 50) / 3
     assert_array_almost_equal_nulp(normalized, expected)
 
 
 def test_compare_rotate_and_shift_scale_rotate(image):
-    rotated_img_1 = FGeometric.rotate(image, angle=60)
-    rotated_img_2 = FGeometric.shift_scale_rotate(image, angle=60, scale=1, dx=0, dy=0)
+    rotated_img_1 = FGeometric.rotate(image, angle=60, axes= "xy")
+    rotated_img_2 = FGeometric.shift_scale_rotate(image, angle=60, scale=1, dx=0, dy=0, dz=0, axes="xy")
     assert np.array_equal(rotated_img_1, rotated_img_2)
 
 
 def test_compare_rotate_float_and_shift_scale_rotate_float(float_image):
-    rotated_img_1 = FGeometric.rotate(float_image, angle=60)
-    rotated_img_2 = FGeometric.shift_scale_rotate(float_image, angle=60, scale=1, dx=0, dy=0)
+    rotated_img_1 = FGeometric.rotate(image, angle=60, axes= "xy")
+    rotated_img_2 = FGeometric.shift_scale_rotate(image, angle=60, scale=1, dx=0, dy=0, dz=0, axes="xy")
     assert np.array_equal(rotated_img_1, rotated_img_2)
 
 
 @pytest.mark.parametrize("target", ["image", "mask"])
 def test_center_crop(target):
-    img = np.array([[1, 1, 1, 1], [0, 1, 1, 1], [0, 0, 1, 1], [0, 0, 0, 1]], dtype=np.uint8)
-    expected = np.array([[1, 1], [0, 1]], dtype=np.uint8)
-    img, expected = convert_2d_to_target_format([img, expected], target=target)
-    cropped_img = A.center_crop(img, 2, 2)
+    img = np.array([[[1, 1, 1, 1], [0, 1, 1, 1], [0, 0, 1, 1], [0, 0, 0, 1]],
+                    [[1, 1, 1, 1], [0, 1, 1, 1], [0, 0, 1, 1], [0, 0, 0, 1]],
+                    [[1, 1, 1, 1], [0, 1, 1, 1], [0, 0, 1, 1], [0, 0, 0, 1]],
+                    [[1, 1, 1, 1], [0, 1, 1, 1], [0, 0, 1, 1], [0, 0, 0, 1]]], dtype=np.uint8)
+    expected = np.array([[[1, 1],[0, 1]], [[1, 1], [0, 1]]], dtype=np.uint8)
+    img, expected = convert_3d_to_target_format([img, expected], target=target)
+    cropped_img = A.center_crop(img, 2, 2, 2)
     assert np.array_equal(cropped_img, expected)
 
 
 @pytest.mark.parametrize("target", ["image", "image_4_channels"])
 def test_center_crop_float(target):
     img = np.array(
-        [[0.4, 0.4, 0.4, 0.4], [0.0, 0.4, 0.4, 0.4], [0.0, 0.0, 0.4, 0.4], [0.0, 0.0, 0.0, 0.4]], dtype=np.float32
+        [[[0.4, 0.4, 0.4, 0.4], [0.0, 0.4, 0.4, 0.4], [0.0, 0.0, 0.4, 0.4], [0.0, 0.0, 0.0, 0.4]],
+         [[0.4, 0.4, 0.4, 0.4], [0.0, 0.4, 0.4, 0.4], [0.0, 0.0, 0.4, 0.4], [0.0, 0.0, 0.0, 0.4]],
+         [[0.4, 0.4, 0.4, 0.4], [0.0, 0.4, 0.4, 0.4], [0.0, 0.0, 0.4, 0.4], [0.0, 0.0, 0.0, 0.4]],
+         [[0.4, 0.4, 0.4, 0.4], [0.0, 0.4, 0.4, 0.4], [0.0, 0.0, 0.4, 0.4], [0.0, 0.0, 0.0, 0.4]]], dtype=np.float32
     )
-    expected = np.array([[0.4, 0.4], [0.0, 0.4]], dtype=np.float32)
-    img, expected = convert_2d_to_target_format([img, expected], target=target)
-    cropped_img = A.center_crop(img, 2, 2)
+    expected = np.array([[[0.4, 0.4], [0.0, 0.4]], [[0.4, 0.4], [0.0, 0.4]]], dtype=np.float32)
+    img, expected = convert_3d_to_target_format([img, expected], target=target)
+    cropped_img = A.center_crop(img, 2, 2, 2)
     assert_array_almost_equal_nulp(cropped_img, expected)
 
 
 def test_center_crop_with_incorrectly_large_crop_size():
-    img = np.ones((4, 4), dtype=np.uint8)
+    img = np.ones((4, 4, 4), dtype=np.uint8)
     with pytest.raises(ValueError) as exc_info:
-        A.center_crop(img, 8, 8)
-    assert str(exc_info.value) == "Requested crop size (8, 8) is larger than the image size (4, 4)"
+        A.center_crop(img, 8, 8, 8)
+    assert str(exc_info.value) == "Requested crop size (8, 8, 8) is larger than the image size (4, 4, 4)"
 
 
 @pytest.mark.parametrize("target", ["image", "mask"])
 def test_random_crop(target):
-    img = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 16]], dtype=np.uint8)
-    expected = np.array([[5, 6], [9, 10]], dtype=np.uint8)
-    img, expected = convert_2d_to_target_format([img, expected], target=target)
-    cropped_img = A.random_crop(img, crop_height=2, crop_width=2, h_start=0.5, w_start=0)
+    img = np.array([[[ 1,  2,  3,  4], [ 5,  6,  7,  8], [ 9, 10, 11, 12], [13, 14, 15, 16]],
+                    [[17, 18, 19, 20], [21, 22, 23, 24], [25, 26, 27, 28], [29, 30, 31, 32]],
+                    [[33, 34, 35, 36], [37, 38, 39, 40], [41, 42, 43, 44], [45, 46, 47, 48]],
+                    [[49, 50, 51, 52], [53, 54, 55, 56], [57, 58, 59, 60], [61, 62, 63, 64]]], dtype=np.uint8)
+    expected = np.array([[[18, 19], [22, 23]], [[34, 35], [38, 39]]], dtype=np.uint8)
+    img, expected = convert_3d_to_target_format([img, expected], target=target)
+    cropped_img = A.random_crop(img, crop_height=2, crop_width=2, crop_depth = 2, h_start=0.5, w_start=0, d_start= 0.5)
     assert np.array_equal(cropped_img, expected)
 
 
 @pytest.mark.parametrize("target", ["image", "image_4_channels"])
 def test_random_crop_float(target):
-    img = np.array(
-        [[0.01, 0.02, 0.03, 0.04], [0.05, 0.06, 0.07, 0.08], [0.09, 0.10, 0.11, 0.12], [0.13, 0.14, 0.15, 0.16]],
-        dtype=np.float32,
-    )
-    expected = np.array([[0.05, 0.06], [0.09, 0.10]], dtype=np.float32)
-    img, expected = convert_2d_to_target_format([img, expected], target=target)
-    cropped_img = A.random_crop(img, crop_height=2, crop_width=2, h_start=0.5, w_start=0)
+    img = np.array([[[0.01, 0.02, 0.03, 0.04], [0.05, 0.06, 0.07, 0.08], [0.09, 0.1 , 0.11, 0.12], [0.13, 0.14, 0.15, 0.16]],
+                    [[0.17, 0.18, 0.19, 0.2 ], [0.21, 0.22, 0.23, 0.24], [0.25, 0.26, 0.27, 0.28], [0.29, 0.3 , 0.31, 0.32]],
+                    [[0.33, 0.34, 0.35, 0.36], [0.37, 0.38, 0.39, 0.4 ], [0.41, 0.42, 0.43, 0.44], [0.45, 0.46, 0.47, 0.48]],
+                    [[0.49, 0.5 , 0.51, 0.52], [0.53, 0.54, 0.55, 0.56], [0.57, 0.58, 0.59, 0.6 ],[ 0.61, 0.62, 0.63, 0.64]]], dtype=np.float32)
+    expected = np.array([[[0.17, 0.18], [0.21, 0.22]], [[0.33, 0.34], [0.37, 0.38]]], dtype=np.float32)
+    img, expected = convert_3d_to_target_format([img, expected], target=target)
+    cropped_img = A.random_crop(img, crop_height=2, crop_width=2, crop_depth = 2, h_start=0.5, w_start=0, d_start= 0.0)
     assert_array_almost_equal_nulp(cropped_img, expected)
 
 
 def test_random_crop_with_incorrectly_large_crop_size():
-    img = np.ones((4, 4), dtype=np.uint8)
+    img = np.ones((4, 4, 4), dtype=np.uint8)
     with pytest.raises(ValueError) as exc_info:
-        A.random_crop(img, crop_height=8, crop_width=8, h_start=0, w_start=0)
-    assert str(exc_info.value) == "Requested crop size (8, 8) is larger than the image size (4, 4)"
+        A.random_crop(img, crop_height=8, crop_width=8, crop_depth=8, h_start=0, w_start=0, d_start=0)
+    assert str(exc_info.value) == "Requested crop size (8, 8, 8) is larger than the image size (4, 4, 4)"
 
 
 def test_random_crop_extrema():
-    img = np.indices((4, 4), dtype=np.uint8).transpose([1, 2, 0])
-    expected1 = np.indices((2, 2), dtype=np.uint8).transpose([1, 2, 0])
+    img = np.indices((4, 4, 4), dtype=np.uint8).transpose([1, 2, 3, 0])
+    expected1 = np.indices((2, 2, 2), dtype=np.uint8).transpose([1, 2, 3, 0])
     expected2 = expected1 + 2
-    cropped_img1 = A.random_crop(img, crop_height=2, crop_width=2, h_start=0.0, w_start=0.0)
-    cropped_img2 = A.random_crop(img, crop_height=2, crop_width=2, h_start=0.9999, w_start=0.9999)
+    cropped_img1 = A.random_crop(img, crop_height=2, crop_width=2, crop_depth=2, h_start=0.0, w_start=0.0, d_start=0.0)
+    cropped_img2 = A.random_crop(img, crop_height=2, crop_width=2, crop_depth=2, h_start=0.9999, w_start=0.9999, d_start=0.9999)
     assert np.array_equal(cropped_img1, expected1)
     assert np.array_equal(cropped_img2, expected2)
 
 
 def test_clip():
-    img = np.array([[-300, 0], [100, 400]], dtype=np.float32)
-    expected = np.array([[0, 0], [100, 255]], dtype=np.float32)
-    clipped = F.clip(img, dtype=np.uint8, maxval=255)
+    img = np.array([[[-300, -20], [0, 0]], [[100, -25], [400, 20]]], dtype=np.float32)
+    expected = np.array([[[0, 0], [0, 0]], [[100, 0], [255, 20]]], dtype=np.float32)
+    clipped = F.clip(img, dtype=np.uint8, minval=0, maxval=255)
     assert np.array_equal(clipped, expected)
 
 
 def test_clip_float():
-    img = np.array([[-0.02, 0], [0.5, 2.2]], dtype=np.float32)
-    expected = np.array([[0, 0], [0.5, 1.0]], dtype=np.float32)
-    clipped = F.clip(img, dtype=np.float32, maxval=1.0)
+    img = np.array([[[-0.02, 10.0], [0, 0]], [[0.5, 0.002], [2.2, -0.75]]], dtype=np.float32)
+    expected = np.array([[[0, 1.0], [0, 0]], [[0.5, 0.002], [1.0, 0]]], dtype=np.float32)
+    clipped = F.clip(img, dtype=np.float32, minval=0, maxval=1.0)
     assert_array_almost_equal_nulp(clipped, expected)
 
 
 @pytest.mark.parametrize("target", ["image", "mask"])
 def test_pad(target):
-    img = np.array([[1, 2], [3, 4]], dtype=np.uint8)
-    expected = np.array([[4, 3, 4, 3], [2, 1, 2, 1], [4, 3, 4, 3], [2, 1, 2, 1]], dtype=np.uint8)
-    img, expected = convert_2d_to_target_format([img, expected], target=target)
-    padded = FGeometric.pad(img, min_height=4, min_width=4)
+    img = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]]], dtype=np.uint8)
+    expected = np.array([[[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+                         [[0, 0, 0, 0], [0, 1, 2, 0], [0, 3, 4, 0], [0, 0, 0, 0]],
+                         [[0, 0, 0, 0], [0, 5, 6, 0], [0, 7, 8, 0], [0, 0, 0, 0]],
+                         [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]], dtype=np.uint8)
+    img, expected = convert_3d_to_target_format([img, expected], target=target)
+    padded = FGeometric.pad(img, min_height=4, min_width=4, min_depth=4)
     assert np.array_equal(padded, expected)
 
 
 @pytest.mark.parametrize("target", ["image", "image_4_channels"])
 def test_pad_float(target):
-    img = np.array([[0.1, 0.2], [0.3, 0.4]], dtype=np.float32)
-    expected = np.array(
-        [[0.4, 0.3, 0.4, 0.3], [0.2, 0.1, 0.2, 0.1], [0.4, 0.3, 0.4, 0.3], [0.2, 0.1, 0.2, 0.1]], dtype=np.float32
-    )
-    img, expected = convert_2d_to_target_format([img, expected], target=target)
-    padded_img = FGeometric.pad(img, min_height=4, min_width=4)
+    img = np.array([[[0.1, 0.2], [0.3, 0.4]], [[0.5, 0.6], [0.7, 0.8]]], dtype=np.float32)
+    expected = np.array([[[0, 0, 0, 0], [0,   0,   0, 0], [0,   0,   0, 0], [0, 0, 0, 0]],
+                         [[0, 0, 0, 0], [0, 0.1, 0.2, 0], [0, 0.3, 0.4, 0], [0, 0, 0, 0]],
+                         [[0, 0, 0, 0], [0, 0.5, 0.6, 0], [0, 0.7, 0.8, 0], [0, 0, 0, 0]],
+                         [[0, 0, 0, 0], [0,   0,   0, 0], [0,   0,   0, 0], [0, 0, 0, 0]]], dtype=np.uint8)
+    img, expected = convert_3d_to_target_format([img, expected], target=target)
+    padded_img = FGeometric.pad(img, min_height=4, min_width=4, min_depth=4)
     assert_array_almost_equal_nulp(padded_img, expected)
 
 
 @pytest.mark.parametrize("target", ["image", "mask"])
 def test_rotate_from_shift_scale_rotate(target):
-    img = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12], [13, 14, 15, 16]], dtype=np.uint8)
+    img = np.array([[[1, 2], [3, 4]], [[5, 6], [7, 8]], [[9, 10], [11, 12]], [[13, 14], [15, 16]]], dtype=np.uint8)
     expected = np.array([[4, 8, 12, 16], [3, 7, 11, 15], [2, 6, 10, 14], [1, 5, 9, 13]], dtype=np.uint8)
 
-    img, expected = convert_2d_to_target_format([img, expected], target=target)
+    img, expected = convert_3d_to_target_format([img, expected], target=target)
     rotated_img = FGeometric.shift_scale_rotate(
-        img, angle=90, scale=1, dx=0, dy=0, interpolation=cv2.INTER_NEAREST, border_mode=cv2.BORDER_CONSTANT
+        img, angle=90, scale=1, dx=0, dy=0, dz=0, axes="xy", interpolation=0, border_mode="constant"
     )
     assert np.array_equal(rotated_img, expected)
 

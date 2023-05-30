@@ -68,10 +68,10 @@ class RandomRotate90(DualTransform):
             }
 
     def apply_to_bbox(self, bbox, factor=0, axes="xy", **params):
-        return F.bbox_rot90(bbox, factor, **params)
+        return F.bbox_rot90(bbox, factor, axes, **params)
 
     def apply_to_keypoint(self, keypoint, factor=0, axes="xy", **params):
-        return F.keypoint_rot90(keypoint, factor, **params)
+        return F.keypoint_rot90(keypoint, factor, axes, **params)
     
     @staticmethod
     @property

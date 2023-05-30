@@ -200,14 +200,14 @@ def _get_new_image_shape(rows, cols, slices, rot_mat, scale_x = 1, scale_y = 1, 
     slices /= 2
     arr = np.array(
         [
-            [-rows, -cols, -slices, 1],
-            [-rows, -cols,  slices, 1],
-            [-rows,  cols, -slices, 1],
-            [-rows,  cols,  slices, 1],
-            [ rows, -cols, -slices, 1],
-            [ rows, -cols,  slices, 1],
-            [ rows,  cols, -slices, 1],
-            [ rows,  cols,  slices, 1],
+            [-rows, -cols, -slices],
+            [-rows, -cols,  slices],
+            [-rows,  cols, -slices],
+            [-rows,  cols,  slices],
+            [ rows, -cols, -slices],
+            [ rows, -cols,  slices],
+            [ rows,  cols, -slices],
+            [ rows,  cols,  slices],
         ]).T
     arr = np.matmul(rot_mat, arr)
 
@@ -217,12 +217,16 @@ def _get_new_image_shape(rows, cols, slices, rot_mat, scale_x = 1, scale_y = 1, 
 
     return n_rows, n_cols, n_slices
 
+
+def _get_image_center(shape):
+    return (np.array(shape) - 1) / 2
+
 @preserve_channel_dim
 def rotate(
     img: np.ndarray,
     angle: float,
     axes: str,
-    crop_to_border: bool = True,
+    crop_to_border: bool = False,
     interpolation: int = INTER_LINEAR,
     border_mode: int = "constant",
     value: Union[float,int] = 0,
@@ -234,8 +238,8 @@ def rotate(
         img: Target image.
         angle: Angle of rotation in degrees.
         axes: The axis of rotation. Must be one of `{'xy', 'xz', 'yz'}`.
-        crop_to_border: If True, then the image is cropped to fit the entire rotation. If False, then original image shape is
-            maintained and some portions of the image may be cropped away. Default: True
+        crop_to_border: If True, then the image is cropped or padded to fit the entire rotation. If False, then original image shape is
+            maintained and some portions of the image may be cropped away. Default: False
         interpolation: scipy interpolation method (e.g. albumenations3d.INTER_NEAREST).
         border_mode: scipy parameter to determine how the input image is extended during convolution to maintain image shape
             Must be one of the following:
@@ -414,28 +418,25 @@ def keypoint_rotate(keypoint, angle: float, axes: str, crop_to_border: bool, row
 def _get_rotation_matrix(theta, axes, dir = 1):
     if axes == "xy":
         arr = np.array([
-            [       np.cos(theta), dir * np.sin(theta), 0, 0],
-            [dir * -np.sin(theta),       np.cos(theta), 0, 0],
-            [                   0,                   0, 1, 0],
-            [                   0,                   0, 0, 1],
+            [       np.cos(theta), dir * np.sin(theta), 0],
+            [dir * -np.sin(theta),       np.cos(theta), 0],
+            [                   0,                   0, 1],
         ],
         dtype= np.float32)
     
     elif axes == "xz":
         arr = np.array([
-            [      np.cos(theta), 0, dir * -np.sin(theta), 0],
-            [                  0, 1,                    0, 0],
-            [dir * np.sin(theta), 0,        np.cos(theta), 0],
-            [                  0, 0,                    0, 1],
+            [      np.cos(theta), 0, dir * -np.sin(theta)],
+            [                  0, 1,                    0],
+            [dir * np.sin(theta), 0,        np.cos(theta)],
         ],
         dtype= np.float32)
 
     elif axes == "yz":
         arr = np.array([
-            [1,                   0,                    0, 0],
-            [0,       np.cos(theta), dir * -np.sin(theta), 0],
-            [0, dir * np.sin(theta),        np.cos(theta), 0],
-            [0,                   0,                    0, 1],
+            [1,                   0,                    0],
+            [0,       np.cos(theta), dir * -np.sin(theta)],
+            [0, dir * np.sin(theta),        np.cos(theta)],
         ],
         dtype= np.float32)
 
@@ -455,10 +456,9 @@ def _get_translation_matrix(x,y,z):
 
 def _get_scale_matrix(dx,dy,dz):
     return np.array([
-        [dy,  0,  0, 0],
-        [ 0, dx,  0, 0],
-        [ 0,  0, dz, 0],
-        [ 0,  0,  0, 1],
+        [dy,  0,  0],
+        [ 0, dx,  0],
+        [ 0,  0, dz],
     ],
     dtype= np.float32)
 
@@ -481,42 +481,74 @@ def _get_shear_matrix(mode, sx = None, sy = None, sz = None):
         raise ValueError("Parameter axes must be one of {'xy','yz','xz'}")
 
 
+# src = scipy.misc.lena()
+# c_in = 0.5 * array(src.shape)
+# dest_shape = (512, 1028)
+# c_out = 0.5 * array(dest_shape)
+# for i in xrange(0, 7):
+#     a = i * 15.0 * pi / 180.0
+#     rot = array([[cos(a), -sin(a)], [sin(a), cos(a)]])
+#     invRot = rot.T
+#     invScale = diag((1.0, 0.5))
+#     invTransform = dot(invScale, invRot)
+#     offset = c_in - dot(invTransform, c_out)
+#     dest = scipy.ndimage.interpolation.affine_transform(
+#         src, invTransform, order=2, offset=offset, output_shape=dest_shape, cval=0.0, output=float32
+#     )
+#     subplot(1, 7, i + 1);axis('off');imshow(dest, cmap=cm.gray)
+# show()
+
+
 @preserve_channel_dim
 def shift_scale_rotate(
     img, angle, scale, dx, dy, dz, axes = "xy", crop_to_border = False, interpolation=INTER_LINEAR, border_mode="constant", value=0
 ):
-    out_shape = img.shape[:3]
+    out_shape = in_shape =  img.shape[:3]
     height, width, depth = out_shape
     center = (height/2, width/2, depth/2)
     scale = (scale,)*3
     angle = np.deg2rad(angle)
 
-    to_origin_matrix = _get_translation_matrix(*center)
-    rotation_matrix = _get_rotation_matrix(angle, axes)
-    scale_matrix = _get_scale_matrix(*scale)
+    # to_origin_matrix = _get_translation_matrix(*center)
+    # rotation_matrix = _get_rotation_matrix(angle, axes)
+    # scale_matrix = _get_scale_matrix(*scale)
+
+    rotation_matrix = _get_rotation_matrix(angle, axes)[:3,:3]
+    scale_matrix = _get_scale_matrix(*scale)[:3,:3]
 
     if crop_to_border:
         out_shape = _get_new_image_shape(height, width, depth, rotation_matrix, *scale)
         height, width, depth = out_shape[:3]
         center = (height/2, width/2, depth/2)
 
-    from_origin_matrix = _get_translation_matrix(*[-c for c in center])
+    
 
-    translation_matrix = _get_translation_matrix(dx*width, dy*height, dz*depth)
+    #from_origin_matrix = _get_translation_matrix(*[-c for c in center])
 
-    matrix = reduce(
-        np.matmul,
-        (
-            to_origin_matrix,
-            rotation_matrix,
-            scale_matrix,
-            from_origin_matrix,
-            translation_matrix
-        ) 
-        )
+    #translation_matrix = _get_translation_matrix(dx*width, dy*height, dz*depth)
 
+    # matrix = reduce(
+    #     np.matmul,
+    #     (
+    #         to_origin_matrix,
+    #         rotation_matrix,
+    #         scale_matrix,
+    #         from_origin_matrix,
+    #         translation_matrix
+    #     ) 
+    #     )
+    print(np.matmul(rotation_matrix, scale_matrix))
+
+    matrix = np.linalg.inv(np.matmul(rotation_matrix, scale_matrix))
+
+    print(matrix)
+
+    offset = ((np.array(in_shape)-1)  *0.5)  -  np.dot(matrix, (np.array(out_shape) -1) * 0.5)
+
+    # offset -= 0.000001
+    print(offset)
     warp_affine_fn = _maybe_process_by_channel(
-        ndimage.affine_transform, matrix=matrix, order=interpolation, output_shape=out_shape, mode=border_mode, cval=value
+        ndimage.affine_transform, matrix= matrix, offset = offset, order=interpolation, output_shape=out_shape, mode=border_mode, cval=value
     )
     return warp_affine_fn(img)
 
@@ -1266,8 +1298,8 @@ def transpose(img: np.ndarray) -> np.ndarray:
     return img.transpose(1, 0, 2, 3) if len(img.shape) > 3 else img.transpose(1, 0, 2)
 
 
-def rot90(img: np.ndarray, factor: int) -> np.ndarray:
-    img = np.rot90(img, factor)
+def rot90(img: np.ndarray, factor: int, axes: Tuple = (0,1)) -> np.ndarray:
+    img = np.rot90(img, factor, axes)
     return np.ascontiguousarray(img)
 
 
@@ -1543,7 +1575,7 @@ def _pad(
     value: Union[float,int] = 0
 ) -> np.ndarray:
     
-    return np.pad(img, pad_width=pad_width, border_mode=SCIPY_MODE_TO_NUMPY_MODE[border_mode], constant_values = value)
+    return np.pad(img, pad_width=pad_width, mode=SCIPY_MODE_TO_NUMPY_MODE[border_mode], constant_values = value)
 
 
 
