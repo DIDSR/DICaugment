@@ -262,33 +262,26 @@ def rotate(
 
     """
     
-    angle = np.deg2rad(angle)
-    out_shape = img.shape[:3]
+    out_shape = in_shape =  img.shape[:3]
     height, width, depth = out_shape
-    center = (height/2, width/2, depth/2)
-    to_origin_matrix = _get_translation_matrix(*center)
-    rotation_matrix = _get_rotation_matrix(angle, axes)
+    in_center = _get_image_center(in_shape)
+    out_center = _get_image_center(out_shape)
+    
+    angle = np.deg2rad(angle)
+
+    rotation_matrix = _get_rotation_matrix(angle, axes, dir=-1)
 
     if crop_to_border:
         out_shape = _get_new_image_shape(height, width, depth, rotation_matrix)
-        height, width, depth = out_shape[:3]
-        center = (height/2, width/2, depth/2)
+        out_center = _get_image_center(out_shape)
 
-    from_origin_matrix = _get_translation_matrix(*[-c for c in center])
-    
+    matrix = np.linalg.inv(rotation_matrix)
+    offset = in_center - np.dot(matrix, out_center)
 
-    matrix = reduce(
-        np.matmul,
-        (
-            to_origin_matrix,
-            rotation_matrix,
-            from_origin_matrix,
-        ) 
-        )
-    
     warp_affine_fn = _maybe_process_by_channel(
-        ndimage.affine_transform, matrix=matrix, order=interpolation, mode=border_mode, cval=value, output_shape = out_shape
+        ndimage.affine_transform, matrix= matrix, offset = offset, order=interpolation, output_shape=out_shape, mode=border_mode, cval=value
     )
+
     return warp_affine_fn(img)
 
 
@@ -316,14 +309,14 @@ def bbox_rotate(bbox: BoxInternalType, angle: float, method: str, axes: str, cro
     if method == "largest_box":
         bbox_points = np.array(
             [
-                [y_min, x_min,  z_min, 1],
-                [y_min, x_min,  z_max, 1],
-                [y_max, x_min,  z_min, 1],
-                [y_max, x_min,  z_max, 1],
-                [y_min, x_max,  z_min, 1],
-                [y_min, x_max,  z_max, 1],
-                [y_max, x_max,  z_min, 1],
-                [y_max, x_max,  z_max, 1]
+                [y_min, x_min,  z_min],
+                [y_min, x_min,  z_max],
+                [y_max, x_min,  z_min],
+                [y_max, x_min,  z_max],
+                [y_min, x_max,  z_min],
+                [y_min, x_max,  z_max],
+                [y_max, x_max,  z_min],
+                [y_max, x_max,  z_max]
             ]
         )
 
@@ -349,7 +342,7 @@ def bbox_rotate(bbox: BoxInternalType, angle: float, method: str, axes: str, cro
             raise ValueError("Parameter axes must be one of {'xy','yz','xz'}")
         
         bbox_points = np.column_stack(
-                [y,x,z, np.ones(720)],
+                [y,x,z],
             )
     else:
         raise ValueError(f"Method {method} is not a valid rotation method.")
@@ -388,31 +381,24 @@ def keypoint_rotate(keypoint, angle: float, axes: str, crop_to_border: bool, row
         tuple: A keypoint `(x, y, z, angle, scale)`.
 
     """
-    center = (rows - 1) * 0.5, (cols - 1) * 0.5, (slices - 1) * 0.5
-    to_origin_matrix = _get_translation_matrix(*center)
-    rotation_matrix = _get_rotation_matrix(angle, axes)
+    angle = np.deg2rad(angle)
+
+    in_center = _get_image_center((rows, cols, slices))
+    out_center = in_center.copy()
+    rotation_matrix = _get_rotation_matrix(angle, axes, dir=-1)
 
     if crop_to_border:
         out_shape = _get_new_image_shape(rows, cols, slices, rotation_matrix)
-        height, width, depth = out_shape[:3]
-        center = (height/2, width/2, depth/2)
+        out_center = _get_image_center(out_shape)
 
-    from_origin_matrix = _get_translation_matrix(*[-c for c in center])
-
-    matrix = reduce(
-        np.matmul,
-        (
-            to_origin_matrix,
-            rotation_matrix,
-            from_origin_matrix,
-        ) 
-        )
-    
     x, y, z, a, s = keypoint[:5]
-    y,x,z = np.matmul(matrix, np.array([[y,x,z,1]]).T).flatten()[:3]
+
+    p = np.array([[y,x,z]]) - in_center
+    y,x,z = np.matmul(rotation_matrix, p.T).flatten() + out_center
+
+    return x, y, z, a + math.radians(angle), s
 
 
-    return x, y, a + math.radians(angle), s  
 
 
 def _get_rotation_matrix(theta, axes, dir = 1):
@@ -445,14 +431,14 @@ def _get_rotation_matrix(theta, axes, dir = 1):
     
     return arr
 
-def _get_translation_matrix(x,y,z):
-    return np.array([
-        [1, 0, 0, y],
-        [0, 1, 0, x],
-        [0, 0, 1, z],
-        [0, 0, 0, 1],
-    ],
-    dtype= np.float32)
+# def _get_translation_matrix(x,y,z):
+#     return np.array([
+#         [1, 0, 0, y],
+#         [0, 1, 0, x],
+#         [0, 0, 1, z],
+#         [0, 0, 0, 1],
+#     ],
+#     dtype= np.float32)
 
 def _get_scale_matrix(dx,dy,dz):
     return np.array([
@@ -480,117 +466,64 @@ def _get_shear_matrix(mode, sx = None, sy = None, sz = None):
     else:
         raise ValueError("Parameter axes must be one of {'xy','yz','xz'}")
 
-
-# src = scipy.misc.lena()
-# c_in = 0.5 * array(src.shape)
-# dest_shape = (512, 1028)
-# c_out = 0.5 * array(dest_shape)
-# for i in xrange(0, 7):
-#     a = i * 15.0 * pi / 180.0
-#     rot = array([[cos(a), -sin(a)], [sin(a), cos(a)]])
-#     invRot = rot.T
-#     invScale = diag((1.0, 0.5))
-#     invTransform = dot(invScale, invRot)
-#     offset = c_in - dot(invTransform, c_out)
-#     dest = scipy.ndimage.interpolation.affine_transform(
-#         src, invTransform, order=2, offset=offset, output_shape=dest_shape, cval=0.0, output=float32
-#     )
-#     subplot(1, 7, i + 1);axis('off');imshow(dest, cmap=cm.gray)
-# show()
-
-
 @preserve_channel_dim
 def shift_scale_rotate(
     img, angle, scale, dx, dy, dz, axes = "xy", crop_to_border = False, interpolation=INTER_LINEAR, border_mode="constant", value=0
 ):
     out_shape = in_shape =  img.shape[:3]
     height, width, depth = out_shape
-    center = (height/2, width/2, depth/2)
+    in_center = _get_image_center(in_shape)
+    out_center = _get_image_center(out_shape)
+    
+    
     scale = (scale,)*3
     angle = np.deg2rad(angle)
 
-    # to_origin_matrix = _get_translation_matrix(*center)
-    # rotation_matrix = _get_rotation_matrix(angle, axes)
-    # scale_matrix = _get_scale_matrix(*scale)
-
-    rotation_matrix = _get_rotation_matrix(angle, axes)[:3,:3]
-    scale_matrix = _get_scale_matrix(*scale)[:3,:3]
+    rotation_matrix = _get_rotation_matrix(angle, axes, dir=-1)
+    scale_matrix = _get_scale_matrix(*scale)
 
     if crop_to_border:
         out_shape = _get_new_image_shape(height, width, depth, rotation_matrix, *scale)
-        height, width, depth = out_shape[:3]
-        center = (height/2, width/2, depth/2)
-
-    
-
-    #from_origin_matrix = _get_translation_matrix(*[-c for c in center])
-
-    #translation_matrix = _get_translation_matrix(dx*width, dy*height, dz*depth)
-
-    # matrix = reduce(
-    #     np.matmul,
-    #     (
-    #         to_origin_matrix,
-    #         rotation_matrix,
-    #         scale_matrix,
-    #         from_origin_matrix,
-    #         translation_matrix
-    #     ) 
-    #     )
-    print(np.matmul(rotation_matrix, scale_matrix))
+        out_center = _get_image_center(out_shape)
 
     matrix = np.linalg.inv(np.matmul(rotation_matrix, scale_matrix))
+    offset = in_center - np.dot(matrix, out_center)
+    shift = np.array([dy,dx,dz]) * np.array(out_shape)
 
-    print(matrix)
-
-    offset = ((np.array(in_shape)-1)  *0.5)  -  np.dot(matrix, (np.array(out_shape) -1) * 0.5)
-
-    # offset -= 0.000001
-    print(offset)
     warp_affine_fn = _maybe_process_by_channel(
         ndimage.affine_transform, matrix= matrix, offset = offset, order=interpolation, output_shape=out_shape, mode=border_mode, cval=value
     )
-    return warp_affine_fn(img)
+    translate_fn = _maybe_process_by_channel(
+        ndimage.shift, shift=shift,  order=interpolation, mode=border_mode, cval=value
+    )
+    return translate_fn(warp_affine_fn(img))
 
 
 @angle_2pi_range
 def keypoint_shift_scale_rotate(keypoint, angle, scale, dx, dy, dz, axes = "xy", crop_to_border = False, rows=0, cols=0, slices=0,**params):
     
-    x, y, z, a, s = keypoint[:5]
     height, width, depth= rows, cols, slices
-    center = (height/2, width/2, depth/2)
+    in_center = _get_image_center((rows, cols, slices))
+    out_center = in_center.copy()
     scale = (scale,)*3
     angle = np.deg2rad(angle)
 
-    to_origin_matrix = _get_translation_matrix(*center)
-    rotation_matrix = _get_rotation_matrix(angle, axes)
+    rotation_matrix = _get_rotation_matrix(angle, axes, dir=-1)
     scale_matrix = _get_scale_matrix(*scale)
 
     if crop_to_border:
         out_shape = _get_new_image_shape(height, width, depth, rotation_matrix, *scale)
-        height, width, depth = out_shape[:3]
-        center = (height/2, width/2, depth/2)
+        out_center = _get_image_center(out_shape)
 
-    from_origin_matrix = _get_translation_matrix(*[-c for c in center])
+    matrix = np.matmul(rotation_matrix, scale_matrix)
+    shift = np.array([dy,dx,dz]) * np.array(out_shape)
 
-    translation_matrix = _get_translation_matrix(dy*height, dx*width, dz*depth)
+    x, y, z, a, s = keypoint[:5]
 
-    matrix = reduce(
-        np.matmul,
-        (
-            to_origin_matrix,
-            rotation_matrix,
-            scale_matrix,
-            from_origin_matrix,
-            translation_matrix
-        ) 
-        )
-    
-    y,x,z = np.matmul(matrix, np.array([[y,x,z,1]]).T).flatten()[:3]
-    s *= scale[0]
-    a += angle
+    p = np.array([[y,x,z]]) - in_center
+    y,x,z = np.matmul(rotation_matrix, p.T).flatten() + out_center + shift
 
-    return x, y, z, a, s
+    return x, y, z, a + math.radians(angle), s
 
 
 def bbox_shift_scale_rotate(bbox, angle, scale, dx, dy, dz, axes="xy", crop_to_border=False, rotate_method="largest_box", rows=0, cols=0, slices=0, **kwargs):  # skipcq: PYL-W0613
@@ -623,14 +556,14 @@ def bbox_shift_scale_rotate(bbox, angle, scale, dx, dy, dz, axes="xy", crop_to_b
     if rotate_method == "largest_box":
         bbox_points = np.array(
             [
-                [y_min, x_min,  z_min, 1],
-                [y_min, x_min,  z_max, 1],
-                [y_max, x_min,  z_min, 1],
-                [y_max, x_min,  z_max, 1],
-                [y_min, x_max,  z_min, 1],
-                [y_min, x_max,  z_max, 1],
-                [y_max, x_max,  z_min, 1],
-                [y_max, x_max,  z_max, 1]
+                [y_min, x_min,  z_min],
+                [y_min, x_min,  z_max],
+                [y_max, x_min,  z_min],
+                [y_max, x_min,  z_max],
+                [y_min, x_max,  z_min],
+                [y_min, x_max,  z_max],
+                [y_max, x_max,  z_min],
+                [y_max, x_max,  z_max]
             ]
         )
 
@@ -666,16 +599,12 @@ def bbox_shift_scale_rotate(bbox, angle, scale, dx, dy, dz, axes="xy", crop_to_b
     scale = (scale,)*3
     rotation_matrix = _get_rotation_matrix(angle, axes, dir=-1)
     scale_matrix = _get_scale_matrix(*scale)
-    translation_matrix = _get_translation_matrix(dx,dy,dz)
+    shift = np.array([dx,dy,dz,dx,dy,dz])
 
-    matrix = reduce(
-        np.matmul,
-        (
-            rotation_matrix,
-            scale_matrix,
-            translation_matrix
-        ) 
-        )
+    if crop_to_border:
+        rows, cols, slices = _get_new_image_shape(rows, cols, slices, rotation_matrix, *scale)
+
+    matrix = np.matmul(rotation_matrix, scale_matrix)
 
     bbox_points_t = np.matmul(matrix, bbox_points.T)
 
@@ -683,95 +612,93 @@ def bbox_shift_scale_rotate(bbox, angle, scale, dx, dy, dz, axes="xy", crop_to_b
     y_min, y_max = np.min(bbox_points_t[0]), np.max(bbox_points_t[0])
     z_min, z_max = np.min(bbox_points_t[2]), np.max(bbox_points_t[2])
     bbox = x_min, y_min, z_min, x_max, y_max, z_max
-
-    if crop_to_border:
-        rows, cols, slices = _get_new_image_shape(rows, cols, slices, rotation_matrix, *scale)
     
-    return list(map(lambda x: x + 0.5, normalize_bbox(bbox, rows, cols, slices)))
+    # normalize points to assumed [0,1] range then apply translation
+    return [p + s for s,p in zip(shift, map(lambda x: x + 0.5, normalize_bbox(bbox, rows, cols, slices)))]
 
 
-@preserve_shape
-def elastic_transform(
-    img: np.ndarray,
-    alpha: float,
-    sigma: float,
-    alpha_affine: float,
-    interpolation: int = cv2.INTER_LINEAR,
-    border_mode: int = cv2.BORDER_REFLECT_101,
-    value: Optional[ImageColorType] = None,
-    random_state: Optional[np.random.RandomState] = None,
-    approximate: bool = False,
-    same_dxdy: bool = False,
-):
-    """Elastic deformation of images as described in [Simard2003]_ (with modifications).
-    Based on https://gist.github.com/ernestum/601cdf56d2b424757de5
+# @preserve_shape
+# def elastic_transform(
+#     img: np.ndarray,
+#     alpha: float,
+#     sigma: float,
+#     alpha_affine: float,
+#     interpolation: int = cv2.INTER_LINEAR,
+#     border_mode: int = cv2.BORDER_REFLECT_101,
+#     value: Optional[ImageColorType] = None,
+#     random_state: Optional[np.random.RandomState] = None,
+#     approximate: bool = False,
+#     same_dxdy: bool = False,
+# ):
+#     """Elastic deformation of images as described in [Simard2003]_ (with modifications).
+#     Based on https://gist.github.com/ernestum/601cdf56d2b424757de5
 
-    .. [Simard2003] Simard, Steinkraus and Platt, "Best Practices for
-         Convolutional Neural Networks applied to Visual Document Analysis", in
-         Proc. of the International Conference on Document Analysis and
-         Recognition, 2003.
-    """
-    height, width = img.shape[:2]
+#     .. [Simard2003] Simard, Steinkraus and Platt, "Best Practices for
+#          Convolutional Neural Networks applied to Visual Document Analysis", in
+#          Proc. of the International Conference on Document Analysis and
+#          Recognition, 2003.
+#     """
+#     height, width = img.shape[:2]
 
-    # Random affine
-    center_square = np.array((height, width), dtype=np.float32) // 2
-    square_size = min((height, width)) // 3
-    alpha = float(alpha)
-    sigma = float(sigma)
-    alpha_affine = float(alpha_affine)
+#     # Random affine
+#     center_square = np.array((height, width), dtype=np.float32) // 2
+#     square_size = min((height, width)) // 3
+#     alpha = float(alpha)
+#     sigma = float(sigma)
+#     alpha_affine = float(alpha_affine)
 
-    pts1 = np.array(
-        [
-            center_square + square_size,
-            [center_square[0] + square_size, center_square[1] - square_size],
-            center_square - square_size,
-        ],
-        dtype=np.float32,
-    )
-    pts2 = pts1 + random_utils.uniform(-alpha_affine, alpha_affine, size=pts1.shape, random_state=random_state).astype(
-        np.float32
-    )
-    matrix = cv2.getAffineTransform(pts1, pts2)
+#     pts1 = np.array(
+#         [
+#             center_square + square_size,
+#             [center_square[0] + square_size, center_square[1] - square_size],
+#             center_square - square_size,
+#         ],
+#         dtype=np.float32,
+#     )
+#     pts2 = pts1 + random_utils.uniform(-alpha_affine, alpha_affine, size=pts1.shape, random_state=random_state).astype(
+#         np.float32
+#     )
+#     matrix = cv2.getAffineTransform(pts1, pts2)
 
-    warp_fn = _maybe_process_in_chunks(
-        cv2.warpAffine, M=matrix, dsize=(width, height), flags=interpolation, borderMode=border_mode, borderValue=value
-    )
-    img = warp_fn(img)
+#     warp_fn = _maybe_process_in_chunks(
+#         cv2.warpAffine, M=matrix, dsize=(width, height), flags=interpolation, borderMode=border_mode, borderValue=value
+#     )
+#     img = warp_fn(img)
 
-    if approximate:
-        # Approximate computation smooth displacement map with a large enough kernel.
-        # On large images (512+) this is approximately 2X times faster
-        dx = random_utils.rand(height, width, random_state=random_state).astype(np.float32) * 2 - 1
-        cv2.GaussianBlur(dx, (17, 17), sigma, dst=dx)
-        dx *= alpha
-        if same_dxdy:
-            # Speed up even more
-            dy = dx
-        else:
-            dy = random_utils.rand(height, width, random_state=random_state).astype(np.float32) * 2 - 1
-            cv2.GaussianBlur(dy, (17, 17), sigma, dst=dy)
-            dy *= alpha
-    else:
-        dx = np.float32(
-            ndimage.gaussian_filter((random_utils.rand(height, width, random_state=random_state) * 2 - 1), sigma) * alpha
-        )
-        if same_dxdy:
-            # Speed up
-            dy = dx
-        else:
-            dy = np.float32(
-                ndimage.gaussian_filter((random_utils.rand(height, width, random_state=random_state) * 2 - 1), sigma) * alpha
-            )
+#     if approximate:
+#         # Approximate computation smooth displacement map with a large enough kernel.
+#         # On large images (512+) this is approximately 2X times faster
+#         dx = random_utils.rand(height, width, random_state=random_state).astype(np.float32) * 2 - 1
+#         cv2.GaussianBlur(dx, (17, 17), sigma, dst=dx)
+#         dx *= alpha
+#         if same_dxdy:
+#             # Speed up even more
+#             dy = dx
+#         else:
+#             dy = random_utils.rand(height, width, random_state=random_state).astype(np.float32) * 2 - 1
+#             cv2.GaussianBlur(dy, (17, 17), sigma, dst=dy)
+#             dy *= alpha
+#     else:
+#         dx = np.float32(
+#             ndimage.gaussian_filter((random_utils.rand(height, width, random_state=random_state) * 2 - 1), sigma) * alpha
+#         )
+#         if same_dxdy:
+#             # Speed up
+#             dy = dx
+#         else:
+#             dy = np.float32(
+#                 ndimage.gaussian_filter((random_utils.rand(height, width, random_state=random_state) * 2 - 1), sigma) * alpha
+#             )
 
-    x, y = np.meshgrid(np.arange(width), np.arange(height))
+#     x, y = np.meshgrid(np.arange(width), np.arange(height))
 
-    map_x = np.float32(x + dx)
-    map_y = np.float32(y + dy)
+#     map_x = np.float32(x + dx)
+#     map_y = np.float32(y + dy)
 
-    remap_fn = _maybe_process_in_chunks(
-        cv2.remap, map1=map_x, map2=map_y, interpolation=interpolation, borderMode=border_mode, borderValue=value
-    )
-    return remap_fn(img)
+#     remap_fn = _maybe_process_in_chunks(
+#         cv2.remap, map1=map_x, map2=map_y, interpolation=interpolation, borderMode=border_mode, borderValue=value
+#     )
+#     return remap_fn(img)
 
 def _resize(img, dsize, interpolation):
     img_height, img_width, img_depth = img.shape[:3]
@@ -846,421 +773,421 @@ def smallest_max_size(img: np.ndarray, max_size: int, interpolation: int) -> np.
     return _func_max_size(img, max_size, interpolation, min)
 
 
-@preserve_channel_dim
-def perspective(
-    img: np.ndarray,
-    matrix: np.ndarray,
-    max_width: int,
-    max_height: int,
-    border_val: Union[int, float, List[int], List[float], np.ndarray],
-    border_mode: int,
-    keep_size: bool,
-    interpolation: int,
-):
-    h, w = img.shape[:2]
-    perspective_func = _maybe_process_in_chunks(
-        cv2.warpPerspective,
-        M=matrix,
-        dsize=(max_width, max_height),
-        borderMode=border_mode,
-        borderValue=border_val,
-        flags=interpolation,
-    )
-    warped = perspective_func(img)
+# @preserve_channel_dim
+# def perspective(
+#     img: np.ndarray,
+#     matrix: np.ndarray,
+#     max_width: int,
+#     max_height: int,
+#     border_val: Union[int, float, List[int], List[float], np.ndarray],
+#     border_mode: int,
+#     keep_size: bool,
+#     interpolation: int,
+# ):
+#     h, w = img.shape[:2]
+#     perspective_func = _maybe_process_in_chunks(
+#         cv2.warpPerspective,
+#         M=matrix,
+#         dsize=(max_width, max_height),
+#         borderMode=border_mode,
+#         borderValue=border_val,
+#         flags=interpolation,
+#     )
+#     warped = perspective_func(img)
 
-    if keep_size:
-        return resize(warped, h, w, interpolation=interpolation)
+#     if keep_size:
+#         return resize(warped, h, w, interpolation=interpolation)
 
-    return warped
-
-
-def perspective_bbox(
-    bbox: BoxInternalType,
-    height: int,
-    width: int,
-    matrix: np.ndarray,
-    max_width: int,
-    max_height: int,
-    keep_size: bool,
-) -> BoxInternalType:
-    x1, y1, x2, y2 = denormalize_bbox(bbox, height, width)[:4]
-
-    points = np.array([[x1, y1], [x2, y1], [x2, y2], [x1, y2]], dtype=np.float32)
-
-    x1, y1, x2, y2 = float("inf"), float("inf"), 0, 0
-    for pt in points:
-        pt = perspective_keypoint(pt.tolist() + [0, 0], height, width, matrix, max_width, max_height, keep_size)
-        x, y = pt[:2]
-        x1 = min(x1, x)
-        x2 = max(x2, x)
-        y1 = min(y1, y)
-        y2 = max(y2, y)
-
-    return normalize_bbox((x1, y1, x2, y2), height if keep_size else max_height, width if keep_size else max_width)
+#     return warped
 
 
-def rotation2DMatrixToEulerAngles(matrix: np.ndarray, y_up: bool = False) -> float:
-    """
-    Args:
-        matrix (np.ndarray): Rotation matrix
-        y_up (bool): is Y axis looks up or down
-    """
-    if y_up:
-        return np.arctan2(matrix[1, 0], matrix[0, 0])
-    return np.arctan2(-matrix[1, 0], matrix[0, 0])
+# def perspective_bbox(
+#     bbox: BoxInternalType,
+#     height: int,
+#     width: int,
+#     matrix: np.ndarray,
+#     max_width: int,
+#     max_height: int,
+#     keep_size: bool,
+# ) -> BoxInternalType:
+#     x1, y1, x2, y2 = denormalize_bbox(bbox, height, width)[:4]
+
+#     points = np.array([[x1, y1], [x2, y1], [x2, y2], [x1, y2]], dtype=np.float32)
+
+#     x1, y1, x2, y2 = float("inf"), float("inf"), 0, 0
+#     for pt in points:
+#         pt = perspective_keypoint(pt.tolist() + [0, 0], height, width, matrix, max_width, max_height, keep_size)
+#         x, y = pt[:2]
+#         x1 = min(x1, x)
+#         x2 = max(x2, x)
+#         y1 = min(y1, y)
+#         y2 = max(y2, y)
+
+#     return normalize_bbox((x1, y1, x2, y2), height if keep_size else max_height, width if keep_size else max_width)
 
 
-@angle_2pi_range
-def perspective_keypoint(
-    keypoint: KeypointInternalType,
-    height: int,
-    width: int,
-    matrix: np.ndarray,
-    max_width: int,
-    max_height: int,
-    keep_size: bool,
-) -> KeypointInternalType:
-    x, y, angle, scale = keypoint
-
-    keypoint_vector = np.array([x, y], dtype=np.float32).reshape([1, 1, 2])
-
-    x, y = cv2.perspectiveTransform(keypoint_vector, matrix)[0, 0]
-    angle += rotation2DMatrixToEulerAngles(matrix[:2, :2], y_up=True)
-
-    scale_x = np.sign(matrix[0, 0]) * np.sqrt(matrix[0, 0] ** 2 + matrix[0, 1] ** 2)
-    scale_y = np.sign(matrix[1, 1]) * np.sqrt(matrix[1, 0] ** 2 + matrix[1, 1] ** 2)
-    scale *= max(scale_x, scale_y)
-
-    if keep_size:
-        scale_x = width / max_width
-        scale_y = height / max_height
-        return keypoint_scale((x, y, angle, scale), scale_x, scale_y)
-
-    return x, y, angle, scale
+# def rotation2DMatrixToEulerAngles(matrix: np.ndarray, y_up: bool = False) -> float:
+#     """
+#     Args:
+#         matrix (np.ndarray): Rotation matrix
+#         y_up (bool): is Y axis looks up or down
+#     """
+#     if y_up:
+#         return np.arctan2(matrix[1, 0], matrix[0, 0])
+#     return np.arctan2(-matrix[1, 0], matrix[0, 0])
 
 
-def _is_identity_matrix(matrix: skimage.transform.ProjectiveTransform) -> bool:
-    return np.allclose(matrix.params, np.eye(3, dtype=np.float32))
+# @angle_2pi_range
+# def perspective_keypoint(
+#     keypoint: KeypointInternalType,
+#     height: int,
+#     width: int,
+#     matrix: np.ndarray,
+#     max_width: int,
+#     max_height: int,
+#     keep_size: bool,
+# ) -> KeypointInternalType:
+#     x, y, angle, scale = keypoint
+
+#     keypoint_vector = np.array([x, y], dtype=np.float32).reshape([1, 1, 2])
+
+#     x, y = cv2.perspectiveTransform(keypoint_vector, matrix)[0, 0]
+#     angle += rotation2DMatrixToEulerAngles(matrix[:2, :2], y_up=True)
+
+#     scale_x = np.sign(matrix[0, 0]) * np.sqrt(matrix[0, 0] ** 2 + matrix[0, 1] ** 2)
+#     scale_y = np.sign(matrix[1, 1]) * np.sqrt(matrix[1, 0] ** 2 + matrix[1, 1] ** 2)
+#     scale *= max(scale_x, scale_y)
+
+#     if keep_size:
+#         scale_x = width / max_width
+#         scale_y = height / max_height
+#         return keypoint_scale((x, y, angle, scale), scale_x, scale_y)
+
+#     return x, y, angle, scale
 
 
-@preserve_channel_dim
-def warp_affine(
-    image: np.ndarray,
-    matrix: skimage.transform.ProjectiveTransform,
-    interpolation: int,
-    cval: Union[int, float, Sequence[int], Sequence[float]],
-    mode: int,
-    output_shape: Sequence[int],
-) -> np.ndarray:
-    if _is_identity_matrix(matrix):
-        return image
-
-    dsize = int(np.round(output_shape[1])), int(np.round(output_shape[0]))
-    warp_fn = _maybe_process_in_chunks(
-        cv2.warpAffine, M=matrix.params[:2], dsize=dsize, flags=interpolation, borderMode=mode, borderValue=cval
-    )
-    tmp = warp_fn(image)
-    return tmp
+# def _is_identity_matrix(matrix: skimage.transform.ProjectiveTransform) -> bool:
+#     return np.allclose(matrix.params, np.eye(3, dtype=np.float32))
 
 
-@angle_2pi_range
-def keypoint_affine(
-    keypoint: KeypointInternalType,
-    matrix: skimage.transform.ProjectiveTransform,
-    scale: dict,
-) -> KeypointInternalType:
-    if _is_identity_matrix(matrix):
-        return keypoint
+# @preserve_channel_dim
+# def warp_affine(
+#     image: np.ndarray,
+#     matrix: skimage.transform.ProjectiveTransform,
+#     interpolation: int,
+#     cval: Union[int, float, Sequence[int], Sequence[float]],
+#     mode: int,
+#     output_shape: Sequence[int],
+# ) -> np.ndarray:
+#     if _is_identity_matrix(matrix):
+#         return image
 
-    x, y, a, s = keypoint[:4]
-    x, y = cv2.transform(np.array([[[x, y]]]), matrix.params[:2]).squeeze()
-    a += rotation2DMatrixToEulerAngles(matrix.params[:2])
-    s *= np.max([scale["x"], scale["y"]])
-    return x, y, a, s
-
-
-def bbox_affine(
-    bbox: BoxInternalType,
-    matrix: skimage.transform.ProjectiveTransform,
-    rotate_method: str,
-    rows: int,
-    cols: int,
-    output_shape: Sequence[int],
-) -> BoxInternalType:
-    if _is_identity_matrix(matrix):
-        return bbox
-    x_min, y_min, x_max, y_max = denormalize_bbox(bbox, rows, cols)[:4]
-    if rotate_method == "largest_box":
-        points = np.array(
-            [
-                [x_min, y_min],
-                [x_max, y_min],
-                [x_max, y_max],
-                [x_min, y_max],
-            ]
-        )
-    elif rotate_method == "ellipse":
-        w = (x_max - x_min) / 2
-        h = (y_max - y_min) / 2
-        data = np.arange(0, 360, dtype=np.float32)
-        x = w * np.sin(np.radians(data)) + (w + x_min - 0.5)
-        y = h * np.cos(np.radians(data)) + (h + y_min - 0.5)
-        points = np.hstack([x.reshape(-1, 1), y.reshape(-1, 1)])
-    else:
-        raise ValueError(f"Method {rotate_method} is not a valid rotation method.")
-    points = skimage.transform.matrix_transform(points, matrix.params)
-    x_min = np.min(points[:, 0])
-    x_max = np.max(points[:, 0])
-    y_min = np.min(points[:, 1])
-    y_max = np.max(points[:, 1])
-
-    return normalize_bbox((x_min, y_min, x_max, y_max), output_shape[0], output_shape[1])
+#     dsize = int(np.round(output_shape[1])), int(np.round(output_shape[0]))
+#     warp_fn = _maybe_process_in_chunks(
+#         cv2.warpAffine, M=matrix.params[:2], dsize=dsize, flags=interpolation, borderMode=mode, borderValue=cval
+#     )
+#     tmp = warp_fn(image)
+#     return tmp
 
 
-@preserve_channel_dim
-def safe_rotate(
-    img: np.ndarray,
-    matrix: np.ndarray,
-    interpolation: int,
-    value: FillValueType = None,
-    border_mode: int = cv2.BORDER_REFLECT_101,
-) -> np.ndarray:
-    h, w = img.shape[:2]
-    warp_fn = _maybe_process_in_chunks(
-        cv2.warpAffine,
-        M=matrix,
-        dsize=(w, h),
-        flags=interpolation,
-        borderMode=border_mode,
-        borderValue=value,
-    )
-    return warp_fn(img)
+# @angle_2pi_range
+# def keypoint_affine(
+#     keypoint: KeypointInternalType,
+#     matrix: skimage.transform.ProjectiveTransform,
+#     scale: dict,
+# ) -> KeypointInternalType:
+#     if _is_identity_matrix(matrix):
+#         return keypoint
+
+#     x, y, a, s = keypoint[:4]
+#     x, y = cv2.transform(np.array([[[x, y]]]), matrix.params[:2]).squeeze()
+#     a += rotation2DMatrixToEulerAngles(matrix.params[:2])
+#     s *= np.max([scale["x"], scale["y"]])
+#     return x, y, a, s
 
 
-def bbox_safe_rotate(bbox: BoxInternalType, matrix: np.ndarray, cols: int, rows: int) -> BoxInternalType:
-    x1, y1, x2, y2 = denormalize_bbox(bbox, rows, cols)[:4]
-    points = np.array(
-        [
-            [x1, y1, 1],
-            [x2, y1, 1],
-            [x2, y2, 1],
-            [x1, y2, 1],
-        ]
-    )
-    points = points @ matrix.T
-    x1 = points[:, 0].min()
-    x2 = points[:, 0].max()
-    y1 = points[:, 1].min()
-    y2 = points[:, 1].max()
+# def bbox_affine(
+#     bbox: BoxInternalType,
+#     matrix: skimage.transform.ProjectiveTransform,
+#     rotate_method: str,
+#     rows: int,
+#     cols: int,
+#     output_shape: Sequence[int],
+# ) -> BoxInternalType:
+#     if _is_identity_matrix(matrix):
+#         return bbox
+#     x_min, y_min, x_max, y_max = denormalize_bbox(bbox, rows, cols)[:4]
+#     if rotate_method == "largest_box":
+#         points = np.array(
+#             [
+#                 [x_min, y_min],
+#                 [x_max, y_min],
+#                 [x_max, y_max],
+#                 [x_min, y_max],
+#             ]
+#         )
+#     elif rotate_method == "ellipse":
+#         w = (x_max - x_min) / 2
+#         h = (y_max - y_min) / 2
+#         data = np.arange(0, 360, dtype=np.float32)
+#         x = w * np.sin(np.radians(data)) + (w + x_min - 0.5)
+#         y = h * np.cos(np.radians(data)) + (h + y_min - 0.5)
+#         points = np.hstack([x.reshape(-1, 1), y.reshape(-1, 1)])
+#     else:
+#         raise ValueError(f"Method {rotate_method} is not a valid rotation method.")
+#     points = skimage.transform.matrix_transform(points, matrix.params)
+#     x_min = np.min(points[:, 0])
+#     x_max = np.max(points[:, 0])
+#     y_min = np.min(points[:, 1])
+#     y_max = np.max(points[:, 1])
 
-    def fix_point(pt1: float, pt2: float, max_val: float) -> Tuple[float, float]:
-        # In my opinion, these errors should be very low, around 1-2 pixels.
-        if pt1 < 0:
-            return 0, pt2 + pt1
-        if pt2 > max_val:
-            return pt1 - (pt2 - max_val), max_val
-        return pt1, pt2
-
-    x1, x2 = fix_point(x1, x2, cols)
-    y1, y2 = fix_point(y1, y2, rows)
-
-    return normalize_bbox((x1, y1, x2, y2), rows, cols)
-
-
-def keypoint_safe_rotate(
-    keypoint: KeypointInternalType,
-    matrix: np.ndarray,
-    angle: float,
-    scale_x: float,
-    scale_y: float,
-    cols: int,
-    rows: int,
-) -> KeypointInternalType:
-    x, y, a, s = keypoint[:4]
-    point = np.array([[x, y, 1]])
-    x, y = (point @ matrix.T)[0]
-
-    # To avoid problems with float errors
-    x = np.clip(x, 0, cols - 1)
-    y = np.clip(y, 0, rows - 1)
-
-    a += angle
-    s *= max(scale_x, scale_y)
-    return x, y, a, s
+#     return normalize_bbox((x_min, y_min, x_max, y_max), output_shape[0], output_shape[1])
 
 
-@clipped
-def piecewise_affine(
-    img: np.ndarray,
-    matrix: skimage.transform.PiecewiseAffineTransform,
-    interpolation: int,
-    mode: str,
-    cval: float,
-) -> np.ndarray:
-    return skimage.transform.warp(
-        img, matrix, order=interpolation, mode=mode, cval=cval, preserve_range=True, output_shape=img.shape
-    )
+# @preserve_channel_dim
+# def safe_rotate(
+#     img: np.ndarray,
+#     matrix: np.ndarray,
+#     interpolation: int,
+#     value: FillValueType = None,
+#     border_mode: int = cv2.BORDER_REFLECT_101,
+# ) -> np.ndarray:
+#     h, w = img.shape[:2]
+#     warp_fn = _maybe_process_in_chunks(
+#         cv2.warpAffine,
+#         M=matrix,
+#         dsize=(w, h),
+#         flags=interpolation,
+#         borderMode=border_mode,
+#         borderValue=value,
+#     )
+#     return warp_fn(img)
 
 
-def to_distance_maps(
-    keypoints: Sequence[Tuple[float, float]], height: int, width: int, inverted: bool = False
-) -> np.ndarray:
-    """Generate a ``(H,W,N)`` array of distance maps for ``N`` keypoints.
+# def bbox_safe_rotate(bbox: BoxInternalType, matrix: np.ndarray, cols: int, rows: int) -> BoxInternalType:
+#     x1, y1, x2, y2 = denormalize_bbox(bbox, rows, cols)[:4]
+#     points = np.array(
+#         [
+#             [x1, y1, 1],
+#             [x2, y1, 1],
+#             [x2, y2, 1],
+#             [x1, y2, 1],
+#         ]
+#     )
+#     points = points @ matrix.T
+#     x1 = points[:, 0].min()
+#     x2 = points[:, 0].max()
+#     y1 = points[:, 1].min()
+#     y2 = points[:, 1].max()
 
-    The ``n``-th distance map contains at every location ``(y, x)`` the
-    euclidean distance to the ``n``-th keypoint.
+#     def fix_point(pt1: float, pt2: float, max_val: float) -> Tuple[float, float]:
+#         # In my opinion, these errors should be very low, around 1-2 pixels.
+#         if pt1 < 0:
+#             return 0, pt2 + pt1
+#         if pt2 > max_val:
+#             return pt1 - (pt2 - max_val), max_val
+#         return pt1, pt2
 
-    This function can be used as a helper when augmenting keypoints with a
-    method that only supports the augmentation of images.
+#     x1, x2 = fix_point(x1, x2, cols)
+#     y1, y2 = fix_point(y1, y2, rows)
 
-    Args:
-        keypoint: keypoint coordinates
-        height: image height
-        width: image width
-        inverted (bool): If ``True``, inverted distance maps are returned where each
-            distance value d is replaced by ``d/(d+1)``, i.e. the distance
-            maps have values in the range ``(0.0, 1.0]`` with ``1.0`` denoting
-            exactly the position of the respective keypoint.
-
-    Returns:
-        (H, W, N) ndarray
-            A ``float32`` array containing ``N`` distance maps for ``N``
-            keypoints. Each location ``(y, x, n)`` in the array denotes the
-            euclidean distance at ``(y, x)`` to the ``n``-th keypoint.
-            If `inverted` is ``True``, the distance ``d`` is replaced
-            by ``d/(d+1)``. The height and width of the array match the
-            height and width in ``KeypointsOnImage.shape``.
-    """
-    distance_maps = np.zeros((height, width, len(keypoints)), dtype=np.float32)
-
-    yy = np.arange(0, height)
-    xx = np.arange(0, width)
-    grid_xx, grid_yy = np.meshgrid(xx, yy)
-
-    for i, (x, y) in enumerate(keypoints):
-        distance_maps[:, :, i] = (grid_xx - x) ** 2 + (grid_yy - y) ** 2
-
-    distance_maps = np.sqrt(distance_maps)
-    if inverted:
-        return 1 / (distance_maps + 1)
-    return distance_maps
+#     return normalize_bbox((x1, y1, x2, y2), rows, cols)
 
 
-def from_distance_maps(
-    distance_maps: np.ndarray,
-    inverted: bool,
-    if_not_found_coords: Optional[Union[Sequence[int], dict]],
-    threshold: Optional[float] = None,
-) -> List[Tuple[float, float]]:
-    """Convert outputs of ``to_distance_maps()`` to ``KeypointsOnImage``.
-    This is the inverse of `to_distance_maps`.
+# def keypoint_safe_rotate(
+#     keypoint: KeypointInternalType,
+#     matrix: np.ndarray,
+#     angle: float,
+#     scale_x: float,
+#     scale_y: float,
+#     cols: int,
+#     rows: int,
+# ) -> KeypointInternalType:
+#     x, y, a, s = keypoint[:4]
+#     point = np.array([[x, y, 1]])
+#     x, y = (point @ matrix.T)[0]
 
-    Args:
-        distance_maps (np.ndarray): The distance maps. ``N`` is the number of keypoints.
-        inverted (bool): Whether the given distance maps were generated in inverted mode
-            (i.e. :func:`KeypointsOnImage.to_distance_maps` was called with ``inverted=True``) or in non-inverted mode.
-        if_not_found_coords (tuple, list, dict or None, optional):
-            Coordinates to use for keypoints that cannot be found in `distance_maps`.
+#     # To avoid problems with float errors
+#     x = np.clip(x, 0, cols - 1)
+#     y = np.clip(y, 0, rows - 1)
 
-            * If this is a ``list``/``tuple``, it must contain two ``int`` values.
-            * If it is a ``dict``, it must contain the keys ``x`` and ``y`` with each containing one ``int`` value.
-            * If this is ``None``, then the keypoint will not be added.
-        threshold (float): The search for keypoints works by searching for the
-            argmin (non-inverted) or argmax (inverted) in each channel. This
-            parameters contains the maximum (non-inverted) or minimum (inverted) value to accept in order to view a hit
-            as a keypoint. Use ``None`` to use no min/max.
-        nb_channels (None, int): Number of channels of the image on which the keypoints are placed.
-            Some keypoint augmenters require that information. If set to ``None``, the keypoint's shape will be set
-            to ``(height, width)``, otherwise ``(height, width, nb_channels)``.
-    """
-    if distance_maps.ndim != 3:
-        raise ValueError(
-            f"Expected three-dimensional input, "
-            f"got {distance_maps.ndim} dimensions and shape {distance_maps.shape}."
-        )
-    height, width, nb_keypoints = distance_maps.shape
-
-    drop_if_not_found = False
-    if if_not_found_coords is None:
-        drop_if_not_found = True
-        if_not_found_x = -1
-        if_not_found_y = -1
-    elif isinstance(if_not_found_coords, (tuple, list)):
-        if len(if_not_found_coords) != 2:
-            raise ValueError(
-                f"Expected tuple/list 'if_not_found_coords' to contain exactly two entries, "
-                f"got {len(if_not_found_coords)}."
-            )
-        if_not_found_x = if_not_found_coords[0]
-        if_not_found_y = if_not_found_coords[1]
-    elif isinstance(if_not_found_coords, dict):
-        if_not_found_x = if_not_found_coords["x"]
-        if_not_found_y = if_not_found_coords["y"]
-    else:
-        raise ValueError(
-            f"Expected if_not_found_coords to be None or tuple or list or dict, got {type(if_not_found_coords)}."
-        )
-
-    keypoints = []
-    for i in range(nb_keypoints):
-        if inverted:
-            hitidx_flat = np.argmax(distance_maps[..., i])
-        else:
-            hitidx_flat = np.argmin(distance_maps[..., i])
-        hitidx_ndim = np.unravel_index(hitidx_flat, (height, width))
-        if not inverted and threshold is not None:
-            found = distance_maps[hitidx_ndim[0], hitidx_ndim[1], i] < threshold
-        elif inverted and threshold is not None:
-            found = distance_maps[hitidx_ndim[0], hitidx_ndim[1], i] >= threshold
-        else:
-            found = True
-        if found:
-            keypoints.append((float(hitidx_ndim[1]), float(hitidx_ndim[0])))
-        else:
-            if not drop_if_not_found:
-                keypoints.append((if_not_found_x, if_not_found_y))
-
-    return keypoints
+#     a += angle
+#     s *= max(scale_x, scale_y)
+#     return x, y, a, s
 
 
-def keypoint_piecewise_affine(
-    keypoint: KeypointInternalType,
-    matrix: skimage.transform.PiecewiseAffineTransform,
-    h: int,
-    w: int,
-    keypoints_threshold: float,
-) -> KeypointInternalType:
-    x, y, a, s = keypoint[:4]
-    dist_maps = to_distance_maps([(x, y)], h, w, True)
-    dist_maps = piecewise_affine(dist_maps, matrix, 0, "constant", 0)
-    x, y = from_distance_maps(dist_maps, True, {"x": -1, "y": -1}, keypoints_threshold)[0]
-    return x, y, a, s
+# @clipped
+# def piecewise_affine(
+#     img: np.ndarray,
+#     matrix: skimage.transform.PiecewiseAffineTransform,
+#     interpolation: int,
+#     mode: str,
+#     cval: float,
+# ) -> np.ndarray:
+#     return skimage.transform.warp(
+#         img, matrix, order=interpolation, mode=mode, cval=cval, preserve_range=True, output_shape=img.shape
+#     )
 
 
-def bbox_piecewise_affine(
-    bbox: BoxInternalType,
-    matrix: skimage.transform.PiecewiseAffineTransform,
-    h: int,
-    w: int,
-    keypoints_threshold: float,
-) -> BoxInternalType:
-    x1, y1, x2, y2 = denormalize_bbox(bbox, h, w)[:4]
-    keypoints = [
-        (x1, y1),
-        (x2, y1),
-        (x2, y2),
-        (x1, y2),
-    ]
-    dist_maps = to_distance_maps(keypoints, h, w, True)
-    dist_maps = piecewise_affine(dist_maps, matrix, 0, "constant", 0)
-    keypoints = from_distance_maps(dist_maps, True, {"x": -1, "y": -1}, keypoints_threshold)
-    keypoints = [i for i in keypoints if 0 <= i[0] < w and 0 <= i[1] < h]
-    keypoints_arr = np.array(keypoints)
-    x1 = keypoints_arr[:, 0].min()
-    y1 = keypoints_arr[:, 1].min()
-    x2 = keypoints_arr[:, 0].max()
-    y2 = keypoints_arr[:, 1].max()
-    return normalize_bbox((x1, y1, x2, y2), h, w)
+# def to_distance_maps(
+#     keypoints: Sequence[Tuple[float, float]], height: int, width: int, inverted: bool = False
+# ) -> np.ndarray:
+#     """Generate a ``(H,W,N)`` array of distance maps for ``N`` keypoints.
+
+#     The ``n``-th distance map contains at every location ``(y, x)`` the
+#     euclidean distance to the ``n``-th keypoint.
+
+#     This function can be used as a helper when augmenting keypoints with a
+#     method that only supports the augmentation of images.
+
+#     Args:
+#         keypoint: keypoint coordinates
+#         height: image height
+#         width: image width
+#         inverted (bool): If ``True``, inverted distance maps are returned where each
+#             distance value d is replaced by ``d/(d+1)``, i.e. the distance
+#             maps have values in the range ``(0.0, 1.0]`` with ``1.0`` denoting
+#             exactly the position of the respective keypoint.
+
+#     Returns:
+#         (H, W, N) ndarray
+#             A ``float32`` array containing ``N`` distance maps for ``N``
+#             keypoints. Each location ``(y, x, n)`` in the array denotes the
+#             euclidean distance at ``(y, x)`` to the ``n``-th keypoint.
+#             If `inverted` is ``True``, the distance ``d`` is replaced
+#             by ``d/(d+1)``. The height and width of the array match the
+#             height and width in ``KeypointsOnImage.shape``.
+#     """
+#     distance_maps = np.zeros((height, width, len(keypoints)), dtype=np.float32)
+
+#     yy = np.arange(0, height)
+#     xx = np.arange(0, width)
+#     grid_xx, grid_yy = np.meshgrid(xx, yy)
+
+#     for i, (x, y) in enumerate(keypoints):
+#         distance_maps[:, :, i] = (grid_xx - x) ** 2 + (grid_yy - y) ** 2
+
+#     distance_maps = np.sqrt(distance_maps)
+#     if inverted:
+#         return 1 / (distance_maps + 1)
+#     return distance_maps
+
+
+# def from_distance_maps(
+#     distance_maps: np.ndarray,
+#     inverted: bool,
+#     if_not_found_coords: Optional[Union[Sequence[int], dict]],
+#     threshold: Optional[float] = None,
+# ) -> List[Tuple[float, float]]:
+#     """Convert outputs of ``to_distance_maps()`` to ``KeypointsOnImage``.
+#     This is the inverse of `to_distance_maps`.
+
+#     Args:
+#         distance_maps (np.ndarray): The distance maps. ``N`` is the number of keypoints.
+#         inverted (bool): Whether the given distance maps were generated in inverted mode
+#             (i.e. :func:`KeypointsOnImage.to_distance_maps` was called with ``inverted=True``) or in non-inverted mode.
+#         if_not_found_coords (tuple, list, dict or None, optional):
+#             Coordinates to use for keypoints that cannot be found in `distance_maps`.
+
+#             * If this is a ``list``/``tuple``, it must contain two ``int`` values.
+#             * If it is a ``dict``, it must contain the keys ``x`` and ``y`` with each containing one ``int`` value.
+#             * If this is ``None``, then the keypoint will not be added.
+#         threshold (float): The search for keypoints works by searching for the
+#             argmin (non-inverted) or argmax (inverted) in each channel. This
+#             parameters contains the maximum (non-inverted) or minimum (inverted) value to accept in order to view a hit
+#             as a keypoint. Use ``None`` to use no min/max.
+#         nb_channels (None, int): Number of channels of the image on which the keypoints are placed.
+#             Some keypoint augmenters require that information. If set to ``None``, the keypoint's shape will be set
+#             to ``(height, width)``, otherwise ``(height, width, nb_channels)``.
+#     """
+#     if distance_maps.ndim != 3:
+#         raise ValueError(
+#             f"Expected three-dimensional input, "
+#             f"got {distance_maps.ndim} dimensions and shape {distance_maps.shape}."
+#         )
+#     height, width, nb_keypoints = distance_maps.shape
+
+#     drop_if_not_found = False
+#     if if_not_found_coords is None:
+#         drop_if_not_found = True
+#         if_not_found_x = -1
+#         if_not_found_y = -1
+#     elif isinstance(if_not_found_coords, (tuple, list)):
+#         if len(if_not_found_coords) != 2:
+#             raise ValueError(
+#                 f"Expected tuple/list 'if_not_found_coords' to contain exactly two entries, "
+#                 f"got {len(if_not_found_coords)}."
+#             )
+#         if_not_found_x = if_not_found_coords[0]
+#         if_not_found_y = if_not_found_coords[1]
+#     elif isinstance(if_not_found_coords, dict):
+#         if_not_found_x = if_not_found_coords["x"]
+#         if_not_found_y = if_not_found_coords["y"]
+#     else:
+#         raise ValueError(
+#             f"Expected if_not_found_coords to be None or tuple or list or dict, got {type(if_not_found_coords)}."
+#         )
+
+#     keypoints = []
+#     for i in range(nb_keypoints):
+#         if inverted:
+#             hitidx_flat = np.argmax(distance_maps[..., i])
+#         else:
+#             hitidx_flat = np.argmin(distance_maps[..., i])
+#         hitidx_ndim = np.unravel_index(hitidx_flat, (height, width))
+#         if not inverted and threshold is not None:
+#             found = distance_maps[hitidx_ndim[0], hitidx_ndim[1], i] < threshold
+#         elif inverted and threshold is not None:
+#             found = distance_maps[hitidx_ndim[0], hitidx_ndim[1], i] >= threshold
+#         else:
+#             found = True
+#         if found:
+#             keypoints.append((float(hitidx_ndim[1]), float(hitidx_ndim[0])))
+#         else:
+#             if not drop_if_not_found:
+#                 keypoints.append((if_not_found_x, if_not_found_y))
+
+#     return keypoints
+
+
+# def keypoint_piecewise_affine(
+#     keypoint: KeypointInternalType,
+#     matrix: skimage.transform.PiecewiseAffineTransform,
+#     h: int,
+#     w: int,
+#     keypoints_threshold: float,
+# ) -> KeypointInternalType:
+#     x, y, a, s = keypoint[:4]
+#     dist_maps = to_distance_maps([(x, y)], h, w, True)
+#     dist_maps = piecewise_affine(dist_maps, matrix, 0, "constant", 0)
+#     x, y = from_distance_maps(dist_maps, True, {"x": -1, "y": -1}, keypoints_threshold)[0]
+#     return x, y, a, s
+
+
+# def bbox_piecewise_affine(
+#     bbox: BoxInternalType,
+#     matrix: skimage.transform.PiecewiseAffineTransform,
+#     h: int,
+#     w: int,
+#     keypoints_threshold: float,
+# ) -> BoxInternalType:
+#     x1, y1, x2, y2 = denormalize_bbox(bbox, h, w)[:4]
+#     keypoints = [
+#         (x1, y1),
+#         (x2, y1),
+#         (x2, y2),
+#         (x1, y2),
+#     ]
+#     dist_maps = to_distance_maps(keypoints, h, w, True)
+#     dist_maps = piecewise_affine(dist_maps, matrix, 0, "constant", 0)
+#     keypoints = from_distance_maps(dist_maps, True, {"x": -1, "y": -1}, keypoints_threshold)
+#     keypoints = [i for i in keypoints if 0 <= i[0] < w and 0 <= i[1] < h]
+#     keypoints_arr = np.array(keypoints)
+#     x1 = keypoints_arr[:, 0].min()
+#     y1 = keypoints_arr[:, 1].min()
+#     x2 = keypoints_arr[:, 0].max()
+#     y2 = keypoints_arr[:, 1].max()
+#     return normalize_bbox((x1, y1, x2, y2), h, w)
 
 
 def vflip(img: np.ndarray) -> np.ndarray:
@@ -1599,173 +1526,173 @@ def pad_with_params(
     return pad_fn(img)
 
 
-@preserve_shape
-def optical_distortion(
-    img: np.ndarray,
-    k: int = 0,
-    dx: int = 0,
-    dy: int = 0,
-    interpolation: int = cv2.INTER_LINEAR,
-    border_mode: int = cv2.BORDER_REFLECT_101,
-    value: Optional[ImageColorType] = None,
-) -> np.ndarray:
-    """Barrel / pincushion distortion. Unconventional augment.
+# @preserve_shape
+# def optical_distortion(
+#     img: np.ndarray,
+#     k: int = 0,
+#     dx: int = 0,
+#     dy: int = 0,
+#     interpolation: int = cv2.INTER_LINEAR,
+#     border_mode: int = cv2.BORDER_REFLECT_101,
+#     value: Optional[ImageColorType] = None,
+# ) -> np.ndarray:
+#     """Barrel / pincushion distortion. Unconventional augment.
 
-    Reference:
-        |  https://stackoverflow.com/questions/6199636/formulas-for-barrel-pincushion-distortion
-        |  https://stackoverflow.com/questions/10364201/image-transformation-in-opencv
-        |  https://stackoverflow.com/questions/2477774/correcting-fisheye-distortion-programmatically
-        |  http://www.coldvision.io/2017/03/02/advanced-lane-finding-using-opencv/
-    """
-    height, width = img.shape[:2]
+#     Reference:
+#         |  https://stackoverflow.com/questions/6199636/formulas-for-barrel-pincushion-distortion
+#         |  https://stackoverflow.com/questions/10364201/image-transformation-in-opencv
+#         |  https://stackoverflow.com/questions/2477774/correcting-fisheye-distortion-programmatically
+#         |  http://www.coldvision.io/2017/03/02/advanced-lane-finding-using-opencv/
+#     """
+#     height, width = img.shape[:2]
 
-    fx = width
-    fy = height
+#     fx = width
+#     fy = height
 
-    cx = width * 0.5 + dx
-    cy = height * 0.5 + dy
+#     cx = width * 0.5 + dx
+#     cy = height * 0.5 + dy
 
-    camera_matrix = np.array([[fx, 0, cx], [0, fy, cy], [0, 0, 1]], dtype=np.float32)
+#     camera_matrix = np.array([[fx, 0, cx], [0, fy, cy], [0, 0, 1]], dtype=np.float32)
 
-    distortion = np.array([k, k, 0, 0, 0], dtype=np.float32)
-    map1, map2 = cv2.initUndistortRectifyMap(camera_matrix, distortion, None, None, (width, height), cv2.CV_32FC1)
-    return cv2.remap(img, map1, map2, interpolation=interpolation, borderMode=border_mode, borderValue=value)
-
-
-@preserve_shape
-def grid_distortion(
-    img: np.ndarray,
-    num_steps: int = 10,
-    xsteps: Tuple = (),
-    ysteps: Tuple = (),
-    interpolation: int = cv2.INTER_LINEAR,
-    border_mode: int = cv2.BORDER_REFLECT_101,
-    value: Optional[ImageColorType] = None,
-) -> np.ndarray:
-    """Perform a grid distortion of an input image.
-
-    Reference:
-        http://pythology.blogspot.sg/2014/03/interpolation-on-regular-distorted-grid.html
-    """
-    height, width = img.shape[:2]
-
-    x_step = width // num_steps
-    xx = np.zeros(width, np.float32)
-    prev = 0
-    for idx in range(num_steps + 1):
-        x = idx * x_step
-        start = int(x)
-        end = int(x) + x_step
-        if end > width:
-            end = width
-            cur = width
-        else:
-            cur = prev + x_step * xsteps[idx]
-
-        xx[start:end] = np.linspace(prev, cur, end - start)
-        prev = cur
-
-    y_step = height // num_steps
-    yy = np.zeros(height, np.float32)
-    prev = 0
-    for idx in range(num_steps + 1):
-        y = idx * y_step
-        start = int(y)
-        end = int(y) + y_step
-        if end > height:
-            end = height
-            cur = height
-        else:
-            cur = prev + y_step * ysteps[idx]
-
-        yy[start:end] = np.linspace(prev, cur, end - start)
-        prev = cur
-
-    map_x, map_y = np.meshgrid(xx, yy)
-    map_x = map_x.astype(np.float32)
-    map_y = map_y.astype(np.float32)
-
-    remap_fn = _maybe_process_in_chunks(
-        cv2.remap,
-        map1=map_x,
-        map2=map_y,
-        interpolation=interpolation,
-        borderMode=border_mode,
-        borderValue=value,
-    )
-    return remap_fn(img)
+#     distortion = np.array([k, k, 0, 0, 0], dtype=np.float32)
+#     map1, map2 = cv2.initUndistortRectifyMap(camera_matrix, distortion, None, None, (width, height), cv2.CV_32FC1)
+#     return cv2.remap(img, map1, map2, interpolation=interpolation, borderMode=border_mode, borderValue=value)
 
 
-@preserve_shape
-def elastic_transform_approx(
-    img: np.ndarray,
-    alpha: float,
-    sigma: float,
-    alpha_affine: float,
-    interpolation: int = cv2.INTER_LINEAR,
-    border_mode: int = cv2.BORDER_REFLECT_101,
-    value: Optional[ImageColorType] = None,
-    random_state: Optional[np.random.RandomState] = None,
-) -> np.ndarray:
-    """Elastic deformation of images as described in [Simard2003]_ (with modifications for speed).
-    Based on https://gist.github.com/ernestum/601cdf56d2b424757de5
+# @preserve_shape
+# def grid_distortion(
+#     img: np.ndarray,
+#     num_steps: int = 10,
+#     xsteps: Tuple = (),
+#     ysteps: Tuple = (),
+#     interpolation: int = cv2.INTER_LINEAR,
+#     border_mode: int = cv2.BORDER_REFLECT_101,
+#     value: Optional[ImageColorType] = None,
+# ) -> np.ndarray:
+#     """Perform a grid distortion of an input image.
 
-    .. [Simard2003] Simard, Steinkraus and Platt, "Best Practices for
-         Convolutional Neural Networks applied to Visual Document Analysis", in
-         Proc. of the International Conference on Document Analysis and
-         Recognition, 2003.
-    """
-    height, width = img.shape[:2]
+#     Reference:
+#         http://pythology.blogspot.sg/2014/03/interpolation-on-regular-distorted-grid.html
+#     """
+#     height, width = img.shape[:2]
 
-    # Random affine
-    center_square = np.array((height, width), dtype=np.float32) // 2
-    square_size = min((height, width)) // 3
-    alpha = float(alpha)
-    sigma = float(sigma)
-    alpha_affine = float(alpha_affine)
+#     x_step = width // num_steps
+#     xx = np.zeros(width, np.float32)
+#     prev = 0
+#     for idx in range(num_steps + 1):
+#         x = idx * x_step
+#         start = int(x)
+#         end = int(x) + x_step
+#         if end > width:
+#             end = width
+#             cur = width
+#         else:
+#             cur = prev + x_step * xsteps[idx]
 
-    pts1 = np.array(
-        [
-            center_square + square_size,
-            [center_square[0] + square_size, center_square[1] - square_size],
-            center_square - square_size,
-        ],
-        dtype=np.float32,
-    )
-    pts2 = pts1 + random_utils.uniform(-alpha_affine, alpha_affine, size=pts1.shape, random_state=random_state).astype(
-        np.float32
-    )
-    matrix = cv2.getAffineTransform(pts1, pts2)
+#         xx[start:end] = np.linspace(prev, cur, end - start)
+#         prev = cur
 
-    warp_fn = _maybe_process_in_chunks(
-        cv2.warpAffine,
-        M=matrix,
-        dsize=(width, height),
-        flags=interpolation,
-        borderMode=border_mode,
-        borderValue=value,
-    )
-    img = warp_fn(img)
+#     y_step = height // num_steps
+#     yy = np.zeros(height, np.float32)
+#     prev = 0
+#     for idx in range(num_steps + 1):
+#         y = idx * y_step
+#         start = int(y)
+#         end = int(y) + y_step
+#         if end > height:
+#             end = height
+#             cur = height
+#         else:
+#             cur = prev + y_step * ysteps[idx]
 
-    dx = random_utils.rand(height, width, random_state=random_state).astype(np.float32) * 2 - 1
-    cv2.GaussianBlur(dx, (17, 17), sigma, dst=dx)
-    dx *= alpha
+#         yy[start:end] = np.linspace(prev, cur, end - start)
+#         prev = cur
 
-    dy = random_utils.rand(height, width, random_state=random_state).astype(np.float32) * 2 - 1
-    cv2.GaussianBlur(dy, (17, 17), sigma, dst=dy)
-    dy *= alpha
+#     map_x, map_y = np.meshgrid(xx, yy)
+#     map_x = map_x.astype(np.float32)
+#     map_y = map_y.astype(np.float32)
 
-    x, y = np.meshgrid(np.arange(width), np.arange(height))
+#     remap_fn = _maybe_process_in_chunks(
+#         cv2.remap,
+#         map1=map_x,
+#         map2=map_y,
+#         interpolation=interpolation,
+#         borderMode=border_mode,
+#         borderValue=value,
+#     )
+#     return remap_fn(img)
 
-    map_x = np.float32(x + dx)
-    map_y = np.float32(y + dy)
 
-    remap_fn = _maybe_process_in_chunks(
-        cv2.remap,
-        map1=map_x,
-        map2=map_y,
-        interpolation=interpolation,
-        borderMode=border_mode,
-        borderValue=value,
-    )
-    return remap_fn(img)
+# @preserve_shape
+# def elastic_transform_approx(
+#     img: np.ndarray,
+#     alpha: float,
+#     sigma: float,
+#     alpha_affine: float,
+#     interpolation: int = cv2.INTER_LINEAR,
+#     border_mode: int = cv2.BORDER_REFLECT_101,
+#     value: Optional[ImageColorType] = None,
+#     random_state: Optional[np.random.RandomState] = None,
+# ) -> np.ndarray:
+#     """Elastic deformation of images as described in [Simard2003]_ (with modifications for speed).
+#     Based on https://gist.github.com/ernestum/601cdf56d2b424757de5
+
+#     .. [Simard2003] Simard, Steinkraus and Platt, "Best Practices for
+#          Convolutional Neural Networks applied to Visual Document Analysis", in
+#          Proc. of the International Conference on Document Analysis and
+#          Recognition, 2003.
+#     """
+#     height, width = img.shape[:2]
+
+#     # Random affine
+#     center_square = np.array((height, width), dtype=np.float32) // 2
+#     square_size = min((height, width)) // 3
+#     alpha = float(alpha)
+#     sigma = float(sigma)
+#     alpha_affine = float(alpha_affine)
+
+#     pts1 = np.array(
+#         [
+#             center_square + square_size,
+#             [center_square[0] + square_size, center_square[1] - square_size],
+#             center_square - square_size,
+#         ],
+#         dtype=np.float32,
+#     )
+#     pts2 = pts1 + random_utils.uniform(-alpha_affine, alpha_affine, size=pts1.shape, random_state=random_state).astype(
+#         np.float32
+#     )
+#     matrix = cv2.getAffineTransform(pts1, pts2)
+
+#     warp_fn = _maybe_process_in_chunks(
+#         cv2.warpAffine,
+#         M=matrix,
+#         dsize=(width, height),
+#         flags=interpolation,
+#         borderMode=border_mode,
+#         borderValue=value,
+#     )
+#     img = warp_fn(img)
+
+#     dx = random_utils.rand(height, width, random_state=random_state).astype(np.float32) * 2 - 1
+#     cv2.GaussianBlur(dx, (17, 17), sigma, dst=dx)
+#     dx *= alpha
+
+#     dy = random_utils.rand(height, width, random_state=random_state).astype(np.float32) * 2 - 1
+#     cv2.GaussianBlur(dy, (17, 17), sigma, dst=dy)
+#     dy *= alpha
+
+#     x, y = np.meshgrid(np.arange(width), np.arange(height))
+
+#     map_x = np.float32(x + dx)
+#     map_y = np.float32(y + dy)
+
+#     remap_fn = _maybe_process_in_chunks(
+#         cv2.remap,
+#         map1=map_x,
+#         map2=map_y,
+#         interpolation=interpolation,
+#         borderMode=border_mode,
+#         borderValue=value,
+#     )
+#     return remap_fn(img)
