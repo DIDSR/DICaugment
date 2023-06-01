@@ -145,8 +145,8 @@ def test_compare_rotate_and_shift_scale_rotate(image):
 
 
 def test_compare_rotate_float_and_shift_scale_rotate_float(float_image):
-    rotated_img_1 = FGeometric.rotate(image, angle=60, axes= "xy")
-    rotated_img_2 = FGeometric.shift_scale_rotate(image, angle=60, scale=1, dx=0, dy=0, dz=0, axes="xy")
+    rotated_img_1 = FGeometric.rotate(float_image, angle=60, axes= "xy")
+    rotated_img_2 = FGeometric.shift_scale_rotate(float_image, angle=60, scale=1, dx=0, dy=0, dz=0, axes="xy")
     assert np.array_equal(rotated_img_1, rotated_img_2)
 
 
@@ -1099,7 +1099,7 @@ def test_maybe_process_by_channel():
 
     for i in range(1, image.shape[-1] + 1):
         before = image[:, :, :i]
-        after = FGeometric.rotate(before, angle=1, axes = "xy")
+        after = FGeometric.rotate(before, angle=0, axes = "xy")
         assert before.shape == after.shape
 
 

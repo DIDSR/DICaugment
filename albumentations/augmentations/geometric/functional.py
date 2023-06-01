@@ -3,7 +3,7 @@ from typing import List, Optional, Sequence, Tuple, Union
 
 import cv2
 import numpy as np
-import skimage.transform
+# import skimage.transform
 import scipy.ndimage as ndimage
 from functools import reduce
 
@@ -176,18 +176,18 @@ def keypoint_rot90(keypoint: KeypointInternalType, factor: int, axes: str, rows:
             x, y, z, angle = (rows - 1) - y, x, z, angle + math.pi / 2
     if axes == 'xz':
         if factor == 1:
-            x, y, z, angle = (slices - 1) - z, y, x, angle + math.pi / 2
+            x, y, z, angle = (slices - 1) - z, y, x, angle
         elif factor == 2:
-            x, y, z, angle = (cols - 1) - x, y, (slices - 1) - z, angle - math.pi
+            x, y, z, angle = (cols - 1) - x, y, (slices - 1) - z, angle
         elif factor == 3:
-            x, y, z, angle = z, y, (cols - 1) - x, angle - math.pi / 2
+            x, y, z, angle = z, y, (cols - 1) - x, angle
     if axes == 'yz':
         if factor == 1:
-            x, y, z, angle = x , (slices - 1) - z, y, angle + math.pi / 2
+            x, y, z, angle = x , (slices - 1) - z, y, angle
         elif factor == 2:
-            x, y, z, angle = x, (rows - 1) - y, (slices - 1) - z, angle - math.pi
+            x, y, z, angle = x, (rows - 1) - y, (slices - 1) - z, angle
         elif factor == 3:
-            x, y, z, angle = x, z, (rows - 1) - y,  angle - math.pi / 2
+            x, y, z, angle = x, z, (rows - 1) - y,  angle
 
     return x, y, z, angle, scale
 
@@ -396,7 +396,7 @@ def keypoint_rotate(keypoint, angle: float, axes: str, crop_to_border: bool, row
     p = np.array([[y,x,z]]) - in_center
     y,x,z = np.matmul(rotation_matrix, p.T).flatten() + out_center
 
-    return x, y, z, a + math.radians(angle), s
+    return x, y, z, a + (angle if axes=="xy" else 0), s
 
 
 
@@ -523,7 +523,7 @@ def keypoint_shift_scale_rotate(keypoint, angle, scale, dx, dy, dz, axes = "xy",
     p = np.array([[y,x,z]]) - in_center
     y,x,z = np.matmul(rotation_matrix, p.T).flatten() + out_center + shift
 
-    return x, y, z, a + math.radians(angle), s
+    return x, y, z, a + (angle if axes=="xy" else 0), s
 
 
 def bbox_shift_scale_rotate(bbox, angle, scale, dx, dy, dz, axes="xy", crop_to_border=False, rotate_method="largest_box", rows=0, cols=0, slices=0, **kwargs):  # skipcq: PYL-W0613
