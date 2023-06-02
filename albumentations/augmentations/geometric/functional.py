@@ -209,7 +209,7 @@ def _get_new_image_shape(rows, cols, slices, rot_mat, scale_x = 1, scale_y = 1, 
             [ rows,  cols, -slices],
             [ rows,  cols,  slices],
         ]).T
-    arr = np.matmul(rot_mat, arr)
+    arr = np.round(np.matmul(rot_mat, arr))
 
     n_rows = int((np.max(arr[0]) - np.min(arr[0]))*scale_y)
     n_cols = int((np.max(arr[1]) - np.min(arr[1]))*scale_x)

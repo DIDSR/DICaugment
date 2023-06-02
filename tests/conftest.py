@@ -49,12 +49,12 @@ def pytest_ignore_collect(path):
 
 @pytest.fixture
 def image():
-    return np.random.randint(low=0, high=256, size=(100, 100, 50), dtype=np.uint8)
+    return np.random.randint(low=0, high=256, size=(100, 100, 100), dtype=np.uint8)
 
 
 @pytest.fixture
 def mask():
-    return np.random.randint(low=0, high=2, size=(100, 100, 50), dtype=np.uint8)
+    return np.random.randint(low=0, high=2, size=(100, 100, 100), dtype=np.uint8)
 
 
 @pytest.fixture
@@ -74,7 +74,7 @@ def keypoints():
 
 @pytest.fixture
 def float_image():
-    return np.random.uniform(low=0.0, high=1.0, size=(100, 100, 50)).astype("float32")
+    return np.random.uniform(low=0.0, high=1.0, size=(100, 100, 100)).astype("float32")
 
 
 # @pytest.fixture
