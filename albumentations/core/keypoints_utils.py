@@ -244,7 +244,7 @@ def convert_keypoint_from_albumentations(
     (x, y, z, angle, scale), tail = keypoint[:5], tuple(keypoint[5:])
     angle = angle_to_2pi_range(angle)
     if check_validity:
-        check_keypoint((x, y, z, angle, scale), rows, cols)
+        check_keypoint((x, y, z, angle, scale), rows, cols, slices)
     if angle_in_degrees:
         angle = math.degrees(angle)
 
