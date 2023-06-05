@@ -81,16 +81,18 @@ class BboxParams(Params):
         label_fields: Optional[Sequence[str]] = None,
         min_planar_area: float = 0.0,
         min_volume: float = 0.0,
-        min_visibility: float = 0.0,
+        min_area_visibility: float = 0.0,
+        min_volume_visibility: float = 0.0,
         min_width: float = 0.0,
         min_height: float = 0.0,
         min_depth: float = 0.0,
         check_each_transform: bool = True,
     ):
         super(BboxParams, self).__init__(format, label_fields)
-        self.min_area = min_planar_area
+        self.min_planar_area = min_planar_area
         self.min_volume = min_volume
-        self.min_visibility = min_visibility
+        self.min_area_visibility = min_area_visibility
+        self.min_volume_visibility = min_volume_visibility
         self.min_width = min_width
         self.min_height = min_height
         self.min_depth = min_depth
@@ -100,9 +102,10 @@ class BboxParams(Params):
         data = super(BboxParams, self)._to_dict()
         data.update(
             {
-                "min_area": self.min_area,
+                "min_planar_area": self.min_planar_area,
                 "min_volume": self.min_volume,
-                "min_visibility": self.min_visibility,
+                "min_area_visibility": self.min_area_visibility,
+                "min_volume_visibility": self.min_volume_visibility,
                 "min_width": self.min_width,
                 "min_height": self.min_height,
                 "min_depth": self.min_depth,
@@ -148,9 +151,10 @@ class BboxProcessor(DataProcessor):
             rows,
             cols,
             slices,
-            min_area=self.params.min_area,
+            min_planar_area=self.params.min_planar_area,
             min_volume=self.params.min_volume,
-            min_visibility=self.params.min_visibility,
+            min_area_visibility=self.params.min_area_visibility,
+            min_volume_visibility=self.params.min_volume_visibility,
             min_width=self.params.min_width,
             min_height=self.params.min_height,
             min_depth=self.params.min_depth,
@@ -160,10 +164,10 @@ class BboxProcessor(DataProcessor):
         check_bboxes(data)
 
     def convert_from_albumentations(self, data: Sequence, rows: int, cols: int, slices: int) -> List[BoxType]:
-        return convert_bboxes_from_albumentations(data, self.params.format, rows, cols, check_validity=True)
+        return convert_bboxes_from_albumentations(data, self.params.format, rows, cols, slices, check_validity=True)
 
     def convert_to_albumentations(self, data: Sequence[BoxType], rows: int, cols: int, slices: int) -> List[BoxType]:
-        return convert_bboxes_to_albumentations(data, self.params.format, rows, cols, check_validity=True)
+        return convert_bboxes_to_albumentations(data, self.params.format, rows, cols, slices, check_validity=True)
 
 
 def normalize_bbox(bbox: TBox, rows: int, cols: int, slices:int) -> TBox:
@@ -377,7 +381,7 @@ def convert_bbox_to_albumentations(
         x_max = x_min + width
         y_max = y_min + height
         z_max = z_min + depth
-    elif source_format == "yolo":
+    elif source_format == "yolo_3d":
         # https://github.com/pjreddie/darknet/blob/f6d861736038da22c9eb0739dca84003c5a5e275/scripts/voc_label.py#L12
         _bbox = np.array(bbox[:6])
         if check_validity and np.any((_bbox <= 0) | (_bbox > 1)):
@@ -397,7 +401,7 @@ def convert_bbox_to_albumentations(
 
     bbox = (x_min, y_min, z_min, x_max, y_max, z_max) + tuple(tail)  # type: ignore
 
-    if source_format != "yolo":
+    if source_format != "yolo_3d":
         bbox = normalize_bbox(bbox, rows, cols, slices)
     if check_validity:
         check_bbox(bbox)
@@ -445,7 +449,7 @@ def convert_bbox_from_albumentations(
         height = y_max - y_min
         depth = z_max - z_min
         bbox = cast(BoxType, (x_min, y_min, z_min, width, height, depth) + tail)
-    elif target_format == "yolo":
+    elif target_format == "yolo_3d":
         (x_min, y_min, z_min, x_max, y_max, z_max), tail = bbox[:6], tuple(bbox[6:])
         x = (x_min + x_max) / 2.0
         y = (y_min + y_max) / 2.0
@@ -512,7 +516,7 @@ def filter_bboxes(
     slices: int,
     min_area_visibility: float = 0.0,
     min_volume_visibility: float = 0.0,
-    min_area: float = 0.0,
+    min_planar_area: float = 0.0,
     min_volume: float = 0.0,
     min_width: float = 0.0,
     min_height: float = 0.0,
@@ -552,12 +556,12 @@ def filter_bboxes(
         clipped_box_area, clipped_box_volume = calculate_bbox_area_volume(bbox, rows, cols, slices)
 
         # Calculate width and height of the clipped bounding box.
-        x_min, y_min, z_min, x_max, y_max, z_max = denormalize_bbox(bbox, rows, cols)[:6]
+        x_min, y_min, z_min, x_max, y_max, z_max = denormalize_bbox(bbox, rows, cols, slices)[:6]
         clipped_width, clipped_height, clipped_depth = x_max - x_min, y_max - y_min, z_max - z_min
 
         if (
             clipped_box_area != 0  # to ensure transformed_box_area!=0 and to handle min_area=0 or min_visibility=0
-            and clipped_box_area >= min_area
+            and clipped_box_area >= min_planar_area
             and clipped_box_volume >= min_volume
             and clipped_box_area / transformed_box_area >= min_area_visibility
             and clipped_box_volume / transformed_box_volume >= min_volume_visibility

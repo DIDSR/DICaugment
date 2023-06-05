@@ -149,9 +149,10 @@ class Rotate(DualTransform):
         self.rotate_method = rotate_method
         self.crop_to_border = crop_to_border
 
-        if isinstance(axes, str) and axes not in {"xy", "yz", "xz"}:
-            raise ValueError("Parameter axes must be one of {'xy','yz','xz'} or a list of these elements")
-        if isinstance(axes, Sequence) and len(set(axes).difference({"xy", "yz", "xz"})) != 0:
+        if isinstance(axes, str):
+            if axes not in {"xy", "yz", "xz"}:
+                raise ValueError("Parameter axes must be one of {'xy','yz','xz'} or a list of these elements")
+        elif isinstance(axes, Sequence) and len(set(axes).difference({"xy", "yz", "xz"})) != 0:
             raise ValueError("Parameter axes contains one or more elements that are not allowed. Got {}".format(set(axes).difference({"xy", "yz", "xz"})))
         if rotate_method not in ["largest_box", "ellipse"]:
             raise ValueError(f"Rotation method {self.rotate_method} is not valid.")

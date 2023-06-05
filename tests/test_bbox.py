@@ -18,7 +18,7 @@ from albumentations.core.transforms_interface import NoOp
 
 @pytest.mark.parametrize(
     ["bbox", "expected"],
-    [((15, 25, 30, 100, 200, 150), (0.0375, 0.125, 0.05, 0.25, 1.0, 0.75)), ((15, 25, 30, 100, 200, 150, 99), (0.0375, 0.125, 0.05, 0.25, 1.0, 0.75, 99))],
+    [((15, 25, 30, 100, 200, 450), (0.0375, 0.125, 0.05, 0.25, 1.0, 0.75)), ((15, 25, 30, 100, 200, 450, 99), (0.0375, 0.125, 0.05, 0.25, 1.0, 0.75, 99))],
 )
 def test_normalize_bbox(bbox, expected):
     normalized_bbox = normalize_bbox(bbox, 200, 400, 600)
@@ -27,7 +27,7 @@ def test_normalize_bbox(bbox, expected):
 
 @pytest.mark.parametrize(
     ["bbox", "expected"],
-    [((0.0375, 0.125, 0.05, 0.25, 1.0, 0.75), (15, 25, 30, 100, 200, 150)), ((0.0375, 0.125, 0.05, 0.25, 1.0, 0.75, 99), (15, 25, 30, 100, 200, 150, 99))],
+    [((0.0375, 0.125, 0.05, 0.25, 1.0, 0.75), (15, 25, 30, 100, 200, 450)), ((0.0375, 0.125, 0.05, 0.25, 1.0, 0.75, 99), (15, 25, 30, 100, 200, 450, 99))],
 )
 def test_denormalize_bbox(bbox, expected):
     denormalized_bbox = denormalize_bbox(bbox, 200, 400, 600)
@@ -49,7 +49,7 @@ def test_denormalize_normalize_bbox(bbox):
 
 
 def test_normalize_bboxes():
-    bboxes = [(15, 25, 30, 100, 200, 150), (15, 25, 30, 100, 200, 150, 99)]
+    bboxes = [(15, 25, 30, 100, 200, 450), (15, 25, 30, 100, 200, 450, 99)]
     normalized_bboxes_1 = normalize_bboxes(bboxes, 200, 400, 600)
     normalized_bboxes_2 = [normalize_bbox(bboxes[0], 200, 400, 600), normalize_bbox(bboxes[1], 200, 400, 600)]
     assert normalized_bboxes_1 == normalized_bboxes_2
@@ -63,11 +63,11 @@ def test_denormalize_bboxes():
 
 
 @pytest.mark.parametrize(
-    ["bbox", "rows", "cols", "expected"], [((0, 0, 0, 1, 1, 1), 50, 100, 10, 50000), ((0.2, 0.2, 0.2, 1, 1, 1, 99), 10, 10, 10, 512)]
+    ["bbox", "rows", "cols", "slices", "expected"], [((0, 0, 0, 1, 1, 1), 50, 100, 10, (5000, 50000)), ((0.2, 0.2, 0.2, 1, 1, 1, 99), 10, 10, 10, (64,512))]
 )
 def test_calculate_bbox_area_volume(bbox, rows, cols, slices, expected):
-    area = calculate_bbox_area_volume(bbox, rows, cols, slices)
-    assert area == expected
+    area_vol = calculate_bbox_area_volume(bbox, rows, cols, slices)
+    assert area_vol == expected
 
 
 @pytest.mark.parametrize(
@@ -77,14 +77,13 @@ def test_calculate_bbox_area_volume(bbox, rows, cols, slices, expected):
         ((20, 30, 40, 40, 50, 50, 99), "coco_3d", (0.2, 0.3, 0.4, 0.6, 0.8, 0.9, 99)),
         ((20, 30, 40, 60, 80, 90), "pascal_voc_3d", (0.2, 0.3, 0.4, 0.6, 0.8, 0.9)),
         ((20, 30, 40, 60, 80, 90, 99), "pascal_voc_3d", (0.2, 0.3, 0.4, 0.6, 0.8, 0.9, 99)),
-        ((0.2, 0.3, 0.5, 0.4, 0.5, 0.2), "yolo_3d", (0.00, 0.05, 0.3, 0.40, 0.55, 0.6)),
-        ((0.2, 0.3, 0.5, 0.4, 0.5, 0.2, 99), "yolo_3d", (0.00, 0.05, 0.3, 0.40, 0.55, 0.6, 99)),
+        ((0.2, 0.3, 0.5, 0.4, 0.5, 0.2), "yolo_3d", (0.00, 0.05, 0.4, 0.40, 0.55, 0.6)),
+        ((0.2, 0.3, 0.5, 0.4, 0.5, 0.2, 99), "yolo_3d", (0.00, 0.05, 0.4, 0.40, 0.55, 0.6, 99)),
         ((0.1, 0.1, 0.1, 0.2, 0.2, 0.2), "yolo_3d", (0.0, 0.0, 0.0, 0.2, 0.2, 0.2)),
         ((0.99662423, 0.7520255, 0.5383403, 0.00675154, 0.01446759, 0.0294565), "yolo_3d", (0.99324846, 0.744791705, 0.52361205, 1.0, 0.759259295, 0.55306855)),
         ((0.9375, 0.510416, 0.543219, 0.1234375, 0.97638, 0.483940), "yolo_3d", (0.87578125, 0.022226, 0.301249, 0.999218749, 0.998606, 0.785189)),
     ],
 )
-
 def test_convert_bbox_to_albumentations(bbox, source_format, expected):
     image = np.ones((100, 100, 100))
 
@@ -101,8 +100,8 @@ def test_convert_bbox_to_albumentations(bbox, source_format, expected):
         ((0.2, 0.3, 0.4, 0.6, 0.8, 0.9, 99), "coco_3d", (20, 30, 40, 40, 50, 50, 99)),
         ((0.2, 0.3, 0.4, 0.6, 0.8, 0.9), "pascal_voc_3d", (20, 30, 40, 60, 80, 90)),
         ((0.2, 0.3, 0.4, 0.6, 0.8, 0.9, 99), "pascal_voc_3d", (20, 30, 40, 60, 80, 90, 99)),
-        ((0.00, 0.05, 0.3, 0.40, 0.55, 0.6), "yolo_3d", (0.2, 0.3, 0.5, 0.4, 0.5, 0.2)),
-        ((0.00, 0.05, 0.3, 0.40, 0.55, 0.6, 99), "yolo_3d", (0.2, 0.3, 0.5, 0.4, 0.5, 0.2, 99)),
+        ((0.00, 0.05, 0.3, 0.40, 0.55, 0.6), "yolo_3d", (0.2, 0.3, 0.45, 0.4, 0.5, 0.3)),
+        ((0.00, 0.05, 0.3, 0.40, 0.55, 0.6, 99), "yolo_3d", (0.2, 0.3, 0.45, 0.4, 0.5, 0.3, 99)),
     ],
 )
 def test_convert_bbox_from_albumentations(bbox, target_format, expected):
@@ -208,14 +207,14 @@ def test_compose_with_bbox_noop_error_label_fields(bboxes, bbox_format):
 @pytest.mark.parametrize(
     ["bboxes", "bbox_format", "labels"],
     [
-        [[(20, 30, 40, 60, 80, 90)], "pascal_voc", {"label": [1]}],
-        [[], "pascal_voc", {}],
-        [[], "pascal_voc", {"label": []}],
-        [[(20, 30, 40, 60, 80, 90)], "pascal_voc", {"id": [3]}],
-        [[(20, 30, 40, 60, 80, 90), (30, 40, 40, 40, 50, 20)], "pascal_voc", {"id": [3, 1]}],
-        [[(20, 30, 60, 80, 1, 11), (30, 40, 40, 40, 50, 20, 2, 22)], "pascal_voc", {"id": [3, 1]}],
-        [[(20, 30, 60, 80, 1, 11), (30, 40, 40, 40, 50, 20, 2, 22)], "pascal_voc", {}],
-        [[(20, 30, 60, 80, 1, 11), (30, 40, 40, 40, 50, 20, 2, 21)], "pascal_voc", {"id": [31, 32], "subclass": [311, 321]}],
+        [[(20, 30, 40, 60, 80, 90)], "pascal_voc_3d", {"label": [1]}],
+        [[], "pascal_voc_3d", {}],
+        [[], "pascal_voc_3d", {"label": []}],
+        [[(20, 30, 40, 60, 80, 90)], "pascal_voc_3d", {"id": [3]}],
+        [[(20, 30, 40, 60, 80, 90), (30, 40, 40, 40, 50, 60)], "pascal_voc_3d", {"id": [3, 1]}],
+        [[(20, 30, 60, 80, 40, 70), (30, 40, 40, 40, 50, 60, 2, 22)], "pascal_voc_3d", {"id": [3, 1]}],
+        [[(20, 30, 60, 80, 40, 70), (30, 40, 40, 40, 50, 60, 2, 22)], "pascal_voc_3d", {}],
+        [[(20, 30, 60, 80, 40, 70), (30, 40, 40, 40, 50, 60, 2, 21)], "pascal_voc_3d", {"id": [31, 32], "subclass": [311, 321]}],
     ],
 )
 def test_compose_with_bbox_noop_label_outside(bboxes, bbox_format, labels):
@@ -247,8 +246,8 @@ def test_random_sized_crop_size():
 
 
 def test_random_rotate():
-    image = np.ones((192, 192, 192))
-    bboxes = [(78, 42, 50, 142, 80, 90)]
+    image = np.ones((100, 100, 100))
+    bboxes = [(0.2, 0.3, 0.4, 0.6, 0.8, 0.9)]
     aug = Rotate(limit=15, p=1.0)
     transformed = aug(image=image, bboxes=bboxes)
     assert len(bboxes) == len(transformed["bboxes"])
@@ -256,11 +255,11 @@ def test_random_rotate():
 
 def test_crop_boxes_replay_compose():
     image = np.ones((512, 384, 555))
-    bboxes = [(78, 42, 20, 142, 80, 100), (32, 12, 10, 42, 72, 69), (200, 100, 400, 300, 200, 100)]
+    bboxes = [(78, 42, 20, 95, 80, 92), (32, 12, 10, 42, 72, 69), (20, 10, 40, 30, 20, 60)]
     labels = [0, 1, 2]
     transform = ReplayCompose(
-        [RandomCrop(256, 256, 256, p=1.0)],
-        bbox_params=BboxParams(format="pascal_voc", min_planar_area=16, label_fields=["labels"]),
+        [RandomCrop(64, 64, 64, p=1.0)],
+        bbox_params=BboxParams(format="pascal_voc_3d", min_planar_area=16, label_fields=["labels"]),
     )
 
     input_data = dict(image=image, bboxes=bboxes, labels=labels)
@@ -271,15 +270,15 @@ def test_crop_boxes_replay_compose():
 
 
 @pytest.mark.parametrize(
-    ["transforms", "bboxes", "result_bboxes", "min_planar_area", "min_visibility"],
+    ["transforms", "bboxes", "result_bboxes", "min_planar_area", "min_volume_visibility"],
     [
         [[Crop(10, 10, 10, 20, 20, 20)], [[0, 0, 0, 10, 10, 10, 0]], [], 0, 0],
         [[Crop(0, 0, 0, 90, 90, 90)], [[0, 0, 0, 91, 91, 91, 0], [0, 0, 0, 90, 90, 90, 0]], [[0, 0, 0, 90, 90, 90, 0]], 0, 1],
         [[Crop(0, 0, 0, 90, 90, 90)], [[0, 0, 0, 1, 10, 10, 0], [0, 0, 0, 1, 11, 11, 0]], [[0, 0, 0, 1, 10, 10, 0], [0, 0, 0, 1, 11, 11, 0]], 10, 0],
     ],
 )
-def test_bbox_params_edges(transforms, bboxes, result_bboxes, min_planar_area, min_visibility):
+def test_bbox_params_edges(transforms, bboxes, result_bboxes, min_planar_area, min_volume_visibility):
     image = np.empty([100, 100, 100], dtype=np.int16)
-    aug = Compose(transforms, bbox_params=BboxParams("pascal_voc", min_platar_area=min_planar_area, min_visibility=min_visibility))
+    aug = Compose(transforms, bbox_params=BboxParams("pascal_voc_3d", min_planar_area=min_planar_area, min_volume_visibility=min_volume_visibility))
     res = aug(image=image, bboxes=bboxes)["bboxes"]
     assert np.allclose(res, result_bboxes)

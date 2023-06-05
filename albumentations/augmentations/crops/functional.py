@@ -88,7 +88,7 @@ def crop_bbox_by_coords(
     """
     bbox = denormalize_bbox(bbox, rows, cols, slices)
     x_min, y_min, z_min, x_max, y_max, z_max = bbox[:6]
-    x1, y1, z1, _ = crop_coords
+    x1, y1, z1, x2, y2, z2 = crop_coords
     cropped_bbox = x_min - x1, y_min - y1, z_min - z1, x_max - x1, y_max - y1, z_max - z1
     return normalize_bbox(cropped_bbox, crop_height, crop_width, crop_depth)
 

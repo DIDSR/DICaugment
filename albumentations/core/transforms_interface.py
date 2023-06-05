@@ -264,7 +264,7 @@ class DualTransform(BasicTransform):
         raise NotImplementedError("Method apply_to_keypoint is not implemented in class " + self.__class__.__name__)
 
     def apply_to_bboxes(self, bboxes: Sequence[BoxType], **params) -> List[BoxType]:
-        return [self.apply_to_bbox(tuple(bbox[:6]), **params) + tuple(bbox[6:]) for bbox in bboxes]  # type: ignore
+        return [tuple(self.apply_to_bbox(tuple(bbox[:6]), **params)) + tuple(bbox[6:]) for bbox in bboxes]  # type: ignore
 
     def apply_to_keypoints(self, keypoints: Sequence[KeypointType], **params) -> List[KeypointType]:
         return [  # type: ignore
