@@ -120,7 +120,7 @@ def angle_2pi_range(
     @wraps(func)
     def wrapped_function(keypoint: KeypointInternalType, *args: P.args, **kwargs: P.kwargs) -> KeypointInternalType:
         (x, y, z, a, s) = func(keypoint, *args, **kwargs)[:5]
-        return (x, y, angle_to_2pi_range(a), s)
+        return (x, y, z, angle_to_2pi_range(a), s)
 
     return wrapped_function
 

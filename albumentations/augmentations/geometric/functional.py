@@ -330,11 +330,11 @@ def bbox_rotate(bbox: BoxInternalType, angle: float, method: str, axes: str, cro
             x = np.tile(w * np.sin(np.radians(data)) + (w + x_min), 2)
             y = np.tile(h * np.cos(np.radians(data)) + (h + y_min), 2)
             z = np.concatenate((np.full((360,), z_min), np.full((360,), z_max)))
-        elif axes == "yz":
+        elif axes == "xz":
             x = np.tile(w * np.sin(np.radians(data)) + (w + x_min), 2)
             y = np.concatenate((np.full((360,), y_min), np.full((360,), y_max)))
             z = np.tile(d * np.cos(np.radians(data)) + (d + z_min), 2)
-        elif axes == "xz":
+        elif axes == "yz":
             x = np.concatenate((np.full((360,), x_min), np.full((360,), x_max)))
             y = np.tile(h * np.cos(np.radians(data)) + (h + y_min), 2)
             z = np.tile(d * np.sin(np.radians(data)) + (d + z_min), 2)
@@ -410,7 +410,7 @@ def _get_rotation_matrix(theta, axes, dir = 1):
         ],
         dtype= np.float32)
     
-    elif axes == "xz":
+    elif axes == "yz":
         arr = np.array([
             [      np.cos(theta), 0, dir * -np.sin(theta)],
             [                  0, 1,                    0],
@@ -418,7 +418,7 @@ def _get_rotation_matrix(theta, axes, dir = 1):
         ],
         dtype= np.float32)
 
-    elif axes == "yz":
+    elif axes == "xz":
         arr = np.array([
             [1,                   0,                    0],
             [0,       np.cos(theta), dir * -np.sin(theta)],
@@ -502,8 +502,8 @@ def shift_scale_rotate(
 @angle_2pi_range
 def keypoint_shift_scale_rotate(keypoint, angle, scale, dx, dy, dz, axes = "xy", crop_to_border = False, rows=0, cols=0, slices=0,**params):
     
-    height, width, depth= rows, cols, slices
-    in_center = _get_image_center((rows, cols, slices))
+    out_shape = height, width, depth = rows, cols, slices
+    in_center = np.array(out_shape) / 2 #_get_image_center((rows, cols, slices))
     out_center = in_center.copy()
     scale = (scale,)*3
     angle = np.deg2rad(angle)
@@ -521,9 +521,9 @@ def keypoint_shift_scale_rotate(keypoint, angle, scale, dx, dy, dz, axes = "xy",
     x, y, z, a, s = keypoint[:5]
 
     p = np.array([[y,x,z]]) - in_center
-    y,x,z = np.matmul(rotation_matrix, p.T).flatten() + out_center + shift
+    y,x,z = np.matmul(matrix, p.T).flatten() + out_center + shift
 
-    return x, y, z, a + (angle if axes=="xy" else 0), s
+    return x, y, z, a + (angle if axes=="xy" else 0), s * scale[0]
 
 
 def bbox_shift_scale_rotate(bbox, angle, scale, dx, dy, dz, axes="xy", crop_to_border=False, rotate_method="largest_box", rows=0, cols=0, slices=0, **kwargs):  # skipcq: PYL-W0613
@@ -1392,7 +1392,7 @@ def keypoint_zflip(keypoint: KeypointInternalType, rows: int, cols: int, slices:
 
     """
     x, y, z, angle, scale = keypoint[:5]
-    return x, y, slices - z, angle, scale
+    return x, y, (slices-1) - z, angle, scale
 
 
 def keypoint_flip(keypoint: KeypointInternalType, d: int, rows: int, cols: int, slices: int) -> KeypointInternalType:
