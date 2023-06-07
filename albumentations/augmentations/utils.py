@@ -171,14 +171,14 @@ def ensure_contiguous(
 
 
 def is_rgb_image(image: np.ndarray) -> bool:
-    return len(image.shape) == 4 and image.shape[-1] == 3 and image.dtype in {np.uint8, np.float32}
+    return len(image.shape) == 4 and image.shape[-1] == 3 and image.dtype in {np.dtype('uint8'), np.dtype('float32')}
 
 
 def is_grayscale_image(image: np.ndarray) -> bool:
     return (len(image.shape) == 3) or (len(image.shape) == 4 and image.shape[-1] == 1)
 
 def is_uint8_or_float32(image: np.ndarray) -> bool:
-    return image.dtype in {np.uint8, np.float32}
+    return image.dtype in {np.dtype('uint8'), np.dtype('float32')}
 
 
 def is_multispectral_image(image: np.ndarray) -> bool:

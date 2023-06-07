@@ -75,7 +75,7 @@ class LongestMaxSize(DualTransform):
     def __init__(
         self,
         max_size: Union[int, Sequence[int]] = 1024,
-        interpolation: int = cv2.INTER_LINEAR,
+        interpolation: int = 1,
         always_apply: bool = False,
         p: float = 1,
     ):
@@ -126,7 +126,7 @@ class SmallestMaxSize(DualTransform):
     def __init__(
         self,
         max_size: Union[int, Sequence[int]] = 1024,
-        interpolation: int = cv2.INTER_LINEAR,
+        interpolation: int = 1,
         always_apply: bool = False,
         p: float = 1,
     ):

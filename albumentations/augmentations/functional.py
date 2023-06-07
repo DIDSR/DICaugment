@@ -305,7 +305,7 @@ def _equalize_cv(img, hist_range, mask=None):
 
 
 @preserve_channel_dim
-def equalize(img, hist_range, mask=None):
+def equalize(img, hist_range = None, mask=None):
     """Equalize the image histogram.
 
     Args:
@@ -318,7 +318,7 @@ def equalize(img, hist_range, mask=None):
         numpy.ndarray: Equalized image.
 
     """
-    if img.dtype not in {np.uint8, np.uint16, np.int16, np.int32}:
+    if img.dtype not in {np.dtype('uint8'), np.dtype('uint16'), np.dtype('int16'), np.dtype('int32')}:
         raise TypeError("Image must have int or uint type")
 
     if mask is not None:
