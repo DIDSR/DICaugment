@@ -320,7 +320,7 @@ class RandomSizedCrop(_BaseRandomSizedCrop):
         }
 
     def get_transform_init_args_names(self):
-        return "min_max_height", "height", "width", "w2h_ratio", "d2h_ratio", "interpolation"
+        return "min_max_height", "height", "width", "depth", "w2h_ratio", "d2h_ratio", "interpolation"
 
 
 # class RandomResizedCrop(_BaseRandomSizedCrop):
@@ -446,15 +446,15 @@ class RandomCropNearBBox(DualTransform):
         super(RandomCropNearBBox, self).__init__(always_apply, p)
 
         if isinstance(max_part_shift, float):
-            max_part_shift = (max_part_shift,)*3
+            self.max_part_shift = (max_part_shift,)*3
         elif isinstance(max_part_shift, Sequence):
             if len(max_part_shift) != 3:
                 raise ValueError("Expected max_part_shift to be a float or Tuple of length 3. Got {}".format(max_part_shift))
-            param = tuple(param)
+            self.max_part_shift = max_part_shift
         else:
             raise ValueError("Expected max_part_shift to be a float or Tuple. Got {}".format(type(max_part_shift)))
         
-        self.max_part_shift = to_tuple(max_part_shift, low=max_part_shift)
+        
         self.cropping_bbox_key = cropping_box_key
 
         if min(self.max_part_shift) < 0 or max(self.max_part_shift) > 1:

@@ -159,8 +159,8 @@ class ShiftScaleRotate(DualTransform):
         }
 
     def apply_to_bbox(self, bbox, angle, axes, scale, dx, dy, dz, **params):
-        return F.bbox_shift_scale_rotate(bbox, angle, axes, scale, dx, dy, dz, self.rotate_method, **params)
-
+        return F.bbox_shift_scale_rotate(bbox, angle, scale, dx, dy, dz, axes, self.rotate_method, **params)
+    
     def get_transform_init_args(self):
         return {
             "shift_limit_x": self.shift_limit_x,

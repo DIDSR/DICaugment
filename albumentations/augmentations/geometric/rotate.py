@@ -45,9 +45,10 @@ class RandomRotate90(DualTransform):
         p=0.5,
     ):
         super(RandomRotate90, self).__init__(always_apply, p)
-        if isinstance(axes, str) and axes not in {"xy", "yz", "xz"}:
-            raise ValueError("Parameter axes must be one of {'xy','yz','xz'} or a list of these elements")
-        if isinstance(axes, Sequence) and len(set(axes).difference({"xy", "yz", "xz"})) != 0:
+        if isinstance(axes, str):
+            if axes not in {"xy", "yz", "xz"}:
+                raise ValueError("Parameter axes must be one of {'xy','yz','xz'} or a list of these elements")
+        elif isinstance(axes, Sequence) and len(set(axes).difference({"xy", "yz", "xz"})) != 0:
             raise ValueError("Parameter axes contains one or more elements that are not allowed. Got {}".format(set(axes).difference({"xy", "yz", "xz"})))
         
         self.axes = axes
@@ -73,9 +74,8 @@ class RandomRotate90(DualTransform):
     def apply_to_keypoint(self, keypoint, factor=0, axes="xy", **params):
         return F.keypoint_rot90(keypoint, factor, axes, **params)
     
-    @staticmethod
     @property
-    def __str_axes_to_tuple():
+    def __str_axes_to_tuple(self):
         return {
             "xy" : (0,1),
             "yz" : (0,2),

@@ -142,7 +142,7 @@ AUGMENTATION_CLS_PARAMS = [
             "min_width": 128,
             "min_depth": 128,
             "border_mode": "constant",
-            "value": (10, 10, 10),
+            "value": 10,
         },
     ],
     [
@@ -151,7 +151,7 @@ AUGMENTATION_CLS_PARAMS = [
             "limit": 120,
             "interpolation": 2,
             "border_mode": "constant",
-            "value": (10, 10, 10),
+            "value": 10,
         },
     ],
     [
@@ -162,7 +162,7 @@ AUGMENTATION_CLS_PARAMS = [
             "rotate_limit": 70,
             "interpolation": 2,
             "border_mode": "constant",
-            "value": (10, 10, 10),
+            "value": 10,
         },
     ],
     [
@@ -175,7 +175,7 @@ AUGMENTATION_CLS_PARAMS = [
             "rotate_limit": 70,
             "interpolation": 2,
             "border_mode": "constant",
-            "value": (10, 10, 10),
+            "value": 10,
         },
     ],
     # [
@@ -215,14 +215,7 @@ AUGMENTATION_CLS_PARAMS = [
     [A.RandomSizedCrop, {"min_max_height": (4, 8), "height": 10, "width": 10, "depth": 10}],
     [A.Crop, {"x_max": 64, "y_max": 64, "z_max": 64}],
     [A.ToFloat, {"max_value": 16536}],
-    [
-        A.Normalize,
-        {
-            "mean": (0.385),
-            "std": (0.129),
-            "max_pixel_value": 100.0,
-        },
-    ],
+    [A.Normalize, {"mean": (0.385), "std": (0.129)} ],
     # [A.RandomBrightness, {"limit": 0.4}],
     # [A.RandomContrast, {"limit": 0.4}],
     [A.RandomScale, {"scale_limit": 0.2, "interpolation": 2}],
@@ -577,22 +570,22 @@ def test_transform_pipeline_serialization(seed, image, mask):
             A.OneOrOther(
                 A.Compose(
                     [
-                        A.Resize(1024, 1024, 1024),
-                        A.RandomSizedCrop(min_max_height=(256, 1024), height=512, width=512, depth=512, p=1),
+                        A.Resize(128, 128, 128),
+                        A.RandomSizedCrop(min_max_height=(32, 64), height=128, width=128, depth=128, p=1),
                         A.OneOf(
                             [
                                 A.RandomSizedCrop(
-                                    min_max_height=(256, 512),
-                                    height=384,
-                                    width=384,
-                                    depth=384,
+                                    min_max_height=(32, 64),
+                                    height=100,
+                                    width=100,
+                                    depth=100,
                                     p=0.5,
                                 ),
                                 A.RandomSizedCrop(
-                                    min_max_height=(256, 512),
-                                    height=512,
-                                    width=512,
-                                    depth=512,
+                                    min_max_height=(32, 64),
+                                    height=128,
+                                    width=128,
+                                    depth=128,
                                     p=0.5,
                                 ),
                             ]
@@ -601,8 +594,8 @@ def test_transform_pipeline_serialization(seed, image, mask):
                 ),
                 A.Compose(
                     [
-                        A.Resize(1024, 1024, 1024),
-                        A.RandomSizedCrop(min_max_height=(256, 1025), height=256, width=256, depth=256, p=1),
+                        A.Resize(100,100,100),
+                        A.RandomSizedCrop(min_max_height=(32,64), height=100, width=100, depth=100, p=1),
                     ]
                 ),
             ),
@@ -640,6 +633,12 @@ def test_transform_pipeline_serialization(seed, image, mask):
 )
 @pytest.mark.parametrize("seed", TEST_SEEDS)
 def test_transform_pipeline_serialization_with_bboxes(seed, image, bboxes, bbox_format, labels):
+
+    if labels is None:
+        bbox_params={"format": bbox_format}
+    else:
+        bbox_params={"format": bbox_format, "label_fields": ["labels"]}
+
     aug = A.Compose(
         [
             A.OneOrOther(
@@ -664,14 +663,14 @@ def test_transform_pipeline_serialization_with_bboxes(seed, image, bboxes, bbox_
                 n=5,
             ),
         ],
-        bbox_params={"format": bbox_format, "label_fields": ["labels"]},
+        bbox_params=bbox_params,
     )
     serialized_aug = A.to_dict(aug)
     deserialized_aug = A.from_dict(serialized_aug)
     set_seed(seed)
-    aug_data = aug(image=image, bboxes=bboxes, labels=labels)
+    aug_data = aug(image=image, bboxes=bboxes) if labels is None else aug(image=image, bboxes=bboxes, labels=labels)
     set_seed(seed)
-    deserialized_aug_data = deserialized_aug(image=image, bboxes=bboxes, labels=labels)
+    deserialized_aug_data = deserialized_aug(image=image, bboxes=bboxes) if labels is None else deserialized_aug(image=image, bboxes=bboxes, labels=labels)
     assert np.array_equal(aug_data["image"], deserialized_aug_data["image"])
     assert np.array_equal(aug_data["bboxes"], deserialized_aug_data["bboxes"])
 

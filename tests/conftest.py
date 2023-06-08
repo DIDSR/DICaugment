@@ -31,6 +31,11 @@ skipif_no_torch = pytest.mark.skipif(
 )
 
 
+# def pytest_collection_modifyitems(items):
+#     for item in items:
+#         if item.get_marker('timeout') is None:
+#             item.add_marker(pytest.mark.timeout(3))
+
 def pytest_ignore_collect(path):
     if not torch_available and path.fnmatch("test_pytorch.py"):
         warnings.warn(

@@ -191,7 +191,7 @@ class Resize(DualTransform):
     def apply_to_keypoint(self, keypoint, **params):
         height = params["rows"]
         width = params["cols"]
-        depth = params["depth"]
+        depth = params["slices"]
         scale_x = self.width / width
         scale_y = self.height / height
         scale_z = self.depth / depth

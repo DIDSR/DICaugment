@@ -187,12 +187,11 @@ __all__ = [
 
 
 class Normalize(ImageOnlyTransform):
-    """Normalization is applied by the formula: `img = (img - mean * max_pixel_value) / (std * max_pixel_value)`
+    """Normalization is applied by the formula: `img = (img - mean) / (std)`
 
     Args:
         mean (None, float, list of float): mean values along channel dimension. If None, mean is calculated per image at runtime.
         std  (None, float, list of float): std values along channel dimension. If None, std is calculated per image at runtime.
-        max_pixel_value (float): maximum possible pixel value. If None, max_pixel_value is calculated per image at runtime.
         always_apply (bool): whether to always apply the transformation. Default: False
         p (float): probability of applying the transform. Default: 0.5.
 
@@ -207,20 +206,20 @@ class Normalize(ImageOnlyTransform):
         self,
         mean : Union[None,float,Tuple[float]]= None,
         std : Union[None,float,Tuple[float]] = None,
-        max_pixel_value: Union[None, float] = None,
+        # max_pixel_value: Union[None, float] = None,
         always_apply: bool = False,
         p: float = 1.0,
     ):
         super(Normalize, self).__init__(always_apply, p)
         self.mean = mean
         self.std = std
-        self.max_pixel_value = max_pixel_value
+        # self.max_pixel_value = max_pixel_value
 
     def apply(self, image, **params):
-        return F.normalize(image, self.mean, self.std, self.max_pixel_value)
+        return F.normalize(image, self.mean, self.std)
 
     def get_transform_init_args_names(self):
-        return ("mean", "std", "max_pixel_value")
+        return ("mean", "std")
 
 
 # class ImageCompression(ImageOnlyTransform):
@@ -1218,7 +1217,7 @@ class RandomBrightnessContrast(ImageOnlyTransform):
 
     def __init__(
         self,
-        max_brightness: Union[int,float,None],
+        max_brightness: Union[int,float,None] = None,
         brightness_limit: Union[float, Tuple[float,float]] = 0.2,
         contrast_limit: Union[float, Tuple[float,float]] = 0.2,
         always_apply: bool = False,

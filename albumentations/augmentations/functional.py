@@ -280,7 +280,7 @@ def _calcHist(img: np.ndarray, mask: Union[np.ndarray,None], nbins: int, hist_ra
     if not mask:
         mask = np.ones_like(img, dtype = np.bool_)
 
-    bins = np.linspace(*hist_range, nbins)
+    bins = np.linspace(hist_range[0], hist_range[1]+1, nbins + 1)
 
     return np.histogram(img[mask.astype(np.bool_)], bins = bins)[0]
 
@@ -292,7 +292,7 @@ def _equalize_cv(img, hist_range, mask=None):
     histogram = sum(map(lambda x: _calcHist(x, mask, hi - lo, hist_range), img)).ravel()
 
     total = np.sum(histogram)
-    histogram /= total
+    histogram = histogram/total
     cumsum = (np.cumsum(histogram) * (hi - lo)) + lo
 
     lut = {}
