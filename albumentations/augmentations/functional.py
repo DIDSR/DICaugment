@@ -938,12 +938,18 @@ def downscale(img, scale, down_interpolation= INTER_LINEAR, up_interpolation=INT
         for i in range(img.shape[-1]):
 
             downscaled = ndimage.zoom(img[...,i], scale, order = down_interpolation)
-            inv_scale = h / downscaled.shape[0] 
+            inv_scale_h = h / downscaled.shape[0]
+            inv_scale_w = w / downscaled.shape[1] 
+            inv_scale_d = d / downscaled.shape[2]
+            inv_scale = (inv_scale_h,inv_scale_w,inv_scale_d)
             upscaled[...,i] = ndimage.zoom(downscaled, inv_scale, order = up_interpolation)
     
     else:
         downscaled = ndimage.zoom(img, scale, order = down_interpolation)
-        inv_scale = h / downscaled.shape[0] 
+        inv_scale_h = h / downscaled.shape[0]
+        inv_scale_w = w / downscaled.shape[1] 
+        inv_scale_d = d / downscaled.shape[2]
+        inv_scale = (inv_scale_h,inv_scale_w,inv_scale_d)
         upscaled = ndimage.zoom(downscaled, inv_scale, order = up_interpolation)
 
     return upscaled
@@ -1332,13 +1338,18 @@ def add_weighted(img1, alpha, img2, beta):
 def unsharp_mask(image: np.ndarray, ksize: int, sigma: float = 0.0, alpha: float = 0.2, threshold: float = 0.05, mode: str = 'constant', cval: Union[float,int] = 0):
 
     input_dtype = image.dtype
-    if input_dtype in {np.uint8, np.uint16, np.int16, np.int32}:
+    if input_dtype in {np.dtype("uint8"), np.dtype("uint16"),np.dtype("int16"), np.dtype("int32")}:
         image = to_float(image)
     elif input_dtype not in MAX_VALUES_BY_DTYPE.keys():
         raise ValueError("Unexpected dtype {} for UnsharpMask augmentation".format(input_dtype))
     
-
-    blur_fn = _maybe_process_by_channel(ndimage.gaussian_filter, sigma= sigma, radius= (ksize - 1)//2, mode = mode, cval = cval)
+    if ksize == 0:
+        ksize = round(sigma * 8) + 1
+    
+    if sigma == 0:
+        sigma = 0.3*((ksize-1)*0.5 - 1) + 0.8
+    
+    blur_fn = _maybe_process_by_channel(ndimage.gaussian_filter, sigma= sigma, radius= ((ksize - 1)//2,)*3, mode = mode, cval = cval)
     blur = blur_fn(image)
 
     residual = image - blur

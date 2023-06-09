@@ -5,6 +5,7 @@ import warnings
 import numpy as np
 import torch
 from torchvision.transforms import functional as F
+from . import functional as Ftorch
 
 from ..core.transforms_interface import BasicTransform
 
@@ -64,14 +65,15 @@ class ToPytorch(BasicTransform):
     Args:
         transpose_mask (bool): If True and an input mask has three spatial dimensions, this transform will transpose dimensions
             so the shape `[height, width, depth, channel]` becomes `[channel, depth, height, width]`. The latter format is a
-            standard format for PyTorch Tensors. Default: False.
+            standard format for PyTorch Tensors. Default: True.
         always_apply (bool): Indicates whether this transformation should be always applied. Default: True.
         p (float): Probability of applying the transform. Default: 1.0.
     """
 
-    def __init__(self, transpose_mask=False, always_apply=True, p=1.0):
+    def __init__(self, transpose_mask=True, always_apply=True, normalize = None, p=1.0):
         super(ToPytorch, self).__init__(always_apply=always_apply, p=p)
         self.transpose_mask = transpose_mask
+        self.normalize = normalize
 
     @property
     def targets(self):
@@ -82,10 +84,10 @@ class ToPytorch(BasicTransform):
             raise ValueError("Albumentations3D only supports images in HWD or HWDC format")
 
         if len(img.shape) == 3:
-            return torch.from_numpy(img.transpose(2, 0, 1))
+            return Ftorch.img_to_tensor(img.transpose(2, 0, 1), self.normalize)
         
         else:
-            return torch.from_numpy(img.transpose(3, 2, 0, 1))
+            return Ftorch.img_to_tensor(img.transpose(3, 2, 0, 1), self.normalize)
 
     def apply_to_mask(self, mask, **params):  # skipcq: PYL-W0613
         if self.transpose_mask and mask.ndim == 3:

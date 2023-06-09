@@ -9,7 +9,7 @@ __all__ = [
 ]
 
 def img_to_tensor(im, normalize=None):
-    tensor = torch.from_numpy(np.moveaxis(im / (255.0 if im.dtype == np.uint8 else 1), -1, 0).astype(np.float32))
+    tensor = torch.from_numpy(im)
     if normalize is not None:
         return F.normalize(tensor, **normalize)
     return tensor
@@ -19,9 +19,9 @@ def mask_to_tensor(mask, num_classes, sigmoid):
     if num_classes > 1:
         if not sigmoid:
             # softmax
-            long_mask = np.zeros((mask.shape[:2]), dtype=np.int64)
-            if len(mask.shape) == 3:
-                for c in range(mask.shape[2]):
+            long_mask = np.zeros((mask.shape[:3]), dtype=np.int64)
+            if len(mask.shape) == 4:
+                for c in range(mask.shape[3]):
                     long_mask[mask[..., c] > 0] = c
             else:
                 long_mask[mask > 127] = 1

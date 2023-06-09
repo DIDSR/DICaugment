@@ -1638,7 +1638,7 @@ class Downscale(ImageOnlyTransform):
 
     Args:
         scale_min (float): lower bound on the image scale. Should be < 1.
-        scale_max (float):  lower bound on the image scale. Should be < 1.
+        scale_max (float):  upper bound on the image scale. Should be < 1.
         interpolation: scipy interpolation method (e.g. albumenations3d.INTER_NEAREST). Could be:
             - single scipy interpolation flag - selected method will be used for downscale and upscale.
             - dict(downscale=flag, upscale=flag)
@@ -2356,7 +2356,7 @@ class UnsharpMask(ImageOnlyTransform):
     Args:
         blur_limit (int, (int, int)): maximum Gaussian kernel size for blurring the input image.
             Must be zero or odd and in range [0, inf). If set to 0 it will be computed from sigma
-            as `round(sigma * (3 if img.dtype == np.uint8 else 4) * 2 + 1) + 1`.
+            as `round(sigma * 4 * 2) + 1`.
             If set single value `blur_limit` will be in range (0, blur_limit).
             Default: (3, 7).
         sigma_limit (float, (float, float)): Gaussian kernel standard deviation. Must be in range [0, inf).

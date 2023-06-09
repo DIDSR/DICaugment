@@ -31,7 +31,7 @@ def blur(img: np.ndarray, ksize: int, by_slice: bool = False, mode: str = 'const
     else:
         kernel = np.ones((ksize,)*3, dtype = np.float32)
     kernel /= np.sum(kernel)
-
+    
     return convolve(img, kernel = kernel, mode = mode, cval = cval)
     
 
@@ -48,6 +48,9 @@ def median_blur(img: np.ndarray, ksize: int, by_slice: bool = False, mode: str =
 
 @preserve_shape
 def gaussian_blur(img: np.ndarray, ksize: int, sigma: float = 0, by_slice: bool = False, mode: str = 'constant', cval: Union[float,int] = 0) -> np.ndarray:
+    if ksize == 0:
+        ksize = round(sigma * 8) + 1
+    
     if sigma == 0:
         sigma = 0.3*((ksize-1)*0.5 - 1) + 0.8
 

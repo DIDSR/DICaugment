@@ -13,6 +13,7 @@ __all__ = [
     # "read_bgr_image",
     # "read_rgb_image",
     "MAX_VALUES_BY_DTYPE",
+    "MIN_VALUES_BY_DTYPE",
     "NPDTYPE_TO_OPENCV_DTYPE",
     "NPDTYPE_TO_OPENCV_DTYPE",
     "clipped",
@@ -265,7 +266,7 @@ def _maybe_process_by_channel(
     @wraps(process_fn)
     def __process_fn(img: np.ndarray) -> np.ndarray:
         num_channels = get_num_channels(img)
-        if num_channels > 1:
+        if num_channels > 1 or len(img.shape) > 3:
             chunks = []
             for i in range(num_channels):
                 chunks.append(process_fn(img[...,i], **kwargs))

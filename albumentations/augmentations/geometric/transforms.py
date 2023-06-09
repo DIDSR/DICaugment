@@ -143,7 +143,7 @@ class ShiftScaleRotate(DualTransform):
         return F.shift_scale_rotate(img, angle, scale, dx, dy, dz, axes, self.crop_to_border, interpolation, self.border_mode, self.value)
 
     def apply_to_mask(self, img, angle=0, axes="xy",  scale=0, dx=0, dy=0, dz=0, **params):
-        return F.shift_scale_rotate(img, angle, scale, dx, dy, dz, axes, self.crop_to_border, INTER_LINEAR, self.border_mode, self.value)
+        return F.shift_scale_rotate(img, angle, scale, dx, dy, dz, axes, self.crop_to_border, INTER_NEAREST, self.border_mode, self.mask_value)
 
     def apply_to_keypoint(self, keypoint, angle=0, axes="xy", scale=0, dx=0, dy=0, dz=0, rows=0, cols=0, slices=0, **params):
         return F.keypoint_shift_scale_rotate(keypoint, angle, scale, dx, dy, dz, axes, rows, cols, slices)
@@ -1127,7 +1127,7 @@ class PadIfNeeded(DualTransform):
             pad_slices = self.pad_depth_divisor - pad_remained if pad_remained > 0 else 0
 
             d_pad_front = pad_slices // 2
-            d_pad_back = pad_slices - h_pad_top
+            d_pad_back = pad_slices - d_pad_front
 
         h_pad_top, h_pad_bottom, w_pad_left, w_pad_right, d_pad_front, d_pad_back = self.__update_position_params(
             h_top=h_pad_top,

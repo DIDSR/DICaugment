@@ -11,7 +11,8 @@ from ...core.transforms_interface import (
     FillValueType,
     KeypointInternalType,
     to_tuple,
-    INTER_LINEAR
+    INTER_LINEAR,
+    INTER_NEAREST
 )
 from ..crops import functional as FCrops
 from . import functional as F
@@ -174,9 +175,9 @@ class Rotate(DualTransform):
             angle=angle,
             axes=axes,
             crop_to_border=self.crop_to_border,
-            interpolation=self.interpolation,
+            interpolation=INTER_NEAREST,
             border_mode=self.border_mode,
-            value=self.value
+            value=self.mask_value
             )
         
 
