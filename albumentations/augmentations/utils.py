@@ -3,6 +3,8 @@ from typing import Callable, Union
 
 import cv2
 import numpy as np
+import os
+import pydicom as pdm
 from typing_extensions import Concatenate, ParamSpec
 
 from albumentations.core.keypoints_utils import angle_to_2pi_range
@@ -85,8 +87,37 @@ SCIPY_MODE_TO_NUMPY_MODE = {
 #     image = cv2.imread(path, cv2.IMREAD_COLOR)
 #     return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-def read_dcm_image(path: str, include_header: bool = True):
-    pass
+def read_dcm_image(path: str, include_header: bool = True, ends_with: str = ""):
+
+    if not os.path.isdir(path):                        
+        raise OSError("{} is not a valid directory".format(path))
+
+    img = None
+
+    for file in os.listdir(path):
+        if not file.endswith(ends_with):
+            continue
+
+        fp = os.path.join(path, file)
+        obj = pdm.dcmread(fp)
+        dcm = np.expand_dims(obj.pixel_array, axis= 2).astype(np.int16)
+
+        if img is None:
+            img = dcm
+            dicom = {
+                "Manufacturer":  obj.Manufacturer,
+                "SliceThickness" : float(obj.SliceThickness),
+                "PixelSpacing" : tuple(map(float, obj.PixelSpacing)),
+                "RescaleIntercept" : float(obj.RescaleIntercept),
+                "RescaleSlope" : float(obj.RescaleSlope),
+            }
+        else:
+            img = np.concatenate([img,dcm], axis = 2)
+
+    if include_header:
+        return img, dicom
+    
+    return img
 
 
 def clipped(func: Callable[Concatenate[np.ndarray, P], np.ndarray]) -> Callable[Concatenate[np.ndarray, P], np.ndarray]:

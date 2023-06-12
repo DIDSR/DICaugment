@@ -44,6 +44,7 @@ BoxType = Union[BoxInternalType, Tuple[float, float, float, float, Any]]
 KeypointInternalType = Tuple[float, float, float, float]
 KeypointType = Union[KeypointInternalType, Tuple[float, float, float, float, Any]]
 ImageColorType = Union[float, Sequence[float]]
+DicomType = Dict[str, Any]
 
 ScaleFloatType = Union[float, Tuple[float, float]]
 ScaleIntType = Union[int, Tuple[int, int]]
@@ -255,6 +256,7 @@ class DualTransform(BasicTransform):
             "masks": self.apply_to_masks,
             "bboxes": self.apply_to_bboxes,
             "keypoints": self.apply_to_keypoints,
+            "dicom" : self.apply_to_dicom
         }
 
     def apply_to_bbox(self, bbox: BoxInternalType, **params) -> BoxInternalType:
@@ -277,6 +279,9 @@ class DualTransform(BasicTransform):
 
     def apply_to_masks(self, masks: Sequence[np.ndarray], **params) -> List[np.ndarray]:
         return [self.apply_to_mask(mask, **params) for mask in masks]
+    
+    def apply_to_dicom(self, dicom: DicomType, **params) -> DicomType:
+        return dicom
 
 
 class ImageOnlyTransform(BasicTransform):

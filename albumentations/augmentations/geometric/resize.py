@@ -4,6 +4,8 @@ from typing import Dict, Sequence, Tuple, Union
 import cv2
 import numpy as np
 
+from albumentations.core.transforms_interface import DicomType
+
 from ...core.transforms_interface import (
     BoxInternalType,
     DualTransform,
@@ -12,6 +14,7 @@ from ...core.transforms_interface import (
     INTER_LINEAR
 )
 from . import functional as F
+from ..dicom import functional as Fdicom
 
 __all__ = ["RandomScale", "LongestMaxSize", "SmallestMaxSize", "Resize"]
 
@@ -49,8 +52,11 @@ class RandomScale(DualTransform):
         # Bounding box coordinates are scale invariant
         return bbox
 
-    def apply_to_keypoint(self, keypoint, scale=0, **params):
+    def apply_to_keypoint(self, keypoint, scale=1, **params):
         return F.keypoint_scale(keypoint, scale, scale, scale)
+    
+    def apply_to_dicom(self, dicom: DicomType, scale = 1, **params) -> DicomType:
+        return Fdicom.dicom_scale(dicom, scale, scale, scale)
 
     def get_transform_init_args(self):
         return {"interpolation": self.interpolation, "scale_limit": to_tuple(self.scale_limit, bias=-1.0)}
@@ -99,6 +105,13 @@ class LongestMaxSize(DualTransform):
 
         scale = max_size / max([height, width, depth])
         return F.keypoint_scale(keypoint, scale, scale, scale)
+    
+    def apply_to_dicom(self, dicom: DicomType, max_size: int = 1024, **params) -> DicomType:
+        height = params["rows"]
+        width = params["cols"]
+        depth = params["slices"]
+        scale = max_size / min([height, width, depth])
+        return Fdicom.dicom_scale(dicom, scale, scale, scale)
 
     def get_params(self) -> Dict[str, int]:
         return {"max_size": self.max_size if isinstance(self.max_size, int) else random.choice(self.max_size)}
@@ -149,6 +162,13 @@ class SmallestMaxSize(DualTransform):
 
         scale = max_size / min([height, width, depth])
         return F.keypoint_scale(keypoint, scale, scale, scale)
+    
+    def apply_to_dicom(self, dicom: DicomType, max_size: int = 1024, **params) -> DicomType:
+        height = params["rows"]
+        width = params["cols"]
+        depth = params["slices"]
+        scale = max_size / min([height, width, depth])
+        return Fdicom.dicom_scale(dicom, scale, scale, scale)
 
     def get_params(self) -> Dict[str, int]:
         return {"max_size": self.max_size if isinstance(self.max_size, int) else random.choice(self.max_size)}
@@ -181,12 +201,22 @@ class Resize(DualTransform):
         self.depth = depth
         self.interpolation = interpolation
 
-    def apply(self, img, interpolation=cv2.INTER_LINEAR, **params):
+    def apply(self, img, interpolation=INTER_LINEAR, **params):
         return F.resize(img, height=self.height, width=self.width, depth=self.depth, interpolation=interpolation)
 
     def apply_to_bbox(self, bbox, **params):
         # Bounding box coordinates are scale invariant
         return bbox
+    
+    def apply_to_dicom(self, dicom: DicomType, **params) -> DicomType:
+        height = params["rows"]
+        width = params["cols"]
+        depth = params["slices"]
+        scale_x = self.width / width
+        scale_y = self.height / height
+        scale_z = self.depth / depth
+        return Fdicom.dicom_scale(dicom, scale_x, scale_y, scale_z)
+
 
     def apply_to_keypoint(self, keypoint, **params):
         height = params["rows"]

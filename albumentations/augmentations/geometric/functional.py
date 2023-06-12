@@ -24,6 +24,7 @@ from ...core.transforms_interface import (
     FillValueType,
     ImageColorType,
     KeypointInternalType,
+    DicomType,
     INTER_NEAREST,
     INTER_LINEAR,
     INTER_QUADRATIC,

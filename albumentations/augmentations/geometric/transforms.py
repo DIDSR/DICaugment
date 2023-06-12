@@ -8,6 +8,7 @@ import numpy as np
 # import skimage.transform
 
 from albumentations.core.bbox_utils import denormalize_bbox, normalize_bbox
+from albumentations.core.transforms_interface import DicomType
 
 from ... import random_utils
 from ...core.transforms_interface import (
@@ -16,12 +17,14 @@ from ...core.transforms_interface import (
     ImageColorType,
     KeypointInternalType,
     ScaleFloatType,
+    DicomType,
     to_tuple,
     INTER_LINEAR,
     INTER_NEAREST
 )
 from ..functional import bbox_from_mask
 from . import functional as F
+from ..dicom import functional as Fdicom
 
 __all__ = [
     "ShiftScaleRotate",
@@ -147,6 +150,9 @@ class ShiftScaleRotate(DualTransform):
 
     def apply_to_keypoint(self, keypoint, angle=0, axes="xy", scale=0, dx=0, dy=0, dz=0, rows=0, cols=0, slices=0, **params):
         return F.keypoint_shift_scale_rotate(keypoint, angle, scale, dx, dy, dz, axes, rows, cols, slices)
+    
+    def apply_to_dicom(self, dicom: DicomType, scale = 1, **params) -> DicomType:
+        return Fdicom.dicom_scale(dicom, scale, scale, scale)
 
     def get_params(self):
         return {
@@ -1445,6 +1451,12 @@ class Transpose(DualTransform):
 
     def apply_to_keypoint(self, keypoint: KeypointInternalType, **params) -> KeypointInternalType:
         return F.keypoint_transpose(keypoint)
+    
+    def apply_to_dicom(self, dicom: DicomType, **params) -> DicomType:
+        return Fdicom.transpose_dicom(dicom)
+        y, x = dicom["PixelSpacing"]
+        dicom["PixelSpacing"] = (x, y)
+        return dicom
 
     def get_transform_init_args_names(self):
         return ()
