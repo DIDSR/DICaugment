@@ -16,7 +16,7 @@ from .utils import get_dual_transforms, get_image_only_transforms, get_transform
     ["augmentation_cls", "params"],
     get_image_only_transforms(
         custom_arguments={},
-        except_augmentations={A.FromFloat, A.Normalize, A.ToFloat},
+        except_augmentations={A.FromFloat, A.Normalize, A.ToFloat, A.RescaleSlopeIntercept, A.SetPixelSpacing},
     ),
 )
 def test_image_only_augmentations(augmentation_cls, params, image, mask):
@@ -58,6 +58,8 @@ def test_image_only_augmentations(augmentation_cls, params, image, mask):
             # A.ISONoise,
             # A.Posterize,
             # A.RandomToneCurve,
+            A.RescaleSlopeIntercept,
+            A.SetPixelSpacing
         },
     ),
 )
@@ -88,7 +90,9 @@ def test_image_only_augmentations_with_float_values(augmentation_cls, params, fl
         except_augmentations={
             A.RandomCropNearBBox,
             A.RandomSizedBBoxSafeCrop,
-            A.BBoxSafeRandomCrop
+            A.BBoxSafeRandomCrop,
+            A.RescaleSlopeIntercept,
+            A.SetPixelSpacing
             },
     ),
 )
@@ -118,7 +122,9 @@ def test_dual_augmentations(augmentation_cls, params, image, mask):
         except_augmentations={
             A.RandomCropNearBBox,
             A.RandomSizedBBoxSafeCrop,
-            A.BBoxSafeRandomCrop
+            A.BBoxSafeRandomCrop,
+            A.RescaleSlopeIntercept,
+            A.SetPixelSpacing
             },
     ),
 )
@@ -164,7 +170,9 @@ def test_dual_augmentations_with_float_values(augmentation_cls, params, float_im
         except_augmentations={
             A.RandomCropNearBBox,
             A.RandomSizedBBoxSafeCrop,
-            A.BBoxSafeRandomCrop},
+            A.BBoxSafeRandomCrop,
+            A.RescaleSlopeIntercept,
+            A.SetPixelSpacing},
     ),
 )
 def test_augmentations_wont_change_input(augmentation_cls, params, image, mask):
@@ -219,6 +227,8 @@ def test_augmentations_wont_change_input(augmentation_cls, params, image, mask):
             A.RandomCropNearBBox,
             A.RandomSizedBBoxSafeCrop,
             A.BBoxSafeRandomCrop,
+            A.RescaleSlopeIntercept,
+            A.SetPixelSpacing
             # A.CropNonEmptyMaskIfExists,
             # A.MaskDropout,
         },
@@ -253,6 +263,8 @@ def test_augmentations_wont_change_float_input(augmentation_cls, params, float_i
             # A.ChannelShuffle,
             # A.FancyPCA,
             # A.ISONoise,
+            A.RescaleSlopeIntercept,
+            A.SetPixelSpacing,
             A.RandomCropNearBBox,
             A.RandomSizedBBoxSafeCrop,
             A.BBoxSafeRandomCrop,
@@ -432,6 +444,8 @@ def test_mask_fill_value(augmentation_cls, params):
             A.Normalize,
             # A.RGBShift,
             A.RandomCropNearBBox,
+            A.RescaleSlopeIntercept,
+            A.SetPixelSpacing,
             # A.RandomFog,
             # A.RandomGravel,
             # A.RandomRain,
@@ -498,6 +512,8 @@ def test_multichannel_image_augmentations(augmentation_cls, params):
             # A.MaskDropout,
             # A.RGBShift,
             A.RandomCropNearBBox,
+            A.RescaleSlopeIntercept,
+            A.SetPixelSpacing,
             # A.RandomFog,
             # A.RandomGravel,
             # A.RandomRain,
@@ -557,6 +573,8 @@ def test_float_multichannel_image_augmentations(augmentation_cls, params):
             A.Normalize,
             # A.RGBShift,
             A.RandomCropNearBBox,
+            A.RescaleSlopeIntercept,
+            A.SetPixelSpacing,
             # A.RandomFog,
             # A.RandomGravel,
             # A.RandomRain,
@@ -617,6 +635,8 @@ def test_multichannel_image_augmentations_diff_channels(augmentation_cls, params
             # A.MaskDropout,
             # A.RGBShift,
             A.RandomCropNearBBox,
+            A.RescaleSlopeIntercept,
+            A.SetPixelSpacing,
             # A.RandomFog,
             # A.RandomGravel,
             # A.RandomRain,
@@ -893,6 +913,10 @@ def test_pad_if_needed_position(params, image_shape):
             A.LongestMaxSize : {"max_size" : 50},
             A.SmallestMaxSize : {"max_size" : 50},
         },
+        except_augmentations=[
+            A.RescaleSlopeIntercept,
+            A.SetPixelSpacing,
+        ]
     ),
 )
 def test_non_contiguous_input(augmentation_cls, params, bboxes):

@@ -3,6 +3,8 @@ from .blur.functional import *
 from .blur.transforms import *
 from .crops.functional import *
 from .crops.transforms import *
+from .dicom.transforms import *
+from .dicom.functional import *
 
 # New transformations goes to individual files listed below
 # from .domain_adaptation import *

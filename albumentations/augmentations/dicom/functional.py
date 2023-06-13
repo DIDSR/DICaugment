@@ -16,9 +16,12 @@ def rescale_slope_intercept(img, slope, intercept) -> np.ndarray:
     return img
 
 def reset_dicom_slope_intercept(dicom) -> DicomType:
-    dicom["RescaleSlope"] = 1
-    dicom["RescaleIntercept"] = 0
-    return dicom
+    res = {}
+    for k,v in dicom.items():
+        res[k] = v
+    res["RescaleSlope"] = 1
+    res["RescaleIntercept"] = 0
+    return res
 
 def dicom_scale(dicom: DicomType, scale_x: float, scale_y: float, scale_z: float) -> DicomType:
     y, x = dicom["PixelSpacing"]
@@ -26,11 +29,21 @@ def dicom_scale(dicom: DicomType, scale_x: float, scale_y: float, scale_z: float
     x *= scale_x
     y *= scale_y
     z *= scale_z
-    dicom["PixelSpacing"] = (y, x)
-    dicom["SliceThickness"] = z
-    return dicom
+
+    res = {}
+    for k,v in dicom.items():
+        res[k] = v
+    
+    res["PixelSpacing"] = (y, x)
+    res["SliceThickness"] = z
+    return res
 
 def transpose_dicom(dicom: DicomType) -> DicomType:
     y, x = dicom["PixelSpacing"]
-    dicom["PixelSpacing"] = (x, y)
-    return dicom
+
+    res = {}
+    for k,v in dicom.items():
+        res[k] = v
+    
+    res["PixelSpacing"] = (x, y)
+    return res

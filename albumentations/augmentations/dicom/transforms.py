@@ -54,8 +54,8 @@ class RescaleSlopeIntercept(ImageOnlyTransform):
             "dicom": self.apply_to_dicom
             }
 
-    # def get_transform_init_args_names(self) -> Tuple[str, ...]:
-    #     return ("blur_limit", "by_slice", "mode", "cval")
+    def get_transform_init_args_names(self) -> Tuple[str, ...]:
+        return ()
 
 
 
@@ -93,7 +93,7 @@ class SetPixelSpacing(DualTransform):
 
     def apply(self, img, interpolation=INTER_LINEAR, scale_x: float = 1.0, scale_y: float = 1.0, scale_z: float = 1.0, **params):
         height, width, depth = img.shape[:3]
-        return FGeometric.resize(img, height=height*scale_y, width=width*scale_x, depth=depth*scale_y, interpolation=interpolation)
+        return FGeometric.resize(img, height=height*scale_y, width=width*scale_x, depth=depth*scale_z, interpolation=interpolation)
     
     def apply_to_bbox(self, bbox, **params):
         # Bounding box coordinates are scale invariant

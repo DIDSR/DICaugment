@@ -160,7 +160,7 @@ def test_shift_scale_rotate_interpolation(interpolation):
             A.LongestMaxSize : {"max_size" : 50},
             A.SmallestMaxSize : {"max_size" : 50},
         },
-        except_augmentations={A.RandomCropNearBBox, A.RandomSizedBBoxSafeCrop, A.BBoxSafeRandomCrop, A.PixelDropout},
+        except_augmentations={A.RandomCropNearBBox, A.RandomSizedBBoxSafeCrop, A.BBoxSafeRandomCrop, A.PixelDropout, A.RescaleSlopeIntercept, A.SetPixelSpacing,},
     ),
 )
 def test_binary_mask_interpolation(augmentation_cls, params):
@@ -194,6 +194,8 @@ def test_binary_mask_interpolation(augmentation_cls, params):
             A.BBoxSafeRandomCrop,
             A.CropAndPad,
             A.PixelDropout,
+            A.RescaleSlopeIntercept,
+            A.SetPixelSpacing,
         },
     ),
 )
@@ -237,6 +239,8 @@ def __test_multiprocessing_support_proc(args):
             A.RandomCropNearBBox,
             A.RandomSizedBBoxSafeCrop,
             A.BBoxSafeRandomCrop,
+            A.RescaleSlopeIntercept,
+            A.SetPixelSpacing,
             # A.CropNonEmptyMaskIfExists,
             # A.FDA,
             # A.HistogramMatching,
@@ -310,6 +314,10 @@ def test_force_apply():
             #     "templates": np.random.randint(low=0, high=256, size=(100, 100, 3), dtype=np.uint8),
             # },
         },
+        except_augmentations=[
+            A.RescaleSlopeIntercept,
+            A.SetPixelSpacing,
+        ]
     ),
 )
 def test_additional_targets_for_image_only(augmentation_cls, params):
