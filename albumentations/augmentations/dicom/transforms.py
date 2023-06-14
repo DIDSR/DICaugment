@@ -21,7 +21,8 @@ from ..geometric import functional as FGeometric
 
 __all__ = [
     "RescaleSlopeIntercept",
-    "SetPixelSpacing"
+    "SetPixelSpacing",
+    "NPSNoise"
 ]
 
 class RescaleSlopeIntercept(ImageOnlyTransform):
@@ -119,3 +120,25 @@ class SetPixelSpacing(DualTransform):
     
     def get_transform_init_args_names(self):
         return ("space_x", "space_y", "space_z", "set_thickness", "interpolation")
+    
+
+class NPSNoise(ImageOnlyTransform):
+
+    def __init__(self, magnitude: int = 150, always_apply: bool = False, p: float = 1.0):
+        super().__init__(always_apply, p)
+        self.magnitude = magnitude
+
+    def apply(self, img: np.ndarray, kernel: str = 'STANDARD', x_step: float = 0.5, y_step: float = 0.5, **params):
+        return F.add_noise_nps(img, kernel=kernel, x_step=x_step, y_step=y_step, magnitude=self.magnitude)
+        
+    def get_params_dependent_on_targets(self, params):
+        kernel = params["dicom"]["ConvolutionKernel"]
+        y, x = params["dicom"]["PixelSpacing"]
+        return {"kernel": kernel, "x_step": x, "y_step": y}
+
+    @property
+    def targets_as_params(self):
+        return ["dicom"]
+    
+    def get_transform_init_args_names(self) -> Tuple[str, ...]:
+        return ("magnitude")
