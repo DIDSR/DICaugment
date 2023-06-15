@@ -16,7 +16,7 @@ from .utils import get_dual_transforms, get_image_only_transforms, get_transform
     ["augmentation_cls", "params"],
     get_image_only_transforms(
         custom_arguments={},
-        except_augmentations={A.FromFloat, A.Normalize, A.ToFloat, A.RescaleSlopeIntercept, A.SetPixelSpacing},
+        except_augmentations={A.FromFloat, A.Normalize, A.ToFloat, A.RescaleSlopeIntercept, A.SetPixelSpacing, A.NPSNoise},
     ),
 )
 def test_image_only_augmentations(augmentation_cls, params, image, mask):
@@ -59,7 +59,8 @@ def test_image_only_augmentations(augmentation_cls, params, image, mask):
             # A.Posterize,
             # A.RandomToneCurve,
             A.RescaleSlopeIntercept,
-            A.SetPixelSpacing
+            A.SetPixelSpacing,
+            A.NPSNoise
         },
     ),
 )
@@ -92,7 +93,8 @@ def test_image_only_augmentations_with_float_values(augmentation_cls, params, fl
             A.RandomSizedBBoxSafeCrop,
             A.BBoxSafeRandomCrop,
             A.RescaleSlopeIntercept,
-            A.SetPixelSpacing
+            A.SetPixelSpacing,
+            A.NPSNoise
             },
     ),
 )
@@ -124,7 +126,8 @@ def test_dual_augmentations(augmentation_cls, params, image, mask):
             A.RandomSizedBBoxSafeCrop,
             A.BBoxSafeRandomCrop,
             A.RescaleSlopeIntercept,
-            A.SetPixelSpacing
+            A.SetPixelSpacing,
+            A.NPSNoise
             },
     ),
 )
@@ -172,6 +175,7 @@ def test_dual_augmentations_with_float_values(augmentation_cls, params, float_im
             A.RandomSizedBBoxSafeCrop,
             A.BBoxSafeRandomCrop,
             A.RescaleSlopeIntercept,
+            A.NPSNoise,
             A.SetPixelSpacing},
     ),
 )
@@ -228,7 +232,8 @@ def test_augmentations_wont_change_input(augmentation_cls, params, image, mask):
             A.RandomSizedBBoxSafeCrop,
             A.BBoxSafeRandomCrop,
             A.RescaleSlopeIntercept,
-            A.SetPixelSpacing
+            A.SetPixelSpacing,
+            A.NPSNoise
             # A.CropNonEmptyMaskIfExists,
             # A.MaskDropout,
         },
@@ -265,6 +270,7 @@ def test_augmentations_wont_change_float_input(augmentation_cls, params, float_i
             # A.ISONoise,
             A.RescaleSlopeIntercept,
             A.SetPixelSpacing,
+            A.NPSNoise,
             A.RandomCropNearBBox,
             A.RandomSizedBBoxSafeCrop,
             A.BBoxSafeRandomCrop,
@@ -446,6 +452,7 @@ def test_mask_fill_value(augmentation_cls, params):
             A.RandomCropNearBBox,
             A.RescaleSlopeIntercept,
             A.SetPixelSpacing,
+            A.NPSNoise,
             # A.RandomFog,
             # A.RandomGravel,
             # A.RandomRain,
@@ -514,6 +521,7 @@ def test_multichannel_image_augmentations(augmentation_cls, params):
             A.RandomCropNearBBox,
             A.RescaleSlopeIntercept,
             A.SetPixelSpacing,
+            A.NPSNoise,
             # A.RandomFog,
             # A.RandomGravel,
             # A.RandomRain,
@@ -575,6 +583,7 @@ def test_float_multichannel_image_augmentations(augmentation_cls, params):
             A.RandomCropNearBBox,
             A.RescaleSlopeIntercept,
             A.SetPixelSpacing,
+            A.NPSNoise,
             # A.RandomFog,
             # A.RandomGravel,
             # A.RandomRain,
@@ -637,6 +646,7 @@ def test_multichannel_image_augmentations_diff_channels(augmentation_cls, params
             A.RandomCropNearBBox,
             A.RescaleSlopeIntercept,
             A.SetPixelSpacing,
+            A.NPSNoise,
             # A.RandomFog,
             # A.RandomGravel,
             # A.RandomRain,
@@ -916,6 +926,7 @@ def test_pad_if_needed_position(params, image_shape):
         except_augmentations=[
             A.RescaleSlopeIntercept,
             A.SetPixelSpacing,
+            A.NPSNoise
         ]
     ),
 )

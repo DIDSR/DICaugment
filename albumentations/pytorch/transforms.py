@@ -2,6 +2,7 @@ from __future__ import absolute_import
 
 import warnings
 
+from typing import Sequence, Dict, List, Tuple, Any, Union, Callable
 import numpy as np
 import torch
 from torchvision.transforms import functional as F
@@ -70,16 +71,16 @@ class ToPytorch(BasicTransform):
         p (float): Probability of applying the transform. Default: 1.0.
     """
 
-    def __init__(self, transpose_mask=True, always_apply=True, normalize = None, p=1.0):
+    def __init__(self, transpose_mask: bool = True, always_apply: bool = True, normalize: Union[None, Sequence[float]] = None, p=1.0):
         super(ToPytorch, self).__init__(always_apply=always_apply, p=p)
         self.transpose_mask = transpose_mask
         self.normalize = normalize
 
     @property
-    def targets(self):
+    def targets(self) -> Dict[str, Callable]:
         return {"image": self.apply, "mask": self.apply_to_mask, "masks": self.apply_to_masks}
 
-    def apply(self, img, **params):  # skipcq: PYL-W0613
+    def apply(self, img: np.ndarray, **params) -> torch.tensor:  # skipcq: PYL-W0613
         if len(img.shape) not in [3,4]:
             raise ValueError("Albumentations3D only supports images in HWD or HWDC format")
 
@@ -89,18 +90,18 @@ class ToPytorch(BasicTransform):
         else:
             return Ftorch.img_to_tensor(img.transpose(3, 2, 0, 1), self.normalize)
 
-    def apply_to_mask(self, mask, **params):  # skipcq: PYL-W0613
+    def apply_to_mask(self, mask: np.ndarray, **params) -> torch.tensor:  # skipcq: PYL-W0613
         if self.transpose_mask and mask.ndim == 3:
             mask = mask.transpose(2, 0, 1)
         if self.transpose_mask and mask.ndim == 4:
             mask = mask.transpose(3, 2, 0, 1)
         return torch.from_numpy(mask)
 
-    def apply_to_masks(self, masks, **params):
+    def apply_to_masks(self, masks: List[np.ndarray], **params) -> List[torch.tensor]:
         return [self.apply_to_mask(mask, **params) for mask in masks]
 
-    def get_transform_init_args_names(self):
+    def get_transform_init_args_names(self) -> Tuple[str, ...]:
         return ("transpose_mask",)
 
-    def get_params_dependent_on_targets(self, params):
+    def get_params_dependent_on_targets(self, params: Dict[str, Any]) -> Dict[str, Any]:
         return {}

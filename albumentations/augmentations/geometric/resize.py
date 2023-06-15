@@ -1,5 +1,5 @@
 import random
-from typing import Dict, Sequence, Tuple, Union
+from typing import Dict, Sequence, Tuple, Union, Any
 
 import cv2
 import numpy as np
@@ -34,10 +34,10 @@ class RandomScale(DualTransform):
         image, mask, bboxes, keypoints
 
     Image types:
-        uint8, float32
+        uint8, uint16, int16, float32
     """
 
-    def __init__(self, scale_limit=0.1, interpolation=cv2.INTER_LINEAR, always_apply=False, p=0.5):
+    def __init__(self, scale_limit: float = 0.1, interpolation: int = INTER_LINEAR, always_apply=False, p=0.5):
         super(RandomScale, self).__init__(always_apply, p)
         self.scale_limit = to_tuple(scale_limit, bias=1.0)
         self.interpolation = interpolation
@@ -75,13 +75,13 @@ class LongestMaxSize(DualTransform):
         image, mask, bboxes, keypoints
 
     Image types:
-        uint8, float32
+        uint8, uint16, int16, float32
     """
 
     def __init__(
         self,
         max_size: Union[int, Sequence[int]] = 1024,
-        interpolation: int = 1,
+        interpolation: int = INTER_LINEAR,
         always_apply: bool = False,
         p: float = 1,
     ):
@@ -133,13 +133,13 @@ class SmallestMaxSize(DualTransform):
         image, mask, bboxes, keypoints
 
     Image types:
-        uint8, float32
+        uint8, uint16, int16, float32
     """
 
     def __init__(
         self,
         max_size: Union[int, Sequence[int]] = 1024,
-        interpolation: int = 1,
+        interpolation: int = INTER_LINEAR,
         always_apply: bool = False,
         p: float = 1,
     ):
@@ -170,7 +170,7 @@ class SmallestMaxSize(DualTransform):
         scale = max_size / min([height, width, depth])
         return Fdicom.dicom_scale(dicom, scale, scale, scale)
 
-    def get_params(self) -> Dict[str, int]:
+    def get_params(self) -> Dict[str, Any]:
         return {"max_size": self.max_size if isinstance(self.max_size, int) else random.choice(self.max_size)}
 
     def get_transform_init_args_names(self) -> Tuple[str, ...]:
@@ -191,20 +191,20 @@ class Resize(DualTransform):
         image, mask, bboxes, keypoints
 
     Image types:
-        uint8, float32
+        uint8, uint16, int16, float32
     """
 
-    def __init__(self, height, width, depth, interpolation=INTER_LINEAR, always_apply=False, p=1):
+    def __init__(self, height: int, width: int, depth: int, interpolation: int = INTER_LINEAR, always_apply=False, p=1):
         super(Resize, self).__init__(always_apply, p)
         self.height = height
         self.width = width
         self.depth = depth
         self.interpolation = interpolation
 
-    def apply(self, img, interpolation=INTER_LINEAR, **params):
+    def apply(self, img: np.ndarray, interpolation: int = INTER_LINEAR, **params) -> np.ndarray:
         return F.resize(img, height=self.height, width=self.width, depth=self.depth, interpolation=interpolation)
 
-    def apply_to_bbox(self, bbox, **params):
+    def apply_to_bbox(self, bbox: BoxInternalType, **params) -> BoxInternalType:
         # Bounding box coordinates are scale invariant
         return bbox
     
@@ -218,7 +218,7 @@ class Resize(DualTransform):
         return Fdicom.dicom_scale(dicom, scale_x, scale_y, scale_z)
 
 
-    def apply_to_keypoint(self, keypoint, **params):
+    def apply_to_keypoint(self, keypoint: KeypointInternalType, **params) -> KeypointInternalType:
         height = params["rows"]
         width = params["cols"]
         depth = params["slices"]
@@ -227,5 +227,5 @@ class Resize(DualTransform):
         scale_z = self.depth / depth
         return F.keypoint_scale(keypoint, scale_x, scale_y, scale_z)
 
-    def get_transform_init_args_names(self):
+    def get_transform_init_args_names(self) -> Tuple[str, ...]:
         return ("height", "width", "depth", "interpolation")

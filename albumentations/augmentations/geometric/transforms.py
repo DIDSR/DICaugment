@@ -1,7 +1,7 @@
 import math
 import random
 from enum import Enum
-from typing import Dict, Optional, Sequence, Tuple, Union
+from typing import Dict, Optional, Sequence, Tuple, Union, Any
 
 import cv2
 import numpy as np
@@ -75,10 +75,8 @@ class ShiftScaleRotate(DualTransform):
                     The input is extended by wrapping around to the opposite edge.
                 https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.median_filter.html
             Default: `constant`
-        value (int, float, list of int, list of float): padding value if border_mode is "constant.
-        mask_value (int, float,
-                    list of int,
-                    list of float): padding value if border_mode is "constant" applied for masks.
+        value (int orfloat): padding value if border_mode is "constant.
+        mask_value (int or float): padding value if border_mode is "constant" applied for masks.
         crop_to_border (bool): If True, then the image is padded or cropped to fit the entire rotation. If False, then original image shape is
             maintained and some portions of the image may be cropped away. Note that any translations are applied after the image is reshaped.
             Default: False
@@ -102,24 +100,24 @@ class ShiftScaleRotate(DualTransform):
         image, mask, keypoints
 
     Image types:
-        uint8, float32
+        uint8, uint16, int16, float32
     """
 
     def __init__(
         self,
-        shift_limit=0.0625,
-        scale_limit=0.1,
-        rotate_limit=45,
-        axes="xy",
-        interpolation=INTER_LINEAR,
-        border_mode="constant",
-        crop_to_border=False,
-        value=0,
-        mask_value=0,
-        shift_limit_x=None,
-        shift_limit_y=None,
-        shift_limit_z=None,
-        rotate_method="largest_box",
+        shift_limit: float = 0.0625,
+        scale_limit: float = 0.1,
+        rotate_limit: Union[int,float] = 45,
+        axes: str = "xy",
+        interpolation: int = INTER_LINEAR,
+        border_mode: str = "constant",
+        crop_to_border: bool = False,
+        value: Union[int,float] = 0,
+        mask_value: Union[int,float] = 0,
+        shift_limit_x: Optional[Union[Tuple[float,float], float]] = None,
+        shift_limit_y: Optional[Union[Tuple[float,float], float]] = None,
+        shift_limit_z: Optional[Union[Tuple[float,float], float]] = None,
+        rotate_method: str = "largest_box",
         always_apply=False,
         p=0.5,
     ):
@@ -142,19 +140,47 @@ class ShiftScaleRotate(DualTransform):
         if len(set(self.axes).difference({"xy", "yz", "xz"})) != 0:
             raise ValueError("Parameter axes contains one or more elements that are not allowed. Got {}".format(set(self.axes).difference({"xy", "yz", "xz"})))
 
-    def apply(self, img, angle=0, axes="xy", scale=0, dx=0, dy=0, dz=0, interpolation=INTER_LINEAR, **params):
+    def apply(self,
+            img: np.ndarray,
+            angle: float = 0,
+            axes: str = "xy",
+            scale: float = 0,
+            dx: float = 0,
+            dy: float = 0,
+            dz: float = 0,
+            interpolation: int = INTER_LINEAR,
+            **params) -> np.ndarray:
         return F.shift_scale_rotate(img, angle, scale, dx, dy, dz, axes, self.crop_to_border, interpolation, self.border_mode, self.value)
 
-    def apply_to_mask(self, img, angle=0, axes="xy",  scale=0, dx=0, dy=0, dz=0, **params):
+    def apply_to_mask(self, 
+            img: np.ndarray,
+            angle: float = 0,
+            axes: str = "xy",
+            scale: float = 0,
+            dx: float = 0,
+            dy: float = 0,
+            dz: float = 0,
+            **params) -> np.ndarray:
         return F.shift_scale_rotate(img, angle, scale, dx, dy, dz, axes, self.crop_to_border, INTER_NEAREST, self.border_mode, self.mask_value)
 
-    def apply_to_keypoint(self, keypoint, angle=0, axes="xy", scale=0, dx=0, dy=0, dz=0, rows=0, cols=0, slices=0, **params):
+    def apply_to_keypoint(self,
+            keypoint: KeypointInternalType,
+            angle: float = 0,
+            axes: str = "xy",
+            scale: float = 0,
+            dx: float = 0,
+            dy: float = 0,
+            dz: float = 0,
+            rows: int = 0,
+            cols: int = 0,
+            slices: int = 0,
+            **params) -> KeypointInternalType:
         return F.keypoint_shift_scale_rotate(keypoint, angle, scale, dx, dy, dz, axes, rows, cols, slices)
     
-    def apply_to_dicom(self, dicom: DicomType, scale = 1, **params) -> DicomType:
+    def apply_to_dicom(self, dicom: DicomType, scale: float = 1, **params) -> DicomType:
         return Fdicom.dicom_scale(dicom, scale, scale, scale)
 
-    def get_params(self):
+    def get_params(self) -> Dict[str, Any]:
         return {
             "angle": random.uniform(self.rotate_limit[0], self.rotate_limit[1]),
             "scale": random.uniform(self.scale_limit[0], self.scale_limit[1]),
@@ -164,10 +190,18 @@ class ShiftScaleRotate(DualTransform):
             "axes": random.choice(self.axes)
         }
 
-    def apply_to_bbox(self, bbox, angle, axes, scale, dx, dy, dz, **params):
+    def apply_to_bbox(self,
+            bbox: BoxInternalType,
+            angle: float = 0,
+            axes: str = "xy",
+            scale: float = 0,
+            dx: float = 0,
+            dy: float = 0,
+            dz: float = 0,
+            **params) -> BoxInternalType:
         return F.bbox_shift_scale_rotate(bbox, angle, scale, dx, dy, dz, axes, self.rotate_method, **params)
     
-    def get_transform_init_args(self):
+    def get_transform_init_args(self) -> Dict[str, Any]:
         return {
             "shift_limit_x": self.shift_limit_x,
             "shift_limit_y": self.shift_limit_y,

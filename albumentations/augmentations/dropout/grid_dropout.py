@@ -1,5 +1,5 @@
 import random
-from typing import Iterable, Optional, Tuple
+from typing import Iterable, Optional, Tuple, Dict, Any, List
 
 import numpy as np
 
@@ -81,16 +81,16 @@ class GridDropout(DualTransform):
         if not 0 < self.ratio <= 1:
             raise ValueError("ratio must be between 0 and 1.")
 
-    def apply(self, img: np.ndarray, holes: Iterable[Tuple[int, int, int, int]] = (), **params) -> np.ndarray:
+    def apply(self, img: np.ndarray, holes: Iterable[Tuple[int, int, int, int, int, int]] = (), **params) -> np.ndarray:
         return F.cutout(img, holes, self.fill_value)
 
-    def apply_to_mask(self, img: np.ndarray, holes: Iterable[Tuple[int, int, int, int]] = (), **params) -> np.ndarray:
+    def apply_to_mask(self, img: np.ndarray, holes: Iterable[Tuple[int, int, int, int, int, int]] = (), **params) -> np.ndarray:
         if self.mask_fill_value is None:
             return img
 
         return F.cutout(img, holes, self.mask_fill_value)
 
-    def get_params_dependent_on_targets(self, params):
+    def get_params_dependent_on_targets(self, params) -> Dict[str, Any]:
         img = params["image"]
         height, width, depth = img.shape[:3]
         # set grid using unit size limits
@@ -161,10 +161,10 @@ class GridDropout(DualTransform):
         return {"holes": holes}
 
     @property
-    def targets_as_params(self):
+    def targets_as_params(self) -> List[str]:
         return ["image"]
 
-    def get_transform_init_args_names(self):
+    def get_transform_init_args_names(self) -> Tuple[str, ...]:
         return (
             "ratio",
             "unit_size_min",

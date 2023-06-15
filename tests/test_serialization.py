@@ -47,7 +47,7 @@ TEST_SEEDS = (0, 1, 42, 111, 9999)
             A.SmallestMaxSize,
             A.RescaleSlopeIntercept,
             A.SetPixelSpacing,
-            
+            A.NPSNoise,
         },
     ),
 )
@@ -390,6 +390,7 @@ AUGMENTATION_CLS_EXCEPT = {
     A.GridDropout,
     A.RescaleSlopeIntercept,
     A.SetPixelSpacing,
+    A.NPSNoise,
     # A.GlassBlur,
     # A.TemplateTransform,
 }
@@ -462,6 +463,7 @@ def test_augmentations_serialization_to_file_with_custom_parameters(
             A.GridDropout,
             A.RescaleSlopeIntercept,
             A.SetPixelSpacing,
+            A.NPSNoise,
         },
     ),
 )
@@ -502,6 +504,7 @@ def test_augmentations_for_bboxes_serialization(
             A.PadIfNeeded,
             A.RescaleSlopeIntercept,
             A.SetPixelSpacing,
+            A.NPSNoise,
             # A.FDA,
             # A.HistogramMatching,
             # A.PixelDistributionAdaptation,
@@ -739,7 +742,8 @@ def test_transform_pipeline_serialization_with_keypoints(seed, image, keypoints,
             # A.FDA,
             # A.PixelDistributionAdaptation,
             # A.TemplateTransform,
-            A.RescaleSlopeIntercept
+            A.RescaleSlopeIntercept,
+            A.NPSNoise
         },
     ),
 )

@@ -529,7 +529,7 @@ class Sequential(BaseCompose):
         chose sequence to input data (see the `Example` section for an example definition of such pipeline).
 
     Example:
-        >>> import albumentations as A
+        >>> import albumentations3d as A
         >>> transform = A.Compose([
         >>>    A.OneOf([
         >>>        A.Sequential([

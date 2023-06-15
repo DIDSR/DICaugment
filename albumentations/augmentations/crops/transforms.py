@@ -54,25 +54,25 @@ class RandomCrop(DualTransform):
         uint8, uint16, int16, int32, float32
     """
 
-    def __init__(self, height, width, depth, always_apply=False, p=1.0):
+    def __init__(self, height: int, width: int, depth: int, always_apply=False, p=1.0):
         super().__init__(always_apply, p)
         self.height = height
         self.width = width
         self.depth = depth
 
-    def apply(self, img, h_start=0, w_start=0, d_start=0, **params):
+    def apply(self, img: np.ndarray, h_start: int = 0, w_start: int = 0, d_start: int = 0, **params) -> np.ndarray:
         return F.random_crop(img, self.height, self.width, self.depth, h_start, w_start, d_start)
 
-    def get_params(self):
+    def get_params(self) -> Dict[str, Any]:
         return {"h_start": random.random(), "w_start": random.random(), "d_start": random.random()}
 
-    def apply_to_bbox(self, bbox, **params):
+    def apply_to_bbox(self, bbox: BoxInternalType, **params) -> BoxInternalType:
         return F.bbox_random_crop(bbox, self.height, self.width, self.depth, **params)
 
-    def apply_to_keypoint(self, keypoint, **params):
+    def apply_to_keypoint(self, keypoint: KeypointInternalType, **params) -> KeypointInternalType:
         return F.keypoint_random_crop(keypoint, self.height, self.width, self.depth, **params)
 
-    def get_transform_init_args_names(self):
+    def get_transform_init_args_names(self) -> Tuple[str, ...]:
         return ("height", "width", "depth")
 
 
@@ -92,22 +92,22 @@ class CenterCrop(DualTransform):
         uint8, uint16, int16, int32, float32
     """
 
-    def __init__(self, height, width, depth, always_apply=False, p=1.0):
+    def __init__(self, height: int, width: int, depth: int, always_apply=False, p=1.0):
         super(CenterCrop, self).__init__(always_apply, p)
         self.height = height
         self.width = width
         self.depth = depth
 
-    def apply(self, img, **params):
+    def apply(self, img: np.ndarray, **params) -> np.ndarray:
         return F.center_crop(img, self.height, self.width, self.depth)
 
-    def apply_to_bbox(self, bbox, **params):
+    def apply_to_bbox(self, bbox: BoxInternalType, **params) -> BoxInternalType:
         return F.bbox_center_crop(bbox, self.height, self.width, self.depth, **params)
 
-    def apply_to_keypoint(self, keypoint, **params):
+    def apply_to_keypoint(self, keypoint: KeypointInternalType, **params) -> KeypointInternalType:
         return F.keypoint_center_crop(keypoint, self.height, self.width, self.depth, **params)
 
-    def get_transform_init_args_names(self):
+    def get_transform_init_args_names(self) -> Tuple[str, ...]:
         return ("height", "width", "depth")
 
 
@@ -130,7 +130,15 @@ class Crop(DualTransform):
         uint8, uint16, int16, int32, float32
     """
 
-    def __init__(self, x_min=0, y_min=0, z_min= 0, x_max=1024, y_max=1024, z_max = 1024, always_apply=False, p=1.0):
+    def __init__(self,
+            x_min: int = 0,
+            y_min: int = 0,
+            z_min: int = 0,
+            x_max: int = 1024,
+            y_max: int = 1024,
+            z_max: int = 1024,
+            always_apply=False,
+            p=1.0):
         super(Crop, self).__init__(always_apply, p)
         self.x_min = x_min
         self.y_min = y_min
@@ -139,16 +147,16 @@ class Crop(DualTransform):
         self.y_max = y_max
         self.z_max = z_max
 
-    def apply(self, img, **params):
+    def apply(self, img: np.ndarray, **params) -> np.ndarray:
         return F.crop(img, x_min=self.x_min, y_min=self.y_min, z_min=self.z_min, x_max=self.x_max, y_max=self.y_max, z_max=self.z_max)
 
-    def apply_to_bbox(self, bbox, **params):
+    def apply_to_bbox(self, bbox: BoxInternalType, **params) -> BoxInternalType:
         return F.bbox_crop(bbox, x_min=self.x_min, y_min=self.y_min, z_min=self.z_min, x_max=self.x_max, y_max=self.y_max, z_max=self.z_max, **params)
 
-    def apply_to_keypoint(self, keypoint, **params):
+    def apply_to_keypoint(self, keypoint: KeypointInternalType, **params) -> KeypointInternalType:
         return F.crop_keypoint_by_coords(keypoint, crop_coords=(self.x_min, self.y_min, self.z_min, self.x_max, self.y_max, self.z_max))
 
-    def get_transform_init_args_names(self):
+    def get_transform_init_args_names(self) -> Tuple[str, ...]:
         return ("x_min", "y_min", "z_min", "x_max", "y_max", "z_max")
 
 
@@ -255,21 +263,52 @@ class Crop(DualTransform):
 class _BaseRandomSizedCrop(DualTransform):
     # Base class for RandomSizedCrop and RandomResizedCrop
 
-    def __init__(self, height, width, depth, interpolation = INTER_LINEAR, always_apply=False, p=1.0):
+    def __init__(self, height: int, width: int, depth: int, interpolation: int = INTER_LINEAR, always_apply=False, p=1.0):
         super(_BaseRandomSizedCrop, self).__init__(always_apply, p)
         self.height = height
         self.width = width
         self.depth = depth
         self.interpolation = interpolation
 
-    def apply(self, img, crop_height=0, crop_width=0, crop_depth=0, h_start=0, w_start=0, d_start=0, interpolation=INTER_LINEAR, **params):
+    def apply(self,
+            img: np.ndarray,
+            crop_height: int = 0,
+            crop_width: int = 0,
+            crop_depth: int = 0,
+            h_start: int = 0,
+            w_start: int = 0,
+            d_start: int = 0,
+            interpolation: int = INTER_LINEAR,
+            **params) -> np.ndarray:
         crop = F.random_crop(img, crop_height, crop_width, crop_depth, h_start, w_start, d_start)
         return FGeometric.resize(crop, self.height, self.width, self.depth, interpolation)
 
-    def apply_to_bbox(self, bbox, crop_height=0, crop_width=0, crop_depth=0, h_start=0, w_start=0, d_start=0, rows=0, cols=0, slices=0, **params):
+    def apply_to_bbox(self,
+            bbox: BoxInternalType,
+            crop_height: int = 0,
+            crop_width: int = 0,
+            crop_depth: int = 0,
+            h_start: int = 0,
+            w_start: int = 0,
+            d_start: int = 0,
+            rows: int = 0,
+            cols: int = 0,
+            slices: int = 0,
+            **params) -> BoxInternalType:
         return F.bbox_random_crop(bbox, crop_height, crop_width, crop_depth, h_start, w_start, d_start, rows, cols, slices)
 
-    def apply_to_keypoint(self, keypoint, crop_height=0, crop_width=0, crop_depth=0, h_start=0, w_start=0, d_start=0, rows=0, cols=0, slices=0, **params):
+    def apply_to_keypoint(self,
+            keypoint,
+            crop_height: int = 0,
+            crop_width: int = 0,
+            crop_depth: int = 0,
+            h_start: int = 0,
+            w_start: int = 0,
+            d_start: int = 0,
+            rows: int = 0,
+            cols: int = 0,
+            slices: int = 0,
+            **params) -> KeypointInternalType:
         keypoint = F.keypoint_random_crop(keypoint, crop_height, crop_width, crop_depth, h_start, w_start, d_start, rows, cols, slices)
         scale_x = self.width / crop_width
         scale_y = self.height / crop_height
@@ -300,7 +339,16 @@ class RandomSizedCrop(_BaseRandomSizedCrop):
     """
 
     def __init__(
-        self, min_max_height, height, width, depth, w2h_ratio=1.0, d2h_ratio=1.0, interpolation=INTER_LINEAR, always_apply=False, p=1.0
+        self, 
+        min_max_height: Tuple[int,int],
+        height: int,
+        width: int,
+        depth: int, 
+        w2h_ratio: float = 1.0, 
+        d2h_ratio: float = 1.0, 
+        interpolation: int = INTER_LINEAR, 
+        always_apply=False, 
+        p=1.0
     ):
         super(RandomSizedCrop, self).__init__(
             height=height, width=width, depth=depth, interpolation=interpolation, always_apply=always_apply, p=p
@@ -309,7 +357,7 @@ class RandomSizedCrop(_BaseRandomSizedCrop):
         self.w2h_ratio = w2h_ratio
         self.d2h_ratio = d2h_ratio
 
-    def get_params(self):
+    def get_params(self) -> Dict[str, Any]:
         crop_height = random.randint(self.min_max_height[0], self.min_max_height[1])
         return {
             "h_start": random.random(),
@@ -319,7 +367,7 @@ class RandomSizedCrop(_BaseRandomSizedCrop):
             "crop_depth": int(crop_height * self.d2h_ratio),
         }
 
-    def get_transform_init_args_names(self):
+    def get_transform_init_args_names(self) -> Tuple[str, ...]:
         return "min_max_height", "height", "width", "depth", "w2h_ratio", "d2h_ratio", "interpolation"
 
 
@@ -491,7 +539,7 @@ class RandomCropNearBBox(DualTransform):
 
     def apply_to_keypoint(
         self,
-        keypoint: Tuple[float, float, float, float, float],
+        keypoint: KeypointInternalType,
         x_min: int = 0,
         y_min: int = 0,
         z_min: int = 0,
@@ -499,14 +547,14 @@ class RandomCropNearBBox(DualTransform):
         y_max: int = 0,
         z_max: int = 0,
         **params
-    ) -> Tuple[float, float, float, float]:
+    ) -> KeypointInternalType:
         return F.crop_keypoint_by_coords(keypoint, crop_coords=(x_min, y_min, z_min, x_max, y_max, z_max))
 
     @property
     def targets_as_params(self) -> List[str]:
         return [self.cropping_bbox_key]
 
-    def get_transform_init_args_names(self) -> Tuple[str]:
+    def get_transform_init_args_names(self) -> Tuple[str, ...]:
         return ("max_part_shift",)
 
 
@@ -521,14 +569,22 @@ class BBoxSafeRandomCrop(DualTransform):
         uint8, float32
     """
 
-    def __init__(self, erosion_rate=0.0, always_apply=False, p=1.0):
+    def __init__(self, erosion_rate: float = 0.0, always_apply=False, p=1.0):
         super(BBoxSafeRandomCrop, self).__init__(always_apply, p)
         self.erosion_rate = erosion_rate
 
-    def apply(self, img, crop_height=0, crop_width=0, crop_depth=0, h_start=0, w_start=0, d_start=0, **params):
+    def apply(self,
+            img: np.ndarray,
+            crop_height: int = 0,
+            crop_width: int = 0,
+            crop_depth: int = 0,
+            h_start: int = 0,
+            w_start: int = 0,
+            d_start: int = 0,
+            **params) -> np.ndarray:
         return F.random_crop(img, crop_height, crop_width, crop_depth, h_start, w_start, d_start)
 
-    def get_params_dependent_on_targets(self, params):
+    def get_params_dependent_on_targets(self, params: Dict[str, Any]) -> Dict[str, Any]:
         img_h, img_w, img_d = params["image"].shape[:3]
         if len(params["bboxes"]) == 0:  # less likely, this class is for use with bboxes.
             erosive_h = int(img_h * (1.0 - self.erosion_rate))
@@ -557,14 +613,25 @@ class BBoxSafeRandomCrop(DualTransform):
         d_start = np.clip(0.0 if bd >= 1.0 else bz / (1.0 - bd), 0.0, 1.0)
         return {"h_start": h_start, "w_start": w_start, "d_start": d_start, "crop_height": crop_height, "crop_width": crop_width, "crop_depth": crop_depth}
 
-    def apply_to_bbox(self, bbox, crop_height=0, crop_width=0, crop_depth=0, h_start=0, w_start=0, d_start=0, rows=0, cols=0, slices=0, **params):
+    def apply_to_bbox(self,
+            bbox: BoxInternalType,
+            crop_height: int = 0,
+            crop_width: int = 0,
+            crop_depth: int = 0,
+            h_start: int = 0,
+            w_start: int = 0,
+            d_start: int = 0,
+            rows: int = 0,
+            cols: int = 0,
+            slices: int = 0,
+            **params) -> BoxInternalType:
         return F.bbox_random_crop(bbox, crop_height, crop_width, crop_depth, h_start, w_start, d_start, rows, cols, slices)
 
     @property
-    def targets_as_params(self):
+    def targets_as_params(self) -> List[str]:
         return ["image", "bboxes"]
 
-    def get_transform_init_args_names(self):
+    def get_transform_init_args_names(self) -> Tuple[str, ...]:
         return ("erosion_rate",)
 
 
@@ -584,18 +651,27 @@ class RandomSizedBBoxSafeCrop(BBoxSafeRandomCrop):
         uint8, float32
     """
 
-    def __init__(self, height, width, depth, erosion_rate=0.0, interpolation= INTER_LINEAR, always_apply=False, p=1.0):
+    def __init__(self, height: int, width: int, depth: int, erosion_rate: float =0.0, interpolation: int = INTER_LINEAR, always_apply=False, p=1.0):
         super(RandomSizedBBoxSafeCrop, self).__init__(erosion_rate, always_apply, p)
         self.height = height
         self.width = width
         self.depth = depth
         self.interpolation = interpolation
 
-    def apply(self, img, crop_height=0, crop_width=0, crop_depth=0, h_start=0, w_start=0, d_start=0, interpolation=INTER_LINEAR, **params):
+    def apply(self,
+            img: np.ndarray,
+            crop_height: int = 0,
+            crop_width: int = 0,
+            crop_depth: int = 0,
+            h_start: int = 0,
+            w_start: int = 0,
+            d_start: int = 0,
+            interpolation: int = INTER_LINEAR,
+            **params) -> np.ndarray:
         crop = F.random_crop(img, crop_height, crop_width, crop_depth, h_start, w_start, d_start)
         return FGeometric.resize(crop, self.height, self.width, self.depth, interpolation)
 
-    def get_transform_init_args_names(self):
+    def get_transform_init_args_names(self) -> Tuple[str, ...]:
         return super().get_transform_init_args_names() + ("height", "width", "depth", "interpolation")
 
 
@@ -970,12 +1046,12 @@ class RandomCropFromBorders(DualTransform):
 
     def __init__(
         self,
-        crop_left=0.1,
-        crop_right=0.1,
-        crop_top=0.1,
-        crop_bottom=0.1,
-        crop_close=0.1,
-        crop_far=0.1,
+        crop_left: float = 0.1,
+        crop_right: float = 0.1,
+        crop_top: float = 0.1,
+        crop_bottom: float = 0.1,
+        crop_close: float = 0.1,
+        crop_far: float = 0.1,
         always_apply=False,
         p=1.0,
     ):
@@ -987,7 +1063,7 @@ class RandomCropFromBorders(DualTransform):
         self.crop_close = crop_close
         self.crop_far = crop_far
 
-    def get_params_dependent_on_targets(self, params):
+    def get_params_dependent_on_targets(self, params: Dict[str, Any]) -> Dict[str, Any]:
         img = params["image"]
         x_min = random.randint(0, int(self.crop_left * img.shape[1]))
         x_max = random.randint(max(x_min + 1, int((1 - self.crop_right) * img.shape[1])), img.shape[1])
@@ -999,22 +1075,54 @@ class RandomCropFromBorders(DualTransform):
 
         return {"x_min": x_min, "x_max": x_max, "y_min": y_min, "y_max": y_max, "z_min": z_min, "z_max" : z_max}
 
-    def apply(self, img, x_min=0, x_max=0, y_min=0, y_max=0, z_min=0, z_max=0, **params):
+    def apply(self,
+            img: np.ndarray, 
+            x_min: int = 0, 
+            x_max: int = 0, 
+            y_min: int = 0, 
+            y_max: int = 0, 
+            z_min: int = 0, 
+            z_max: int = 0, 
+            **params) -> np.ndarray:
         return F.clamping_crop(img, x_min, y_min, z_min, x_max, y_max, z_max)
 
-    def apply_to_mask(self, mask, x_min=0, x_max=0, y_min=0, y_max=0, z_min=0, z_max=0, **params):
+    def apply_to_mask(self,
+            mask: np.ndarray, 
+            x_min: int = 0, 
+            x_max: int = 0, 
+            y_min: int = 0, 
+            y_max: int = 0, 
+            z_min: int = 0, 
+            z_max: int = 0, 
+            **params) -> np.ndarray:
         return F.clamping_crop(mask, x_min, y_min, z_min, x_max, y_max, z_max)
 
-    def apply_to_bbox(self, bbox, x_min=0, x_max=0, y_min=0, y_max=0, z_min=0, z_max=0, **params):
+    def apply_to_bbox(self, 
+            bbox: BoxInternalType, 
+            x_min: int = 0, 
+            x_max: int = 0, 
+            y_min: int = 0, 
+            y_max: int = 0, 
+            z_min: int = 0, 
+            z_max: int = 0, 
+            **params) -> BoxInternalType:
         rows, cols, slices = params["rows"], params["cols"], params["slices"]
         return F.bbox_crop(bbox, x_min, y_min, z_min, x_max, y_max, z_max, rows, cols, slices)
 
-    def apply_to_keypoint(self, keypoint, x_min=0, x_max=0, y_min=0, y_max=0, z_min=0, z_max=0, **params):
+    def apply_to_keypoint(self,
+            keypoint: KeypointInternalType,
+            x_min: int = 0, 
+            x_max: int = 0, 
+            y_min: int = 0, 
+            y_max: int = 0, 
+            z_min: int = 0, 
+            z_max: int = 0, 
+            **params) -> KeypointInternalType:
         return F.crop_keypoint_by_coords(keypoint, crop_coords=(x_min, y_min, z_min, x_max, y_max, z_max))
 
     @property
-    def targets_as_params(self):
+    def targets_as_params(self) -> List[str]:
         return ["image"]
 
-    def get_transform_init_args_names(self):
+    def get_transform_init_args_names(self) -> Tuple[str, ...]:
         return "crop_left", "crop_right", "crop_top", "crop_bottom", "crop_close", "crop_far"

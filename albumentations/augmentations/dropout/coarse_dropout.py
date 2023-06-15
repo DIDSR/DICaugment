@@ -1,5 +1,5 @@
 import random
-from typing import Iterable, List, Optional, Sequence, Tuple, Union
+from typing import Iterable, List, Optional, Sequence, Tuple, Union, Dict, Any
 
 import numpy as np
 
@@ -109,14 +109,14 @@ class CoarseDropout(DualTransform):
         self,
         img: np.ndarray,
         mask_fill_value: Union[int, float] = 0,
-        holes: Iterable[Tuple[int, int, int, int]] = (),
+        holes: Iterable[Tuple[int, int, int, int, int, int]] = (),
         **params
     ) -> np.ndarray:
         if mask_fill_value is None:
             return img
         return cutout(img, holes, mask_fill_value)
 
-    def get_params_dependent_on_targets(self, params):
+    def get_params_dependent_on_targets(self, params: Dict[str, Any]) -> Dict[str, Any]:
         img = params["image"]
         height, width, depth = img.shape[:3]
 
@@ -176,7 +176,7 @@ class CoarseDropout(DualTransform):
         return {"holes": holes}
 
     @property
-    def targets_as_params(self):
+    def targets_as_params(self) -> List[str]:
         return ["image"]
 
     def _keypoint_in_hole(self, keypoint: KeypointType, hole: Tuple[int, int, int, int]) -> bool:
@@ -194,7 +194,7 @@ class CoarseDropout(DualTransform):
                     result.discard(kp)
         return list(result)
 
-    def get_transform_init_args_names(self):
+    def get_transform_init_args_names(self) -> Tuple[str, ...]:
         return (
             "max_holes",
             "max_height",

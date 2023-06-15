@@ -110,7 +110,8 @@ def read_dcm_image(path: str, include_header: bool = True, ends_with: str = ""):
                 "PixelSpacing" : tuple(map(float, obj.PixelSpacing)),
                 "RescaleIntercept" : float(obj.RescaleIntercept),
                 "RescaleSlope" : float(obj.RescaleSlope),
-                "ConvolutionKernel" : obj.ConvolutionKernel
+                "ConvolutionKernel" : obj.ConvolutionKernel,
+                "XRayTubeCurrent" : int(obj.XRayTubeCurrent)
             }
         else:
             img = np.concatenate([img,dcm], axis = 2)

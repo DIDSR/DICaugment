@@ -63,7 +63,9 @@ class BboxParams(Params):
         min_volume (float): minimum volume of a bounding box. All bounding boxes whose
             visible volume in pixels is less than this value will be removed. Default: 0.0.
             This assumes that pixel spacing of the Height and Width dimensions are equal to the slice spacing of the Depth dimension
-        min_visibility (float): minimum fraction of volume for a bounding box
+        min_area_visibility (float): minimum fraction of planar area for a bounding box
+            to remain this box in list. Default: 0.0.
+        min_volume_visibility (float): minimum fraction of volume for a bounding box
             to remain this box in list. Default: 0.0.
         min_width (float): Minimum width of a bounding box. All bounding boxes whose width is
             less than this value will be removed. Default: 0.0.
@@ -531,7 +533,7 @@ def filter_bboxes(
         rows: Image height.
         cols: Image width.
         slices: Image depth.
-        min_area: Minimum planar area of a bounding box. All bounding boxes whose visible planar area in pixels.
+        min_planar_area: Minimum planar area of a bounding box. All bounding boxes whose visible planar area in pixels.
             is less than this value will be removed. Default: 0.0.
         min_volume: Minimum volume of a bounding box. All bounding boxes whose visible volume in pixels.
             is less than this value will be removed. Default: 0.0.

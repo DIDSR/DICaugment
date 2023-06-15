@@ -270,14 +270,14 @@ class GaussianBlur(ImageOnlyTransform):
     def apply(self, img: np.ndarray, ksize: int = 3, sigma: float = 0, **params) -> np.ndarray:
         return F.gaussian_blur(img, ksize, sigma=sigma, by_slice=self.by_slice, mode = self.mode, cval = self.cval)
 
-    def get_params(self) -> Dict[str, float]:
+    def get_params(self) -> Dict[str, Any]:
         ksize = random.randrange(self.blur_limit[0], self.blur_limit[1] + 1)
         if ksize != 0 and ksize % 2 != 1:
             ksize = (ksize + 1) % (self.blur_limit[1] + 1)
 
         return {"ksize": ksize, "sigma": random.uniform(*self.sigma_limit)}
 
-    def get_transform_init_args_names(self) -> Tuple[str, str]:
+    def get_transform_init_args_names(self) -> Tuple[str, ...]:
         return ("blur_limit", "sigma_limit", "by_slice", "mode", "cval")
 
 

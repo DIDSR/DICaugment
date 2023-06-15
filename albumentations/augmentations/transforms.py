@@ -26,6 +26,8 @@ from ..core.transforms_interface import (
     ImageOnlyTransform,
     NoOp,
     ScaleFloatType,
+    BoxInternalType,
+    KeypointInternalType,
     to_tuple,
     INTER_NEAREST,
     INTER_LINEAR,
@@ -215,10 +217,10 @@ class Normalize(ImageOnlyTransform):
         self.std = std
         # self.max_pixel_value = max_pixel_value
 
-    def apply(self, image, **params):
+    def apply(self, image: np.ndarray, **params) -> np.ndarray:
         return F.normalize(image, self.mean, self.std)
 
-    def get_transform_init_args_names(self):
+    def get_transform_init_args_names(self) -> Tuple[str, ...]:
         return ("mean", "std")
 
 
@@ -1113,7 +1115,7 @@ class Equalize(ImageOnlyTransform):
         image
 
     Image types:
-        uint8, uint16
+        uint8, uint16, int16
     """
 
     def __init__(
@@ -1130,20 +1132,20 @@ class Equalize(ImageOnlyTransform):
         self.mask_params = mask_params
         self.range = to_tuple(range,0)
 
-    def apply(self, image, mask=None, **params):
+    def apply(self, image: np.ndarray, mask: Union[None,np.ndarray] = None, **params) -> np.ndarray:
         return F.equalize(image, mask=mask, hist_range = self.range)
 
-    def get_params_dependent_on_targets(self, params):
+    def get_params_dependent_on_targets(self, params: Dict[str, Any]) -> Dict[str, Any]:
         if not callable(self.mask):
             return {"mask": self.mask}
 
         return {"mask": self.mask(**params)}
 
     @property
-    def targets_as_params(self):
+    def targets_as_params(self) -> List[str]:
         return ["image"] + list(self.mask_params)
 
-    def get_transform_init_args_names(self):
+    def get_transform_init_args_names(self) -> Tuple[str, ...]:
         return ("range",)
 
 
@@ -1212,7 +1214,7 @@ class RandomBrightnessContrast(ImageOnlyTransform):
         image
 
     Image types:
-        uint8, uint16, float32
+        uint8, uint16, int16, float32
     """
 
     def __init__(
@@ -1228,16 +1230,16 @@ class RandomBrightnessContrast(ImageOnlyTransform):
         self.contrast_limit = to_tuple(contrast_limit)
         self.max_brightness = max_brightness
 
-    def apply(self, img, alpha=1.0, beta=0.0, **params):
+    def apply(self, img: np.ndarray, alpha: float = 1.0, beta: float = 0.0, **params) -> np.ndarray:
         return F.brightness_contrast_adjust(img, alpha, beta, self.max_brightness)
 
-    def get_params(self):
+    def get_params(self) -> Dict[str, Any]:
         return {
             "alpha": 1.0 + random.uniform(self.contrast_limit[0], self.contrast_limit[1]),
             "beta": 0.0 + random.uniform(self.brightness_limit[0], self.brightness_limit[1]),
         }
 
-    def get_transform_init_args_names(self):
+    def get_transform_init_args_names(self) -> Tuple[str, ...]:
         return ("brightness_limit", "contrast_limit", "max_brightness")
 
 
@@ -1258,7 +1260,7 @@ class GaussNoise(ImageOnlyTransform):
         image
 
     Image types:
-        uint8, uint16, float32
+        uint8, uint16, int16, float32
     """
 
     def __init__(
@@ -1297,10 +1299,10 @@ class GaussNoise(ImageOnlyTransform):
         self.per_channel = per_channel
         self.apply_to_channel_idx = apply_to_channel_idx
 
-    def apply(self, img, gauss=None, **params):
+    def apply(self, img: np.ndarray, gauss: Union[None, np.ndarray] = None, **params) -> np.ndarray:
         return F.gauss_noise(img, gauss=gauss)
 
-    def get_params_dependent_on_targets(self, params):
+    def get_params_dependent_on_targets(self, params: Dict[str, Any]) -> Dict[str, Any]:
         image = params["image"]
         var = random.uniform(self.var_limit[0], self.var_limit[1])
         sigma = var**0.5
@@ -1324,10 +1326,10 @@ class GaussNoise(ImageOnlyTransform):
         return {"gauss": gauss}
 
     @property
-    def targets_as_params(self):
+    def targets_as_params(self) -> List[str]:
         return ["image"]
 
-    def get_transform_init_args_names(self):
+    def get_transform_init_args_names(self) -> Tuple[str, ...]:
         return ("var_limit", "apply_to_channel_idx", "per_channel", "mean")
 
 
@@ -1442,13 +1444,13 @@ class InvertImg(ImageOnlyTransform):
         image
 
     Image types:
-        uint8, uint16, float32
+        uint8, uint16, int16, float32
     """
 
-    def apply(self, img, **params):
+    def apply(self, img: np.ndarray, **params) -> np.ndarray:
         return F.invert(img)
 
-    def get_transform_init_args_names(self):
+    def get_transform_init_args_names(self) -> Tuple[str, ...]:
         return ()
 
 
@@ -1469,13 +1471,13 @@ class RandomGamma(ImageOnlyTransform):
         super(RandomGamma, self).__init__(always_apply, p)
         self.gamma_limit = to_tuple(gamma_limit)
 
-    def apply(self, img, gamma=1, **params):
+    def apply(self, img: np.ndarray, gamma: float = 1, **params) -> np.ndarray:
         return F.gamma_transform(img, gamma=gamma)
 
-    def get_params(self):
+    def get_params(self) -> Dict[str, Any]:
         return {"gamma": random.uniform(self.gamma_limit[0], self.gamma_limit[1]) / 100.0}
 
-    def get_transform_init_args_names(self):
+    def get_transform_init_args_names(self) -> Tuple[str, ...]:
         return ("gamma_limit",)
 
 
@@ -1584,15 +1586,15 @@ class ToFloat(ImageOnlyTransform):
 
     """
 
-    def __init__(self, min_value = None, max_value=None, always_apply=False, p=1.0):
+    def __init__(self, min_value: Optional[float] = None, max_value: Optional[float] = None, always_apply=False, p=1.0):
         super(ToFloat, self).__init__(always_apply, p)
         self.max_value = max_value
         self.min_value = min_value
 
-    def apply(self, img, **params):
+    def apply(self, img: np.ndarray, **params) -> np.ndarray:
         return F.to_float(img, self.min_value, self.max_value)
 
-    def get_transform_init_args_names(self):
+    def get_transform_init_args_names(self) -> Tuple[str, ...]:
         return ("max_value","min_value")
 
 
@@ -1620,16 +1622,16 @@ class FromFloat(ImageOnlyTransform):
        https://docs.scipy.org/doc/numpy/user/basics.types.html
     """
 
-    def __init__(self, dtype="int16", min_value = None, max_value=None, always_apply=False, p=1.0):
+    def __init__(self, dtype: str = "int16", min_value: Optional[float] = None, max_value: Optional[float] = None, always_apply=False, p=1.0):
         super(FromFloat, self).__init__(always_apply, p)
         self.dtype = np.dtype(dtype)
         self.min_value = min_value
         self.max_value = max_value
 
-    def apply(self, img, **params):
+    def apply(self, img: np.ndarray, **params) -> np.ndarray:
         return F.from_float(img, self.dtype, self.min_value, self.max_value)
 
-    def get_transform_init_args(self):
+    def get_transform_init_args(self) -> Dict[str, Any]:
         return {"dtype": self.dtype.name, "min_value": self.min_value, "max_value": self.max_value}
 
 
@@ -1703,7 +1705,7 @@ class Downscale(ImageOnlyTransform):
     def get_params(self) -> Dict[str, Any]:
         return {"scale": random.uniform(self.scale_min, self.scale_max)}
 
-    def get_transform_init_args_names(self) -> Tuple[str, str]:
+    def get_transform_init_args_names(self) -> Tuple[str, ...]:
         return "scale_min", "scale_max"
 
     def _to_dict(self) -> Dict[str, Any]:
@@ -2013,7 +2015,13 @@ class Sharpen(ImageOnlyTransform):
         image
     """
 
-    def __init__(self, alpha=(0.2, 0.5), lightness=(0.5, 1.0), mode: str = 'constant', cval: Union[float,int] = 0, always_apply=False, p=0.5):
+    def __init__(self,
+            alpha: Union[Tuple[float,float], float] = (0.2, 0.5),
+            lightness: Union[Tuple[float,float], float] = (0.5, 1.0),
+            mode: str = 'constant',
+            cval: Union[float,int] = 0,
+            always_apply = False,
+            p = 0.5):
         super(Sharpen, self).__init__(always_apply, p)
         self.alpha = self.__check_values(to_tuple(alpha, 0.0), name="alpha", bounds=(0.0, 1.0))
         self.lightness = self.__check_values(to_tuple(lightness, 0.0), name="lightness")
@@ -2052,16 +2060,16 @@ class Sharpen(ImageOnlyTransform):
         matrix = (1 - alpha_sample) * matrix_nochange + alpha_sample * matrix_effect
         return matrix
 
-    def get_params(self):
+    def get_params(self) -> Dict[str, Any]:
         alpha = random.uniform(*self.alpha)
         lightness = random.uniform(*self.lightness)
         sharpening_matrix = self.__generate_sharpening_matrix(alpha_sample=alpha, lightness_sample=lightness)
         return {"sharpening_matrix": sharpening_matrix}
 
-    def apply(self, img, sharpening_matrix=None, **params):
+    def apply(self, img: np.ndarray, sharpening_matrix: Union[None,np.ndarray] = None, **params) -> np.ndarray:
         return F.convolve(img, sharpening_matrix, self.mode, self.cval)
 
-    def get_transform_init_args_names(self):
+    def get_transform_init_args_names(self) -> Tuple[str, ...]:
         return ("alpha", "lightness", "mode", "cval")
 
 
@@ -2407,17 +2415,17 @@ class UnsharpMask(ImageOnlyTransform):
             raise ValueError(f"{name} values should be between {bounds}")
         return value
 
-    def get_params(self):
+    def get_params(self) -> Dict[str, Any]:
         return {
             "ksize": random.randrange(self.blur_limit[0], self.blur_limit[1] + 1, 2),
             "sigma": random.uniform(*self.sigma_limit),
             "alpha": random.uniform(*self.alpha),
         }
 
-    def apply(self, img, ksize=3, sigma=0, alpha=0.2, **params):
+    def apply(self, img: np.ndarray, ksize: int = 3, sigma: float = 0, alpha: float = 0.2, **params) -> np.ndarray:
         return F.unsharp_mask(img, ksize, sigma=sigma, alpha=alpha, threshold=self.threshold)
 
-    def get_transform_init_args_names(self):
+    def get_transform_init_args_names(self) -> Tuple[str, ...]:
         return ("blur_limit", "sigma_limit", "alpha", "threshold")
 
 
@@ -2483,10 +2491,10 @@ class PixelDropout(DualTransform):
 
         return F.pixel_dropout(img, drop_mask, self.mask_drop_value)
 
-    def apply_to_bbox(self, bbox, **params):
+    def apply_to_bbox(self, bbox: BoxInternalType, **params) -> BoxInternalType:
         return bbox
 
-    def apply_to_keypoint(self, keypoint, **params):
+    def apply_to_keypoint(self, keypoint: KeypointInternalType, **params) -> KeypointInternalType:
         return keypoint
 
     def get_params_dependent_on_targets(self, params: Dict[str, Any]) -> Dict[str, Any]:
@@ -2520,7 +2528,7 @@ class PixelDropout(DualTransform):
     def targets_as_params(self) -> List[str]:
         return ["image"]
 
-    def get_transform_init_args_names(self) -> Tuple[str, str, str, str]:
+    def get_transform_init_args_names(self) -> Tuple[str, ...]:
         return ("dropout_prob", "per_channel", "drop_value", "mask_drop_value")
 
 

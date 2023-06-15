@@ -37,11 +37,11 @@ class RandomRotate90(DualTransform):
         image, mask, bboxes, keypoints
 
     Image types:
-        uint8, float32
+        uint8, uint16, int16, float32
     """
     def __init__(
         self,
-        axes = "xy",
+        axes: str = "xy",
         always_apply=False,
         p=0.5,
     ):
@@ -54,7 +54,7 @@ class RandomRotate90(DualTransform):
         
         self.axes = axes
 
-    def apply(self, img, factor=0, axes = "xy", **params):
+    def apply(self, img: np.ndarray, factor: int = 0, axes: str = "xy", **params) -> np.ndarray:
         """
         Args:
             factor (int): number of times the input will be rotated by 90 degrees.
@@ -62,28 +62,28 @@ class RandomRotate90(DualTransform):
 
         return np.ascontiguousarray(np.rot90(img, factor, self.__str_axes_to_tuple[axes]))
 
-    def get_params(self):
+    def get_params(self) -> Dict:
         # Random int in the range [0, 3]
         return {
             "factor": random.randint(0, 3),
             "axes" : self.axes if isinstance(self.axes, str) else random.choice(self.axes)
             }
 
-    def apply_to_bbox(self, bbox, factor=0, axes="xy", **params):
+    def apply_to_bbox(self, bbox: BoxInternalType, factor: int = 0, axes: str = "xy", **params) -> BoxInternalType:
         return F.bbox_rot90(bbox, factor, axes, **params)
 
-    def apply_to_keypoint(self, keypoint, factor=0, axes="xy", **params):
+    def apply_to_keypoint(self, keypoint: KeypointInternalType, factor: int = 0, axes: str = "xy", **params) -> KeypointInternalType:
         return F.keypoint_rot90(keypoint, factor, axes, **params)
     
     @property
-    def __str_axes_to_tuple(self):
+    def __str_axes_to_tuple(self) -> Dict:
         return {
             "xy" : (0,1),
             "yz" : (0,2),
             "xz" : (1,2)
         }
 
-    def get_transform_init_args_names(self):
+    def get_transform_init_args_names(self) -> Tuple[str, ...]:
         return ("axes",)
 
 
@@ -110,7 +110,7 @@ class Rotate(DualTransform):
                 `wrap` (a b c d | a b c d | a b c d)
                     The input is extended by wrapping around to the opposite edge.
                 https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.median_filter.html
-        value (int, float, list of ints, list of float): The fill value when border_mode = `constant`. Default: 0.
+        value (int or float): The fill value when border_mode = `constant`. Default: 0.
         mask_value (int, float,
                     list of ints,
                     list of float): The fill value when border_mode = `constant` applied for masks. Default: 0.
@@ -124,21 +124,21 @@ class Rotate(DualTransform):
         image, mask, bboxes, keypoints
 
     Image types:
-        uint8, float32
+        uint8, uint16, int16, float32
     """
 
     def __init__(
         self,
-        limit=90,
-        axes="xy",
-        interpolation=INTER_LINEAR,
-        border_mode= "constant",
-        value= 0,
-        mask_value=0,
-        rotate_method="largest_box",
-        crop_to_border=False,
-        always_apply=False,
-        p=0.5,
+        limit: float = 90,
+        axes: str = "xy",
+        interpolation: int = INTER_LINEAR,
+        border_mode: str = "constant",
+        value: Union[int,float] = 0,
+        mask_value: Union[int,float] = 0,
+        rotate_method: str = "largest_box",
+        crop_to_border: bool = False,
+        always_apply = False,
+        p = 0.5,
     ):
         super(Rotate, self).__init__(always_apply, p)
         self.limit = to_tuple(limit)
@@ -158,7 +158,7 @@ class Rotate(DualTransform):
         if rotate_method not in ["largest_box", "ellipse"]:
             raise ValueError(f"Rotation method {self.rotate_method} is not valid.")
 
-    def apply(self, img, angle=0, axes = "xy", **params):
+    def apply(self, img: np.ndarray, angle: float = 0, axes: str = "xy", **params) -> np.ndarray:
         return F.rotate(
             img,
             angle=angle,
@@ -169,7 +169,7 @@ class Rotate(DualTransform):
             value=self.value
             )
     
-    def apply_to_mask(self, img, angle=0, axes = "xy", **params):
+    def apply_to_mask(self, img: np.ndarray, angle: float = 0, axes: str = "xy", **params) -> np.ndarray:
         return F.rotate(
             img,
             angle=angle,
@@ -181,7 +181,7 @@ class Rotate(DualTransform):
             )
         
 
-    def apply_to_bbox(self, bbox, angle=0, axes= "xy", cols=0, rows=0, slices=0, **params):
+    def apply_to_bbox(self, bbox: BoxInternalType, angle: float = 0, axes: str = "xy", cols: int = 0, rows: int = 0, slices: int = 0, **params) -> BoxInternalType:
         return F.bbox_rotate(
             bbox=bbox,
             angle=angle,
@@ -199,7 +199,7 @@ class Rotate(DualTransform):
         #     bbox_out = FCrops.bbox_crop(bbox_out, x_min, y_min, x_max, y_max, rows, cols)
         # return bbox_out
 
-    def apply_to_keypoint(self, keypoint, angle=0,  axes= "xy", cols=0, rows=0, slices=0, **params):
+    def apply_to_keypoint(self, keypoint: KeypointInternalType, angle: float = 0,  axes: str = "xy", cols: int = 0, rows: int = 0, slices: int = 0, **params) -> KeypointInternalType:
         
         return F.keypoint_rotate(
             keypoint = keypoint,
@@ -264,7 +264,7 @@ class Rotate(DualTransform):
         #     out_params.update(self._rotated_rect_with_max_area(h, w, out_params["angle"]))
         # return out_params
 
-    def get_transform_init_args_names(self):
+    def get_transform_init_args_names(self) -> Tuple[str, ...]:
         return ("limit", "interpolation", "axes", "border_mode", "value", "mask_value", "rotate_method", "crop_to_border")
 
 
