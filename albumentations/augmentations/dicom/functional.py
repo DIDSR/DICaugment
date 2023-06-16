@@ -55,12 +55,12 @@ def _load_kernel(kname: str = 'STANDARD') -> np.ndarray:
     Return a numpy array of the specified kernel name
 
     """
-    fname = pkg_resources.resource_filename(__name__, 'data/kernels/{}.npy'.format(kname))
+    fname = pkg_resources.resource_filename(__name__, 'data/kernels/{}.npy'.format(kname.lower()))
 
     try:
         return np.load(fname)
     except Exception as e:
-        raise ValueError("{e}\nCould not find kernel name {}.npy".format(e, kname))
+        raise ValueError("{e}\nCould not find kernel with name {}.npy".format(e, kname.lower()))
     
 
 
