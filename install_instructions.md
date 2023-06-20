@@ -1,12 +1,20 @@
-1. open venv
-2. `pip install setuptools`
-3. `python setup.py bdist_wheel sdist` (could be python3 instead of python depending on distro)
-4. open new venv in testing location
-5. `pip install ../path/to/albumenations3D`
-6. Test this sample script from unit test
+1. activate venv (`. venv\bin\activate`)
+2. If not already there, clone repository
+    - `git clone https\\albumenations3D\github\path.git`
+    - enter username
+    - enter password (personal access token)
+3. `pip install setuptools` (if not already installed)
+4. `pip install wheel` (if not already installed)
+5. `python setup.py bdist_wheel sdist` (could be python3 instead of python depending on distro)
+6. open new venv in testing location (if not yest created)
+    - `mkdir venv`
+    - `python -m venv ./venv`
+7. activate venv (`. venv\bin\activate`)
+8. `pip install ../path/to/albumenations3D`
+9. Test this sample script from unit test
 
 ```
-import albumentations as A # this will eventually change to albumentations3D
+import albumentations3d as A # this will eventually change to albumentations3D
 import numpy as np
 
 image = np.randint(0,256, (100,100,100), dtype = np.uint8)

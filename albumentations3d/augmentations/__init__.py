@@ -10,7 +10,6 @@ from .dicom.functional import *
 # from .domain_adaptation import *
 # from .dropout.channel_dropout import *
 from .dropout.coarse_dropout import *
-from .dropout.cutout import *
 from .dropout.functional import *
 from .dropout.grid_dropout import *
 # from .dropout.mask_dropout import *

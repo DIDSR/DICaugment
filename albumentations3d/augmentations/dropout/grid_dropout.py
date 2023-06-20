@@ -155,7 +155,7 @@ class GridDropout(DualTransform):
                     z1 = min(shift_z + unit_depth * k, depth)
                     x2 = min(x1 + hole_width, width)
                     y2 = min(y1 + hole_height, height)
-                    z2 = min(y1 + hole_depth, depth)
+                    z2 = min(z1 + hole_depth, depth)
                     holes.append((x1, y1, z1, x2, y2, z2))
 
         return {"holes": holes}
