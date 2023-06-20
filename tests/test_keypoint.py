@@ -3,9 +3,9 @@ import math
 import numpy as np
 import pytest
 
-import albumentations as A
-import albumentations.augmentations.geometric.functional as FGeometric
-from albumentations.core.keypoints_utils import (
+import albumentations3d as A
+import albumentations3d.augmentations.geometric.functional as FGeometric
+from albumentations3d.core.keypoints_utils import (
     angle_to_2pi_range,
     convert_keypoint_from_albumentations,
     convert_keypoint_to_albumentations,

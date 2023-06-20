@@ -4,8 +4,8 @@ import numpy as np
 import torch
 from PIL import Image
 
-import albumentations as A
-from albumentations.pytorch.transforms import ToPytorch
+import albumentations3d as A
+from albumentations3d.pytorch.transforms import ToPytorch
 
 
 def test_torch_to_tensor_augmentations(image, mask):

@@ -5,10 +5,10 @@ import cv2
 import numpy as np
 import pytest
 
-import albumentations as A
-import albumentations.augmentations.functional as F
-import albumentations.augmentations.geometric.functional as FGeometric
-from albumentations.augmentations.blur.functional import gaussian_blur
+import albumentations3d as A
+import albumentations3d.augmentations.functional as F
+import albumentations3d.augmentations.geometric.functional as FGeometric
+from albumentations3d.augmentations.blur.functional import gaussian_blur
 
 from .utils import get_dual_transforms, get_image_only_transforms, get_transforms
 

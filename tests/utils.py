@@ -6,7 +6,7 @@ from typing import Optional, Set, Type
 
 import numpy as np
 
-import albumentations
+import albumentations3d
 
 
 def convert_3d_to_4d(arrays, num_channels=3):
@@ -73,8 +73,8 @@ def get_filtered_transforms(
 
     result = []
 
-    for name, cls in inspect.getmembers(albumentations):
-        if not inspect.isclass(cls) or not issubclass(cls, (albumentations.BasicTransform, albumentations.BaseCompose)):
+    for name, cls in inspect.getmembers(albumentations3d):
+        if not inspect.isclass(cls) or not issubclass(cls, (albumentations3d.BasicTransform, albumentations3d.BaseCompose)):
             continue
 
         if "DeprecationWarning" in inspect.getsource(cls) or "FutureWarning" in inspect.getsource(cls):
@@ -95,25 +95,25 @@ def get_filtered_transforms(
 
 
 def get_image_only_transforms(
-    custom_arguments: typing.Optional[typing.Dict[typing.Type[albumentations.ImageOnlyTransform], dict]] = None,
-    except_augmentations: typing.Optional[typing.Set[typing.Type[albumentations.ImageOnlyTransform]]] = None,
+    custom_arguments: typing.Optional[typing.Dict[typing.Type[albumentations3d.ImageOnlyTransform], dict]] = None,
+    except_augmentations: typing.Optional[typing.Set[typing.Type[albumentations3d.ImageOnlyTransform]]] = None,
 ) -> typing.List[typing.Tuple[typing.Type, dict]]:
-    return get_filtered_transforms((albumentations.ImageOnlyTransform,), custom_arguments, except_augmentations)
+    return get_filtered_transforms((albumentations3d.ImageOnlyTransform,), custom_arguments, except_augmentations)
 
 
 def get_dual_transforms(
-    custom_arguments: typing.Optional[typing.Dict[typing.Type[albumentations.DualTransform], dict]] = None,
-    except_augmentations: typing.Optional[typing.Set[typing.Type[albumentations.DualTransform]]] = None,
+    custom_arguments: typing.Optional[typing.Dict[typing.Type[albumentations3d.DualTransform], dict]] = None,
+    except_augmentations: typing.Optional[typing.Set[typing.Type[albumentations3d.DualTransform]]] = None,
 ) -> typing.List[typing.Tuple[typing.Type, dict]]:
-    return get_filtered_transforms((albumentations.DualTransform,), custom_arguments, except_augmentations)
+    return get_filtered_transforms((albumentations3d.DualTransform,), custom_arguments, except_augmentations)
 
 
 def get_transforms(
-    custom_arguments: typing.Optional[typing.Dict[typing.Type[albumentations.BasicTransform], dict]] = None,
-    except_augmentations: typing.Optional[typing.Set[typing.Type[albumentations.BasicTransform]]] = None,
+    custom_arguments: typing.Optional[typing.Dict[typing.Type[albumentations3d.BasicTransform], dict]] = None,
+    except_augmentations: typing.Optional[typing.Set[typing.Type[albumentations3d.BasicTransform]]] = None,
 ) -> typing.List[typing.Tuple[typing.Type, dict]]:
     return get_filtered_transforms(
-        (albumentations.ImageOnlyTransform, albumentations.DualTransform), custom_arguments, except_augmentations
+        (albumentations3d.ImageOnlyTransform, albumentations3d.DualTransform), custom_arguments, except_augmentations
     )
 
 

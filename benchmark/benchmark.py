@@ -25,10 +25,10 @@ import solt.transforms as slt
 import solt.core as slc
 import solt.utils as slu
 
-import albumentations.augmentations.functional as albumentations
-import albumentations as A
-from albumentations.augmentations.geometric.functional import rotate, resize, shift_scale_rotate
-from albumentations.augmentations.crops.functional import random_crop
+import albumentations3d.augmentations.functional as albumentations
+import albumentations3d as A
+from albumentations3d.augmentations.geometric.functional import rotate, resize, shift_scale_rotate
+from albumentations3d.augmentations.crops.functional import random_crop
 
 cv2.setNumThreads(0)  # noqa E402
 cv2.ocl.setUseOpenCL(False)  # noqa E402
