@@ -1,20 +1,32 @@
-# Albumentations
-[![PyPI version](https://badge.fury.io/py/albumentations.svg)](https://badge.fury.io/py/albumentations)
-![CI](https://github.com/albumentations-team/albumentations/workflows/CI/badge.svg)
+# Albumentations3D
+<!-- [![PyPI version](https://badge.fury.io/py/albumentations.svg)](https://badge.fury.io/py/albumentations)
+![CI](https://github.com/albumentations-team/albumentations/workflows/CI/badge.svg) -->
 
-Albumentations is a Python library for image augmentation. Image augmentation is used in deep learning and computer vision tasks to increase the quality of trained models. The purpose of image augmentation is to create new training samples from the existing data.
+Albumentations3D is a Python package based on the popular image augmentation library [Albumentations](https://github.com/albumentations-team/albumentations), but with specific enhancements for working with volumetric 3D images, such as CT scans. This package provides a collection of powerful and efficient augmentation techniques that can be seamlessly integrated into your machine learning pipeline to improve the performance and robustness of your 3D image models.
 
-Here is an example of how you can apply some [pixel-level](#pixel-level-transforms) augmentations from Albumentations to create new images from the original one:
+
+Below are some examples of some common or unique augmentations that are possible with the Albumentations3D library:
 ![lungs](./tools/README_example.gif)
 
-## Why Albumentations
-- Albumentations **[supports all common computer vision tasks](#i-want-to-use-albumentations-for-the-specific-task-such-as-classification-or-segmentation)** such as classification, semantic segmentation, instance segmentation, object detection, and pose estimation.
-- The library provides **[a simple unified API](#a-simple-example)** to work with all data types: images (RBG-images, grayscale images, multispectral images), segmentation masks, bounding boxes, and keypoints.
-- The library contains **[more than 70 different augmentations](#list-of-augmentations)** to generate new training samples from the existing data.
-- Albumentations is [**fast**](#benchmarking-results). We benchmark each new release to ensure that augmentations provide maximum speed.
-- It **[works with popular deep learning frameworks](#i-want-to-know-how-to-use-albumentations-with-deep-learning-frameworks)** such as PyTorch and TensorFlow. By the way, Albumentations is a part of the [PyTorch ecosystem](https://pytorch.org/ecosystem/).
-- [**Written by experts**](#authors). The authors have experience both working on production computer vision systems and participating in competitive machine learning. Many core team members are Kaggle Masters and Grandmasters.
-- The library is [**widely used**](#who-is-using-albumentations) in industry, deep learning research, machine learning competitions, and open source projects.
+
+## Features
+
+Albumentations3D offers the following key features:
+
+- 3D-specific augmentation techniques: The package includes a variety of augmentation methods specifically designed for volumetric 3D images, such as CT scans. These techniques can be used to augment the data and improve the generalization of your models.
+
+- Seamless integration: The package is built as an extension of the Albumentations library, making it easy to incorporate 3D augmentation into your existing image processing pipelines. It maintains a similar API and workflow, ensuring a smooth transition for users already familiar with Albumentations.
+
+- Flexibility: Albumentations3D is designed to be flexible, allowing users to create custom augmentation pipelines tailored to their specific needs. The modular architecture of the package makes it easy create long and complex augmentation pipelines suitable for their needs.
+
+
+## Key Differences between Albumentations3D and Albumentations
+
+- **Dimensionality** is a key difference as Albumentations and most other augmentation libraries do not support volumetric images while Albumentations3D is specifically tailored for these types of images
+
+- The **backbone** of Albumentations mainly relies on operations in the [openCV](https://opencv.org/) framework while Albumentations relies on [SciPy](https://scipy.org/). While this is a known performance downside, many three-dimensional operations are not possible with openCV. For this reason, SciPy is used throughout the library for consistency and certain operations that are acheivable through openCV will be implemented in the future. 
+
+
 
 ## Table of contents
 - [Authors](#authors)
@@ -37,7 +49,9 @@ Here is an example of how you can apply some [pixel-level](#pixel-level-transfor
 - [Citing](#citing)
 
 ## Authors
-[**Alexander Buslaev** — Computer Vision Engineer at Mapbox](https://www.linkedin.com/in/al-buslaev/) | [Kaggle Master](https://www.kaggle.com/albuslaev)
+
+**Jacob McIntosh**
+<!-- [**Alexander Buslaev** — Computer Vision Engineer at Mapbox](https://www.linkedin.com/in/al-buslaev/) | [Kaggle Master](https://www.kaggle.com/albuslaev)
 
 [**Alex Parinov**](https://www.linkedin.com/in/alex-parinov/) | [Kaggle Master](https://www.kaggle.com/creafz)
 
@@ -45,77 +59,36 @@ Here is an example of how you can apply some [pixel-level](#pixel-level-transfor
 
 [**Evegene Khvedchenya** — Computer Vision Research Engineer at Piñata Farms](https://www.linkedin.com/in/cvtalks/) | [Kaggle Grandmaster](https://www.kaggle.com/bloodaxe)
 
-[**Mikhail Druzhinin**](https://www.linkedin.com/in/mikhail-druzhinin-548229100/) | [Kaggle Expert](https://www.kaggle.com/dipetm)
+[**Mikhail Druzhinin**](https://www.linkedin.com/in/mikhail-druzhinin-548229100/) | [Kaggle Expert](https://www.kaggle.com/dipetm) -->
 
 
 ## Installation
-Albumentations requires Python 3.7 or higher. To install the latest version from PyPI:
+Albumentations3D requires Python 3.7 or higher. To install the latest version using `pip`:
 
 ```
-pip install -U albumentations
+pip install albumentations3D
 ```
 
-Other installation options are described in the [documentation](https://albumentations.ai/docs/getting_started/installation/).
+## Usage
 
-## Documentation
-The full documentation is available at **[https://albumentations.ai/docs/](https://albumentations.ai/docs/)**.
+To use Albumentations3D, you need to import the necessary modules and define an augmentation pipeline. Here's a simple example demonstrating how to apply a 3D augmentation pipeline to a set of CT scans:
 
-## A simple example
 ```python
-import albumentations as A
-import cv2
+import albumentations3d as A
 
-# Declare an augmentation pipeline
+# Define the augmentation pipeline
 transform = A.Compose([
-    A.RandomCrop(width=256, height=256),
-    A.HorizontalFlip(p=0.5),
-    A.RandomBrightnessContrast(p=0.2),
+    A.Rotate(p=0.5, limit=20, interpolation=1),
+    A.RandomCrop(p=0.5, size=(64, 64, 64))
 ])
 
-# Read an image with OpenCV and convert it to the RGB colorspace
-image = cv2.imread("image.jpg")
-image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-
-# Augment an image
-transformed = transform(image=image)
-transformed_image = transformed["image"]
+# Apply the augmentation pipeline to a CT scan
+augmented_scan = transform(image=scan)["image"]
 ```
 
-## Getting started
+In the example above, we import the `albumentations3d` module and create an instance of `A.Compose` to define our augmentation pipeline. We then specify the desired augmentation techniques, such as rotation (`A.Rotate`) and random cropping (`A.RandomCrop`), along with their respective parameters. Finally, we apply the transformation to a CT scan using the `transform` function.
 
-### I am new to image augmentation
-Please start with the [introduction articles](https://albumentations.ai/docs/#introduction-to-image-augmentation) about why image augmentation is important and how it helps to build better models.
-
-### I want to use Albumentations for the specific task such as classification or segmentation
-If you want to use Albumentations for a specific task such as classification, segmentation, or object detection, refer to the [set of articles](https://albumentations.ai/docs/#getting-started-with-albumentations) that has an in-depth description of this task. We also have a [list of examples](https://albumentations.ai/docs/examples/) on applying Albumentations for different use cases.
-
-### I want to know how to use Albumentations with deep learning frameworks
-We have [examples of using Albumentations](https://albumentations.ai/docs/#examples-of-how-to-use-albumentations-with-different-deep-learning-frameworks) along with PyTorch and TensorFlow.
-
-### I want to explore augmentations and see Albumentations in action
-Check the [online demo of the library](https://albumentations-demo.herokuapp.com/). With it, you can apply augmentations to different images and see the result. Also, we have a [list of all available augmentations and their targets](#list-of-augmentations).
-
-## Who is using Albumentations
-<a href="https://www.lyft.com/" target="_blank"><img src="https://habrastorage.org/webt/ce/bs/sa/cebssajf_5asst5yshmyykqjhcg.png" width="100"/></a>
-<a href="https://imedhub.org/" target="_blank"><img src="https://habrastorage.org/webt/eq/8x/m-/eq8xm-fjfx_uqkka4_ekxsdwtiq.png" width="100"/></a>
-<a href="https://recursionpharma.com" target="_blank"><img src="https://pbs.twimg.com/profile_images/925897897165639683/jI8YvBfC_400x400.jpg" width="100"/></a>
-<a href="https://www.everypixel.com/" target="_blank"><img src="https://www.everypixel.com/i/logo_sq.png" width="100"/></a>
-<a href="https://neuromation.io/" target="_blank"><img src="https://habrastorage.org/webt/yd/_4/xa/yd_4xauvggn1tuz5xgrtkif6lya.png" width="100"/></a>
-<a href="https://ultralytics.com/" target="_blank"><img src="https://albumentations.ai/assets/img/industry/ultralytics.png" width="100"/></a>
-<a href="https://www.cft.ru/" target="_blank"><img src="https://habrastorage.org/webt/dv/fa/uq/dvfauqyl5cor5yzrfrpthjzm0mi.jpeg" width="100"/></a>
-<a href="https://www.pinatafarm.com/" target="_blank"><img src="https://www.pinatafarm.com/pfLogo.png" width="100"/></a>
-<a href="https://incode.com/" target="_blank"><img src="https://habrastorage.org/webt/sh/eg/bs/shegbsyzy-0lebwqxkgl_rkkx3m.png" width="100"/></a>
-<a href="https://sharpershape.com/" target="_blank"><img src="https://lh3.googleusercontent.com/pw/AM-JKLWe2-aRXcZMqZOnL67Gw8v46LTwJw5a6RyufgAiLCKncxSI4U7wzHopt5Lacbc4wpDF7uJYMrWcVXPK-3Z3cxopV9jmtriuWSdzNpAO6gDC963nPd3BrWlE6eFwstLCb4il6lYXT49BbamdUipZrLk=w1870-h1574-no?authuser=0" width="100"/></a>
-<a href="https://vitechlab.com/" target="_blank"><img src="https://res2.weblium.site/res/5f842a47d2077f0022e59f1d/5f842ba81ff15b00214a447f_optimized_389.webp" width="100"/></a>
-<a href="https://borzodelivery.com/" target="_blank"><img src="https://borzodelivery.com/img/global/big-logo.svg" width="100"/></a>
-<a href="https://anadea.info/" target="_blank"><img src="https://habrastorage.org/webt/oc/lt/8u/oclt8uwyyc-vgmwwcgcsk5cw7wy.png" width="100"/></a>
-<a href="https://www.idrnd.ai/" target="_blank"><img src="https://www.idrnd.ai/wp-content/uploads/2019/09/Logo-IDRND.png.webp" width="100"/></a>
-<a href="https://openface.me/" target="_blank"><img src="https://drive.google.com/uc?export=view&id=1mC8B55CPFlpUC69Wnli2vitp6pImIfz7" width="100"/></a>
-
-#### See also:
-- [A list of papers that cite Albumentations](https://albumentations.ai/whos_using#research).
-- [A list of teams that were using Albumentations and took high places in machine learning competitions](https://albumentations.ai/whos_using#competitions).
-- [Open source projects that use Albumentations](https://albumentations.ai/whos_using#open-source).
+Please refer to the [Albumentations3D documentation](https://albumentations3d.readthedocs.io/) for more detailed usage instructions and a comprehensive list of available augmentation techniques.
 
 ## List of augmentations
 
@@ -266,16 +239,18 @@ Python and library versions: Python 3.9.5 (default, Jun 23 2021, 15:01:51) [GCC 
 
 ## Contributing
 
-To create a pull request to the repository, follow the documentation at [https://albumentations.ai/docs/contributing/](https://albumentations.ai/docs/contributing/)
+Contributions to Albumentations3D are welcome! If you have any bug reports, feature requests, or would like to contribute code, please check out the [repository](https://github.com/jjmcintosh/albumentations3d) on GitHub.
 
+## License
 
-## Comments
-In some systems, in the multiple GPU regime, PyTorch may deadlock the DataLoader if OpenCV was compiled with OpenCL optimizations. Adding the following two lines before the library import may help. For more details [https://github.com/pytorch/pytorch/issues/1355](https://github.com/pytorch/pytorch/issues/1355)
+Albumentations3D is distributed under the MIT license. See [LICENSE](https://github.com/jjmcintosh/albumentations3d/blob/main/LICENSE) for more information.
 
-```python
-cv2.setNumThreads(0)
-cv2.ocl.setUseOpenCL(False)
-```
+## Acknowledgments
+
+We would like to express our gratitude to the developers of Albumentations for their excellent work on the original library, which served as the foundation for Albumentations3D. We also thank the open-source community for their contributions and feedback.
+
+If you find Albumentations3D useful in your research or projects, please consider citing it:
+
 
 ## Citing
 
