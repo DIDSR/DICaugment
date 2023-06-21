@@ -19,12 +19,12 @@ IGNORED_CLASSES = {
 
 
 def make_augmentation_docs_link(cls):
-    module_parts = cls.__module__.split(".")
-    module_page = "/".join(module_parts[1:])
+    module_page = ".".join(cls.__module__.split(".")[:-1])
     return (
-        "[{cls.__name__}](https://albumentations.ai/docs/api_reference/{module_page}/#{cls.__module__}.{cls.__name__})"
+        "[{cls.__name__}](https://albumentations3d.readthedocs.io/en/latest/{module_page}.html#{cls.__module__}.{cls.__name__})"
     ).format(module_page=module_page, cls=cls)
-
+#albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.crops.html#albumentations3d.augmentations.crops.transforms.CenterCrop
+#https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.dropout.html#albumentations3d.augmentations.dropout.coarse_dropout.CoarseDropout
 
 class Targets(Enum):
     IMAGE = "Image"

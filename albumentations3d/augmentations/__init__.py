@@ -7,12 +7,9 @@ from .dicom.transforms import *
 from .dicom.functional import *
 
 # New transformations goes to individual files listed below
-# from .domain_adaptation import *
-# from .dropout.channel_dropout import *
 from .dropout.coarse_dropout import *
 from .dropout.functional import *
 from .dropout.grid_dropout import *
-# from .dropout.mask_dropout import *
 from .functional import *
 from .geometric.functional import *
 from .geometric.resize import *

@@ -16,14 +16,6 @@ Subpackages
 Submodules
 ----------
 
-albumentations3d.augmentations.domain\_adaptation module
---------------------------------------------------------
-
-.. automodule:: albumentations3d.augmentations.domain_adaptation
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 albumentations3d.augmentations.functional module
 ------------------------------------------------
 

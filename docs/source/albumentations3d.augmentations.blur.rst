@@ -12,7 +12,7 @@ albumentations3d.augmentations.blur.functional module
    :undoc-members:
    :show-inheritance:
 
-albumentations3d.augmentations.blur.transforms module
+augmentations.blur.transforms module
 -----------------------------------------------------
 
 .. automodule:: albumentations3d.augmentations.blur.transforms

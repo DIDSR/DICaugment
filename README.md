@@ -95,98 +95,62 @@ Please refer to the [Albumentations3D documentation](https://albumentations3d.re
 ### Pixel-level transforms
 Pixel-level transforms will change just an input image and will leave any additional targets such as masks, bounding boxes, and keypoints unchanged. The list of pixel-level transforms:
 
-- [AdvancedBlur](https://albumentations.ai/docs/api_reference/augmentations/blur/transforms/#albumentations.augmentations.blur.transforms.AdvancedBlur)
-- [Blur](https://albumentations.ai/docs/api_reference/augmentations/blur/transforms/#albumentations.augmentations.blur.transforms.Blur)
-- [CLAHE](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.CLAHE)
-- [ChannelDropout](https://albumentations.ai/docs/api_reference/augmentations/dropout/channel_dropout/#albumentations.augmentations.dropout.channel_dropout.ChannelDropout)
-- [ChannelShuffle](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.ChannelShuffle)
-- [ColorJitter](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.ColorJitter)
-- [Defocus](https://albumentations.ai/docs/api_reference/augmentations/blur/transforms/#albumentations.augmentations.blur.transforms.Defocus)
-- [Downscale](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.Downscale)
-- [Emboss](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.Emboss)
-- [Equalize](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.Equalize)
-- [FDA](https://albumentations.ai/docs/api_reference/augmentations/domain_adaptation/#albumentations.augmentations.domain_adaptation.FDA)
-- [FancyPCA](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.FancyPCA)
-- [FromFloat](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.FromFloat)
-- [GaussNoise](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.GaussNoise)
-- [GaussianBlur](https://albumentations.ai/docs/api_reference/augmentations/blur/transforms/#albumentations.augmentations.blur.transforms.GaussianBlur)
-- [GlassBlur](https://albumentations.ai/docs/api_reference/augmentations/blur/transforms/#albumentations.augmentations.blur.transforms.GlassBlur)
-- [HistogramMatching](https://albumentations.ai/docs/api_reference/augmentations/domain_adaptation/#albumentations.augmentations.domain_adaptation.HistogramMatching)
-- [HueSaturationValue](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.HueSaturationValue)
-- [ISONoise](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.ISONoise)
-- [ImageCompression](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.ImageCompression)
-- [InvertImg](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.InvertImg)
-- [MedianBlur](https://albumentations.ai/docs/api_reference/augmentations/blur/transforms/#albumentations.augmentations.blur.transforms.MedianBlur)
-- [MotionBlur](https://albumentations.ai/docs/api_reference/augmentations/blur/transforms/#albumentations.augmentations.blur.transforms.MotionBlur)
-- [MultiplicativeNoise](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.MultiplicativeNoise)
-- [Normalize](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.Normalize)
-- [PixelDistributionAdaptation](https://albumentations.ai/docs/api_reference/augmentations/domain_adaptation/#albumentations.augmentations.domain_adaptation.PixelDistributionAdaptation)
-- [Posterize](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.Posterize)
-- [RGBShift](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.RGBShift)
-- [RandomBrightnessContrast](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.RandomBrightnessContrast)
-- [RandomFog](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.RandomFog)
-- [RandomGamma](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.RandomGamma)
-- [RandomGravel](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.RandomGravel)
-- [RandomRain](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.RandomRain)
-- [RandomShadow](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.RandomShadow)
-- [RandomSnow](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.RandomSnow)
-- [RandomSunFlare](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.RandomSunFlare)
-- [RandomToneCurve](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.RandomToneCurve)
-- [RingingOvershoot](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.RingingOvershoot)
-- [Sharpen](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.Sharpen)
-- [Solarize](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.Solarize)
-- [Spatter](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.Spatter)
-- [Superpixels](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.Superpixels)
-- [TemplateTransform](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.TemplateTransform)
-- [ToFloat](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.ToFloat)
-- [ToGray](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.ToGray)
-- [ToRGB](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.ToRGB)
-- [ToSepia](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.ToSepia)
-- [UnsharpMask](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.UnsharpMask)
-- [ZoomBlur](https://albumentations.ai/docs/api_reference/augmentations/blur/transforms/#albumentations.augmentations.blur.transforms.ZoomBlur)
+- [Blur](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.blur.html#albumentations3d.augmentations.blur.transforms.Blur)
+- [Downscale](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.html#albumentations3d.augmentations.transforms.Downscale)
+- [Equalize](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.html#albumentations3d.augmentations.transforms.Equalize)
+- [FromFloat](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.html#albumentations3d.augmentations.transforms.FromFloat)
+- [GaussNoise](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.html#albumentations3d.augmentations.transforms.GaussNoise)
+- [GaussianBlur](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.blur.html#albumentations3d.augmentations.blur.transforms.GaussianBlur)
+- [InvertImg](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.html#albumentations3d.augmentations.transforms.InvertImg)
+- [MedianBlur](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.blur.html#albumentations3d.augmentations.blur.transforms.MedianBlur)
+- [Normalize](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.html#albumentations3d.augmentations.transforms.Normalize)
+- [RandomBrightnessContrast](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.html#albumentations3d.augmentations.transforms.RandomBrightnessContrast)
+- [RandomGamma](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.html#albumentations3d.augmentations.transforms.RandomGamma)
+- [Sharpen](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.html#albumentations3d.augmentations.transforms.Sharpen)
+- [ToFloat](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.html#albumentations3d.augmentations.transforms.ToFloat)
+- [UnsharpMask](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.html#albumentations3d.augmentations.transforms.UnsharpMask)
 
 ### Spatial-level transforms
 Spatial-level transforms will simultaneously change both an input image as well as additional targets such as masks, bounding boxes, and keypoints. The following table shows which additional targets are supported by each transform.
 
-| Transform                                                                                                                                                                       | Image | Masks | BBoxes | Keypoints |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---: | :---: | :----: | :-------: |
-| [Affine](https://albumentations.ai/docs/api_reference/augmentations/geometric/transforms/#albumentations.augmentations.geometric.transforms.Affine)                             | ✓     | ✓     | ✓      | ✓         |
-| [BBoxSafeRandomCrop](https://albumentations.ai/docs/api_reference/augmentations/crops/transforms/#albumentations.augmentations.crops.transforms.BBoxSafeRandomCrop)             | ✓     | ✓     | ✓      |           |
-| [CenterCrop](https://albumentations.ai/docs/api_reference/augmentations/crops/transforms/#albumentations.augmentations.crops.transforms.CenterCrop)                             | ✓     | ✓     | ✓      | ✓         |
-| [CoarseDropout](https://albumentations.ai/docs/api_reference/augmentations/dropout/coarse_dropout/#albumentations.augmentations.dropout.coarse_dropout.CoarseDropout)           | ✓     | ✓     |        | ✓         |
-| [Crop](https://albumentations.ai/docs/api_reference/augmentations/crops/transforms/#albumentations.augmentations.crops.transforms.Crop)                                         | ✓     | ✓     | ✓      | ✓         |
-| [CropAndPad](https://albumentations.ai/docs/api_reference/augmentations/crops/transforms/#albumentations.augmentations.crops.transforms.CropAndPad)                             | ✓     | ✓     | ✓      | ✓         |
-| [CropNonEmptyMaskIfExists](https://albumentations.ai/docs/api_reference/augmentations/crops/transforms/#albumentations.augmentations.crops.transforms.CropNonEmptyMaskIfExists) | ✓     | ✓     | ✓      | ✓         |
-| [ElasticTransform](https://albumentations.ai/docs/api_reference/augmentations/geometric/transforms/#albumentations.augmentations.geometric.transforms.ElasticTransform)         | ✓     | ✓     | ✓      |           |
-| [Flip](https://albumentations.ai/docs/api_reference/augmentations/geometric/transforms/#albumentations.augmentations.geometric.transforms.Flip)                                 | ✓     | ✓     | ✓      | ✓         |
-| [GridDistortion](https://albumentations.ai/docs/api_reference/augmentations/geometric/transforms/#albumentations.augmentations.geometric.transforms.GridDistortion)             | ✓     | ✓     | ✓      |           |
-| [GridDropout](https://albumentations.ai/docs/api_reference/augmentations/dropout/grid_dropout/#albumentations.augmentations.dropout.grid_dropout.GridDropout)                   | ✓     | ✓     |        |           |
-| [HorizontalFlip](https://albumentations.ai/docs/api_reference/augmentations/geometric/transforms/#albumentations.augmentations.geometric.transforms.HorizontalFlip)             | ✓     | ✓     | ✓      | ✓         |
-| [Lambda](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.Lambda)                                                 | ✓     | ✓     | ✓      | ✓         |
-| [LongestMaxSize](https://albumentations.ai/docs/api_reference/augmentations/geometric/resize/#albumentations.augmentations.geometric.resize.LongestMaxSize)                     | ✓     | ✓     | ✓      | ✓         |
-| [MaskDropout](https://albumentations.ai/docs/api_reference/augmentations/dropout/mask_dropout/#albumentations.augmentations.dropout.mask_dropout.MaskDropout)                   | ✓     | ✓     |        |           |
-| [NoOp](https://albumentations.ai/docs/api_reference/core/transforms_interface/#albumentations.core.transforms_interface.NoOp)                                                   | ✓     | ✓     | ✓      | ✓         |
-| [OpticalDistortion](https://albumentations.ai/docs/api_reference/augmentations/geometric/transforms/#albumentations.augmentations.geometric.transforms.OpticalDistortion)       | ✓     | ✓     | ✓      |           |
-| [PadIfNeeded](https://albumentations.ai/docs/api_reference/augmentations/geometric/transforms/#albumentations.augmentations.geometric.transforms.PadIfNeeded)                   | ✓     | ✓     | ✓      | ✓         |
-| [Perspective](https://albumentations.ai/docs/api_reference/augmentations/geometric/transforms/#albumentations.augmentations.geometric.transforms.Perspective)                   | ✓     | ✓     | ✓      | ✓         |
-| [PiecewiseAffine](https://albumentations.ai/docs/api_reference/augmentations/geometric/transforms/#albumentations.augmentations.geometric.transforms.PiecewiseAffine)           | ✓     | ✓     | ✓      | ✓         |
-| [PixelDropout](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.PixelDropout)                                     | ✓     | ✓     | ✓      | ✓         |
-| [RandomCrop](https://albumentations.ai/docs/api_reference/augmentations/crops/transforms/#albumentations.augmentations.crops.transforms.RandomCrop)                             | ✓     | ✓     | ✓      | ✓         |
-| [RandomCropFromBorders](https://albumentations.ai/docs/api_reference/augmentations/crops/transforms/#albumentations.augmentations.crops.transforms.RandomCropFromBorders)       | ✓     | ✓     | ✓      | ✓         |
-| [RandomCropNearBBox](https://albumentations.ai/docs/api_reference/augmentations/crops/transforms/#albumentations.augmentations.crops.transforms.RandomCropNearBBox)             | ✓     | ✓     | ✓      | ✓         |
-| [RandomGridShuffle](https://albumentations.ai/docs/api_reference/augmentations/transforms/#albumentations.augmentations.transforms.RandomGridShuffle)                           | ✓     | ✓     |        | ✓         |
-| [RandomResizedCrop](https://albumentations.ai/docs/api_reference/augmentations/crops/transforms/#albumentations.augmentations.crops.transforms.RandomResizedCrop)               | ✓     | ✓     | ✓      | ✓         |
-| [RandomRotate90](https://albumentations.ai/docs/api_reference/augmentations/geometric/rotate/#albumentations.augmentations.geometric.rotate.RandomRotate90)                     | ✓     | ✓     | ✓      | ✓         |
-| [RandomScale](https://albumentations.ai/docs/api_reference/augmentations/geometric/resize/#albumentations.augmentations.geometric.resize.RandomScale)                           | ✓     | ✓     | ✓      | ✓         |
-| [RandomSizedBBoxSafeCrop](https://albumentations.ai/docs/api_reference/augmentations/crops/transforms/#albumentations.augmentations.crops.transforms.RandomSizedBBoxSafeCrop)   | ✓     | ✓     | ✓      |           |
-| [RandomSizedCrop](https://albumentations.ai/docs/api_reference/augmentations/crops/transforms/#albumentations.augmentations.crops.transforms.RandomSizedCrop)                   | ✓     | ✓     | ✓      | ✓         |
-| [Resize](https://albumentations.ai/docs/api_reference/augmentations/geometric/resize/#albumentations.augmentations.geometric.resize.Resize)                                     | ✓     | ✓     | ✓      | ✓         |
-| [Rotate](https://albumentations.ai/docs/api_reference/augmentations/geometric/rotate/#albumentations.augmentations.geometric.rotate.Rotate)                                     | ✓     | ✓     | ✓      | ✓         |
-| [SafeRotate](https://albumentations.ai/docs/api_reference/augmentations/geometric/rotate/#albumentations.augmentations.geometric.rotate.SafeRotate)                             | ✓     | ✓     | ✓      | ✓         |
-| [ShiftScaleRotate](https://albumentations.ai/docs/api_reference/augmentations/geometric/transforms/#albumentations.augmentations.geometric.transforms.ShiftScaleRotate)         | ✓     | ✓     | ✓      | ✓         |
-| [SmallestMaxSize](https://albumentations.ai/docs/api_reference/augmentations/geometric/resize/#albumentations.augmentations.geometric.resize.SmallestMaxSize)                   | ✓     | ✓     | ✓      | ✓         |
-| [Transpose](https://albumentations.ai/docs/api_reference/augmentations/geometric/transforms/#albumentations.augmentations.geometric.transforms.Transpose)                       | ✓     | ✓     | ✓      | ✓         |
-| [VerticalFlip](https://albumentations.ai/docs/api_reference/augmentations/geometric/transforms/#albumentations.augmentations.geometric.transforms.VerticalFlip)                 | ✓     | ✓     | ✓      | ✓         |
+| Transform                                                                                                                                                                                      | Image | Masks | BBoxes | Keypoints |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---: | :---: | :----: | :-------: |
+| [BBoxSafeRandomCrop](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.crops.html#albumentations3d.augmentations.crops.transforms.BBoxSafeRandomCrop)           | ✓     | ✓     | ✓      |           |
+| [CenterCrop](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.crops.html#albumentations3d.augmentations.crops.transforms.CenterCrop)                           | ✓     | ✓     | ✓      | ✓         |
+| [CoarseDropout](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.dropout.html#albumentations3d.augmentations.dropout.coarse_dropout.CoarseDropout)             | ✓     | ✓     |        | ✓         |
+| [Crop](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.crops.html#albumentations3d.augmentations.crops.transforms.Crop)                                       | ✓     | ✓     | ✓      | ✓         |
+| [CropAndPad](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.crops.html#albumentations3d.augmentations.crops.transforms.CropAndPad)                           | ✓     | ✓     | ✓      | ✓         |
+| [Flip](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.geometric.html#albumentations3d.augmentations.geometric.transforms.Flip)                               | ✓     | ✓     | ✓      | ✓         |
+| [GridDropout](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.dropout.html#albumentations3d.augmentations.dropout.grid_dropout.GridDropout)                   | ✓     | ✓     |        |           |
+| [HorizontalFlip](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.geometric.html#albumentations3d.augmentations.geometric.transforms.HorizontalFlip)           | ✓     | ✓     | ✓      | ✓         |
+| [LongestMaxSize](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.geometric.html#albumentations3d.augmentations.geometric.resize.LongestMaxSize)               | ✓     | ✓     | ✓      | ✓         |
+| [NoOp](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.core.html#albumentations3d.core.transforms_interface.NoOp)                                                           | ✓     | ✓     | ✓      | ✓         |
+| [PadIfNeeded](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.geometric.html#albumentations3d.augmentations.geometric.transforms.PadIfNeeded)                 | ✓     | ✓     | ✓      | ✓         |
+| [PixelDropout](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.html#albumentations3d.augmentations.transforms.PixelDropout)                                   | ✓     | ✓     | ✓      | ✓         |
+| [RandomCrop](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.crops.html#albumentations3d.augmentations.crops.transforms.RandomCrop)                           | ✓     | ✓     | ✓      | ✓         |
+| [RandomCropFromBorders](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.crops.html#albumentations3d.augmentations.crops.transforms.RandomCropFromBorders)     | ✓     | ✓     | ✓      | ✓         |
+| [RandomCropNearBBox](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.crops.html#albumentations3d.augmentations.crops.transforms.RandomCropNearBBox)           | ✓     | ✓     | ✓      | ✓         |
+| [RandomRotate90](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.geometric.html#albumentations3d.augmentations.geometric.rotate.RandomRotate90)               | ✓     | ✓     | ✓      | ✓         |
+| [RandomScale](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.geometric.html#albumentations3d.augmentations.geometric.resize.RandomScale)                     | ✓     | ✓     | ✓      | ✓         |
+| [RandomSizedBBoxSafeCrop](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.crops.html#albumentations3d.augmentations.crops.transforms.RandomSizedBBoxSafeCrop) | ✓     | ✓     | ✓      |           |
+| [RandomSizedCrop](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.crops.html#albumentations3d.augmentations.crops.transforms.RandomSizedCrop)                 | ✓     | ✓     | ✓      | ✓         |
+| [Resize](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.geometric.html#albumentations3d.augmentations.geometric.resize.Resize)                               | ✓     | ✓     | ✓      | ✓         |
+| [Rotate](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.geometric.html#albumentations3d.augmentations.geometric.rotate.Rotate)                               | ✓     | ✓     | ✓      | ✓         |
+| [ShiftScaleRotate](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.geometric.html#albumentations3d.augmentations.geometric.transforms.ShiftScaleRotate)       | ✓     | ✓     | ✓      | ✓         |
+| [SliceFlip](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.geometric.html#albumentations3d.augmentations.geometric.transforms.SliceFlip)                     | ✓     | ✓     | ✓      | ✓         |
+| [SmallestMaxSize](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.geometric.html#albumentations3d.augmentations.geometric.resize.SmallestMaxSize)             | ✓     | ✓     | ✓      | ✓         |
+| [Transpose](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.geometric.html#albumentations3d.augmentations.geometric.transforms.Transpose)                     | ✓     | ✓     | ✓      | ✓         |
+| [VerticalFlip](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.geometric.html#albumentations3d.augmentations.geometric.transforms.VerticalFlip)               | ✓     | ✓     | ✓      | ✓         |
+
+
+
+### CT Scan Specific Transforms
+
+These transforms utilize metadata from a DICOM header file to apply a pixel-level or spatial-level transformation
+
+- [NPSNoise](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.dicom.html#albumentations3d.augmentations.dicom.transforms.NPSNoise)
+- [RescaleSlopeIntercept](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.dicom.html#albumentations3d.augmentations.dicom.transforms.RescaleSlopeIntercept)
+- [SetPixelSpacing](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.dicom.html#albumentations3d.augmentations.dicom.transforms.SetPixelSpacing)
 
 ## A few more examples of augmentations
 ### Semantic segmentation on the Inria dataset
@@ -203,7 +167,7 @@ Spatial-level transforms will simultaneously change both an input image as well 
 <img src="https://habrastorage.org/webt/e-/6k/z-/e-6kz-fugp2heak3jzns3bc-r8o.jpeg" width=100%>
 
 
-## Benchmarking results
+<!-- ## Benchmarking results
 To run the benchmark yourself, follow the instructions in [benchmark/README.md](https://github.com/albumentations-team/albumentations/blob/master/benchmark/README.md)
 
 Results for running the benchmark on the first 2000 images from the ImageNet validation set using an Intel(R) Xeon(R) Gold 6140 CPU.
@@ -235,7 +199,7 @@ The table shows how many images per second can be processed on a single core; hi
 |MultiplyElementwise   |                 111                  |           **200**            |                            -                             |              -              |                -                |             -              |
 |ColorJitter           |               **351**                |              78              |                            57                            |              -              |                -                |             -              |
 
-Python and library versions: Python 3.9.5 (default, Jun 23 2021, 15:01:51) [GCC 8.3.0], numpy 1.19.5, pillow-simd 7.0.0.post3, opencv-python 4.5.3.56, scikit-image 0.18.3, scipy 1.7.1.
+Python and library versions: Python 3.9.5 (default, Jun 23 2021, 15:01:51) [GCC 8.3.0], numpy 1.19.5, pillow-simd 7.0.0.post3, opencv-python 4.5.3.56, scikit-image 0.18.3, scipy 1.7.1. -->
 
 ## Contributing
 
@@ -249,10 +213,10 @@ Albumentations3D is distributed under the MIT license. See [LICENSE](https://git
 
 We would like to express our gratitude to the developers of Albumentations for their excellent work on the original library, which served as the foundation for Albumentations3D. We also thank the open-source community for their contributions and feedback.
 
-If you find Albumentations3D useful in your research or projects, please consider citing it:
+<!-- If you find Albumentations3D useful in your research or projects, please consider citing it: -->
 
 
-## Citing
+<!-- ## Citing
 
 If you find this library useful for your research, please consider citing [Albumentations: Fast and Flexible Image Augmentations](https://www.mdpi.com/2078-2489/11/2/125):
 
@@ -269,4 +233,4 @@ If you find this library useful for your research, please consider citing [Album
     ISSN = {2078-2489},
     DOI = {10.3390/info11020125}
 }
-```
+``` -->

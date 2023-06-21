@@ -7,11 +7,19 @@ Welcome to Albumentations3D's documentation!
 ============================================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Contents:
 
 
-   modules
+   albumentations3d.augmentations
+   albumentations3d.augmentations.geometric
+   albumentations3d.augmentations.blur
+   albumentations3d.augmentations.crops
+   albumentations3d.augmentations.dropout
+   albumentations3d.augmentations.dicom
+   albumentations3d.core
+   albumentations3d.pytorch
+   albumentations3d.tensorflow
 
 
 
