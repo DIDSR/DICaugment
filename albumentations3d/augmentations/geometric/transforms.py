@@ -175,7 +175,7 @@ class ShiftScaleRotate(DualTransform):
             cols: int = 0,
             slices: int = 0,
             **params) -> KeypointInternalType:
-        return F.keypoint_shift_scale_rotate(keypoint, angle, scale, dx, dy, dz, axes, rows, cols, slices)
+        return F.keypoint_shift_scale_rotate(keypoint, angle, scale, dx, dy, dz, axes, self.crop_to_border, rows, cols, slices)
     
     def apply_to_dicom(self, dicom: DicomType, scale: float = 1, **params) -> DicomType:
         return Fdicom.dicom_scale(dicom, scale, scale, scale)
@@ -199,7 +199,7 @@ class ShiftScaleRotate(DualTransform):
             dy: float = 0,
             dz: float = 0,
             **params) -> BoxInternalType:
-        return F.bbox_shift_scale_rotate(bbox, angle, scale, dx, dy, dz, axes, self.rotate_method, **params)
+        return F.bbox_shift_scale_rotate(bbox, angle, scale, dx, dy, dz, axes, self.crop_to_border, self.rotate_method, **params)
     
     def get_transform_init_args(self) -> Dict[str, Any]:
         return {

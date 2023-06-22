@@ -98,7 +98,7 @@ def main():
 
 
 def gif_ify(directory, ext = ".png"):
-        frames = [Image.open(im) for im in glob.glob("{}*{}".format(directory, ext))]
+        frames = [Image.open(im) for im in sorted(glob.glob("{}*{}".format(directory, ext)))]
         first_frame = frames[0]
         first_frame.save("README_example.gif", format="GIF", append_images = frames[1:], save_all= True, duration = 400, loop = 0)
 

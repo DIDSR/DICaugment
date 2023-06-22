@@ -28,7 +28,7 @@ Albumentations3D offers the following key features:
 
 
 
-## Table of contents
+<!-- ## Table of contents
 - [Authors](#authors)
 - [Installation](#installation)
 - [Documentation](#documentation)
@@ -46,7 +46,7 @@ Albumentations3D offers the following key features:
 - [Benchmarking results](#benchmarking-results)
 - [Contributing](#contributing)
 - [Comments](#comments)
-- [Citing](#citing)
+- [Citing](#citing) -->
 
 ## Authors
 
@@ -153,18 +153,18 @@ These transforms utilize metadata from a DICOM header file to apply a pixel-leve
 - [SetPixelSpacing](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.dicom.html#albumentations3d.augmentations.dicom.transforms.SetPixelSpacing)
 
 ## A few more examples of augmentations
-### Semantic segmentation on the Inria dataset
+### Segmentation
 
-![inria](https://habrastorage.org/webt/su/wa/np/suwanpeo6ww7wpwtobtrzd_cg20.jpeg)
+![Segmentation](./tools/segmentation_example.gif)
 
-### Medical imaging
-![medical](https://habrastorage.org/webt/1i/fi/wz/1ifiwzy0lxetc4nwjvss-71nkw0.jpeg)
+### 3D Bounding Box and Keypoint Augmentations
+![kp_bbox](./tools/bbox_kp_example.gif)
 
-### Object detection and semantic segmentation on the Mapillary Vistas dataset
+<!-- ### Object detection and semantic segmentation on the Mapillary Vistas dataset
 ![vistas](https://habrastorage.org/webt/rz/-h/3j/rz-h3jalbxic8o_fhucxysts4tc.jpeg)
 
 ### Keypoints augmentation
-<img src="https://habrastorage.org/webt/e-/6k/z-/e-6kz-fugp2heak3jzns3bc-r8o.jpeg" width=100%>
+<img src="https://habrastorage.org/webt/e-/6k/z-/e-6kz-fugp2heak3jzns3bc-r8o.jpeg" width=100%> -->
 
 
 <!-- ## Benchmarking results

@@ -350,7 +350,7 @@ def bbox_rotate(bbox: BoxInternalType, angle: float, method: str, axes: str, cro
     
     
     angle = np.deg2rad(angle)
-    rotation_matrix = _get_rotation_matrix(angle, axes, dir=-1)
+    rotation_matrix = _get_rotation_matrix(angle, axes, dir=1)
 
     bbox_points_t = np.matmul(rotation_matrix, bbox_points.T)
 
@@ -383,6 +383,13 @@ def keypoint_rotate(keypoint, angle: float, axes: str, crop_to_border: bool, row
 
     """
     angle = np.deg2rad(angle)
+
+    if axes == "xz":
+        axes = "yz"
+
+    elif axes == "yz":
+        axes = "xz"
+
 
     in_center = _get_image_center((rows, cols, slices))
     out_center = in_center.copy()
@@ -509,6 +516,11 @@ def keypoint_shift_scale_rotate(keypoint, angle, scale, dx, dy, dz, axes = "xy",
     scale = (scale,)*3
     angle = np.deg2rad(angle)
 
+    if axes == "xz":
+        axes = "yz"
+    elif axes == "yz":
+        axes = "xz"
+
     rotation_matrix = _get_rotation_matrix(angle, axes, dir=-1)
     scale_matrix = _get_scale_matrix(*scale)
 
@@ -590,7 +602,7 @@ def bbox_shift_scale_rotate(bbox, angle, scale, dx, dy, dz, axes="xy", crop_to_b
             raise ValueError("Parameter axes must be one of {'xy','yz','xz'}")
         
         bbox_points = np.column_stack(
-                [y,x,z, np.ones(720)],
+                [y,x,z],
             )
     else:
         raise ValueError(f"Method {rotate_method} is not a valid rotation method.")
@@ -598,7 +610,7 @@ def bbox_shift_scale_rotate(bbox, angle, scale, dx, dy, dz, axes="xy", crop_to_b
     
     angle = np.deg2rad(angle)
     scale = (scale,)*3
-    rotation_matrix = _get_rotation_matrix(angle, axes, dir=-1)
+    rotation_matrix = _get_rotation_matrix(angle, axes, dir=1)
     scale_matrix = _get_scale_matrix(*scale)
     shift = np.array([dx,dy,dz,dx,dy,dz])
 
