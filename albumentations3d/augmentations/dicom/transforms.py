@@ -129,7 +129,7 @@ class NPSNoise(ImageOnlyTransform):
     
     Args:
         magnitude ((int, int) or int): scaling magnitude range of noise. If magnitude is a single integer value, the
-            range will be (0, magnitude). Default: (50, 150).
+            range will be (1, magnitude). Default: (50, 150).
         sample_tube_current (bool): If True, then magnitude is ignored and the magnitude is sampled from the range (0, 500 - `(0018,1151) X-Ray Tube Current`)
         p (float): probability of applying the transform. Default: 1.
 
@@ -147,8 +147,8 @@ class NPSNoise(ImageOnlyTransform):
 
         assert magnitude[0] >= 0, "magnitude range must be nonnegative, got {}".format(magnitude)
 
-    def apply(self, img: np.ndarray, kernel: str = 'STANDARD', x_step: float = 0.5, y_step: float = 0.5, **params):
-        return F.add_noise_nps(img, kernel=kernel, x_step=x_step, y_step=y_step, magnitude=self.magnitude)
+    def apply(self, img: np.ndarray, kernel: str = 'STANDARD', x_step: float = 0.5, y_step: float = 0.5, magnitude: int = 1, **params):
+        return F.add_noise_nps(img, kernel=kernel, x_step=x_step, y_step=y_step, magnitude=magnitude)
         
     def get_params_dependent_on_targets(self, params: Dict[str, Any]) -> Dict[str, Any]:
         kernel = params["dicom"]["ConvolutionKernel"]

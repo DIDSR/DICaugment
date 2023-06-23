@@ -2377,6 +2377,21 @@ class UnsharpMask(ImageOnlyTransform):
         threshold (float): Value to limit sharpening only for areas with high pixel difference between original image
             and it's smoothed version. Higher threshold means less sharpening on flat areas.
             Must be in range [0, 1]. Default: 0.05.
+        mode (str): scipy parameter to determine how the input image is extended during convolution to maintain image shape
+            Must be one of the following:
+                `reflect` (d c b a | a b c d | d c b a)
+                    The input is extended by reflecting about the edge of the last pixel. This mode is also sometimes referred to as half-sample symmetric.
+                `constant` (k k k k | a b c d | k k k k)
+                    The input is extended by filling all values beyond the edge with the same constant value, defined by the cval parameter.
+                `nearest` (a a a a | a b c d | d d d d)
+                    The input is extended by replicating the last pixel.
+                `mirror` (d c b | a b c d | c b a)
+                    The input is extended by reflecting about the center of the last pixel. This mode is also sometimes referred to as whole-sample symmetric.
+                `wrap` (a b c d | a b c d | a b c d)
+                    The input is extended by wrapping around to the opposite edge.
+                https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.gaussian_filter.html
+            Default: `constant`
+        cval (int,float): The fill value when mode = `constant`. Default: 0
         p (float): probability of applying the transform. Default: 0.5.
 
     Reference:
@@ -2392,6 +2407,8 @@ class UnsharpMask(ImageOnlyTransform):
         sigma_limit: Union[float, Sequence[float]] = 0.0,
         alpha: Union[float, Sequence[float]] = (0.2, 0.5),
         threshold: float = 0.05,
+        mode: str = 'constant',
+        cval: Union[int,float] = 0,
         always_apply: bool =False,
         p: float = 0.5,
     ):
@@ -2400,6 +2417,8 @@ class UnsharpMask(ImageOnlyTransform):
         self.sigma_limit = self.__check_values(to_tuple(sigma_limit, 0.0), name="sigma_limit")
         self.alpha = self.__check_values(to_tuple(alpha, 0.0), name="alpha", bounds=(0.0, 1.0))
         self.threshold = threshold
+        self.mode = mode
+        self.cval = cval
 
         if self.blur_limit[0] == 0 and self.sigma_limit[0] == 0:
             self.blur_limit = 3, max(3, self.blur_limit[1])
@@ -2424,7 +2443,7 @@ class UnsharpMask(ImageOnlyTransform):
         }
 
     def apply(self, img: np.ndarray, ksize: int = 3, sigma: float = 0, alpha: float = 0.2, **params) -> np.ndarray:
-        return F.unsharp_mask(img, ksize, sigma=sigma, alpha=alpha, threshold=self.threshold)
+        return F.unsharp_mask(img, ksize, sigma=sigma, alpha=alpha, threshold=self.threshold, mode= self.mode, cval=self.cval)
 
     def get_transform_init_args_names(self) -> Tuple[str, ...]:
         return ("blur_limit", "sigma_limit", "alpha", "threshold")

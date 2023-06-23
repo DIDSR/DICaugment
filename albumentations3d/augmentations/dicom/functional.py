@@ -65,7 +65,7 @@ def _load_kernel(kname: str = 'STANDARD') -> np.ndarray:
 
 
 def _generate_NPS_noise(NPS: np.ndarray) -> np.ndarray:
-    n = np.random.random(NPS.shape, dtype = np.float64)
+    n = np.random.random(NPS.shape).astype("float64")
     phase_shift = np.sqrt(NPS) * (np.cos(2*np.pi*n) + 1j*np.sin(2*np.pi*n))
     ift = np.fft.ifftn(phase_shift, axes=tuple(range(NPS.ndim)))
     noise = np.real(ift) + np.imag(ift)
@@ -85,7 +85,7 @@ def _nps_radial_to_cartesian(rad_nps: np.ndarray, shape: Tuple, x_step: float, y
     for i in range(shape[1]):
         for j in range(shape[0]):
 
-            spatial_val = np.sqrt(freq_row[i]**2, freq_col[j]**2)
+            spatial_val = np.sqrt(freq_row[i]**2 + freq_col[j]**2)
 
             idx = min(range(len(spatial_freq)-1), key= lambda x: abs(spatial_freq[x]- spatial_val))
             nNPS[j,i] = radial_val[idx]
@@ -95,11 +95,11 @@ def _nps_radial_to_cartesian(rad_nps: np.ndarray, shape: Tuple, x_step: float, y
 
 
 def _noise_to_3d(nps: np.ndarray, slices: int, magnitude:int) -> np.ndarray:
-    return np.tile(_generate_NPS_noise(nps) , (1,1,slices))*magnitude
+    return np.repeat(_generate_NPS_noise(nps)[..., np.newaxis], slices, axis=2)*magnitude
 
 
 def add_noise_nps(img: np.ndarray, kernel: str, x_step: float, y_step: float, magnitude:int) -> np.ndarray:
-    height, width, depth = img.shape
+    height, width, depth = img.shape[:3]
     rad_nps = _load_kernel(kernel)
     nps = _nps_radial_to_cartesian(rad_nps=rad_nps, shape=(height,width), x_step=x_step, y_step=y_step)
     nps3d = _noise_to_3d(nps=nps, slices=depth, magnitude=magnitude)

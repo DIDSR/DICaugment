@@ -28,23 +28,23 @@ def main():
     os.mkdir("./out")
 
 
-    img = np.load("100040_T1F2.npy")
-    img = np.clip(img, -1000, 2000)
+    img = np.load("100040_T1F2_normalized.npy")
+    img = np.clip(img, -1000, 500)
 
 
     tranforms = [
         A.NoOp(p=1),
-        A.Blur((5,5), p = 1),
+        A.Blur((5,5), p = 1, mode='nearest'),
         A.MedianBlur((5,5), p = 1),
-        A.CoarseDropout(p = 1, max_holes= 20, fill_value=-1000),
-        A.GridDropout(shift_x= 0, shift_y= 0, shift_z=0, p=1, fill_value=-1000),
-        A.RandomSizedCrop(min_max_height= (50,80), height=101, depth=41, width=101, d2h_ratio=0.5, p=1),
+        A.CoarseDropout(p = 1, max_holes= 30, fill_value=-1000),
+        A.UnsharpMask(blur_limit=3, threshold=0, alpha =(1.0,1.0), mode='nearest', p = 1),
+        A.RandomSizedCrop(min_max_height= (50,80), height=128, width=128, depth=82, p=1),
         A.VerticalFlip(p=1),
         A.HorizontalFlip(p=1),
-        A.Downscale(p=1, interpolation= 2),
-        A.RandomBrightnessContrast(max_brightness=2000, p=1),
+        A.Downscale(scale_max= 0.5, scale_min=0.5, p=1, interpolation= 2),
+        A.RandomBrightnessContrast(max_brightness=1000, p=1),
         A.RandomRotate90(p=1),
-        A.Sharpen(p=1)
+        A.Sharpen(alpha= (0.05, 0.1), lightness= (0.1, 0.2), mode = 'nearest', p=1)
     ]
 
     labels = [
@@ -52,7 +52,7 @@ def main():
         "Blur",
         "MedianBlur",
         "CoarseDropout",
-        "GridDropout",
+        "Unsharp Mask",
         "RandomSizedCrop",
         "VerticalFlip",
         "HorizontalFlip",
@@ -69,19 +69,19 @@ def main():
     np.random.seed(420)
     for _, t in enumerate(tranforms):
         aug = A.Compose([t])
-        out.append(np.clip(aug(image = img)["image"], -1000, 2000))
+        out.append(np.clip(aug(image = img)["image"], -1000, 1000))
 
 
-    for i in range(41):
+    for i in range(img.shape[2]):
         fig, axes = plt.subplots(3,4, figsize= (10,8))
 
         for _,(name, arr) in enumerate(zip(labels, out)):
 
-            axes.flat[_].imshow(arr[...,i], cmap='gray', vmin=-1000, vmax=2000)
+            axes.flat[_].imshow(arr[...,i], cmap='gray', vmin=-1000, vmax=1000)
             axes.flat[_].set_title(name)
             axes.flat[_].set_axis_off()
 
-        fig.savefig("out/im_{}.png".format(i), bbox_inches = "tight", dpi = 200)
+        fig.savefig("out/im_{:02d}.png".format(i), bbox_inches = "tight", dpi = 200)
 
         plt.close(fig)
 
@@ -100,7 +100,7 @@ def main():
 def gif_ify(directory, ext = ".png"):
         frames = [Image.open(im) for im in sorted(glob.glob("{}*{}".format(directory, ext)))]
         first_frame = frames[0]
-        first_frame.save("README_example.gif", format="GIF", append_images = frames[1:], save_all= True, duration = 400, loop = 0)
+        first_frame.save("README_example.gif", format="GIF", append_images =frames[1:], save_all= True, duration = 100, loop = 0)
 
 
 if __name__ == "__main__":
