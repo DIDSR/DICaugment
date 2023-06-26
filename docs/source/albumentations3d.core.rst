@@ -1,10 +1,8 @@
-albumentations3d.core package
+Core
 =============================
 
-Submodules
-----------
 
-albumentations3d.core.bbox\_utils module
+bbox\_utils
 ----------------------------------------
 
 .. automodule:: albumentations3d.core.bbox_utils
@@ -12,7 +10,7 @@ albumentations3d.core.bbox\_utils module
    :undoc-members:
    :show-inheritance:
 
-albumentations3d.core.composition module
+composition
 ----------------------------------------
 
 .. automodule:: albumentations3d.core.composition
@@ -20,15 +18,7 @@ albumentations3d.core.composition module
    :undoc-members:
    :show-inheritance:
 
-albumentations3d.core.dicom\_utils module
------------------------------------------
-
-.. automodule:: albumentations3d.core.dicom_utils
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-albumentations3d.core.keypoints\_utils module
+keypoints\_utils
 ---------------------------------------------
 
 .. automodule:: albumentations3d.core.keypoints_utils
@@ -36,7 +26,7 @@ albumentations3d.core.keypoints\_utils module
    :undoc-members:
    :show-inheritance:
 
-albumentations3d.core.serialization module
+serialization
 ------------------------------------------
 
 .. automodule:: albumentations3d.core.serialization
@@ -44,7 +34,7 @@ albumentations3d.core.serialization module
    :undoc-members:
    :show-inheritance:
 
-albumentations3d.core.transforms\_interface module
+transforms\_interface
 --------------------------------------------------
 
 .. automodule:: albumentations3d.core.transforms_interface
@@ -52,18 +42,10 @@ albumentations3d.core.transforms\_interface module
    :undoc-members:
    :show-inheritance:
 
-albumentations3d.core.utils module
+utils
 ----------------------------------
 
 .. automodule:: albumentations3d.core.utils
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Module contents
----------------
-
-.. automodule:: albumentations3d.core
    :members:
    :undoc-members:
    :show-inheritance:

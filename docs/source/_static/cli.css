@@ -1,0 +1,11 @@
+.cli {
+    border: 1px solid #cacaca;
+    font: 12px/1.4em Consolas, 'Liberation Mono', Courier, monospace;
+    padding: 10px;
+    overflow:auto;
+    border-radius: 3px;
+    margin: 2em 0;
+    background-color: #444;
+    color: #fff;
+    position: relative;
+  } 

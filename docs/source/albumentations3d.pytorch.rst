@@ -1,18 +1,7 @@
-albumentations3d.pytorch package
+Pytorch
 ================================
 
-Submodules
-----------
-
-albumentations3d.pytorch.functional module
-------------------------------------------
-
-.. automodule:: albumentations3d.pytorch.functional
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-albumentations3d.pytorch.transforms module
+Transforms
 ------------------------------------------
 
 .. automodule:: albumentations3d.pytorch.transforms
@@ -20,10 +9,10 @@ albumentations3d.pytorch.transforms module
    :undoc-members:
    :show-inheritance:
 
-Module contents
----------------
+Functional
+------------------------------------------
 
-.. automodule:: albumentations3d.pytorch
+.. automodule:: albumentations3d.pytorch.functional
    :members:
    :undoc-members:
    :show-inheritance:

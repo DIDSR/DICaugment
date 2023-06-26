@@ -42,7 +42,8 @@ MAX_VALUES_BY_DTYPE = {
     np.dtype("uint32"): 4294967295,
     np.dtype("float32"): 1.0,
     np.dtype("int16"): 32767,
-    np.dtype("int32"): 2147483647
+    np.dtype("int32"): 2147483647,
+    np.dtype("float64"): np.finfo(np.float64).max
 }
 
 MIN_VALUES_BY_DTYPE = {
@@ -51,7 +52,8 @@ MIN_VALUES_BY_DTYPE = {
     np.dtype("uint32"): 0,
     np.dtype("float32"): 0.0,
     np.dtype("int16"): -32768,
-    np.dtype("int32"): -2147483648
+    np.dtype("int32"): -2147483648,
+    np.dtype("float64"): np.finfo(np.float64).min
 }
 
 
@@ -88,13 +90,55 @@ SCIPY_MODE_TO_NUMPY_MODE = {
 #     return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
 def read_dcm_image(path: str, include_header: bool = True, ends_with: str = ""):
+    """
+    Reads in an alphabetically sorted series of dcm file types stored in a directory as a `np.ndarray` and optionally a dicom header in a `dict` format.
+
+    Args:
+        path (str): The filepath to the directory that stores the dcm files.
+        include_header (bool): Whether to return the dicom header metadata associated with the scan.
+            Default: True
+        ends_with (str): If empty string, then all files in directory will be processed. If multiple file types are within the directory, you may filter the results by setting `ends_with=".dcm"`
+            Default: ""
+
+    Note:
+        `DICOM` object types are dictionaries with the following keys:
+            `Manufacturer` (str)
+                The manufacturer of the system
+            `SliceThickness` (float)
+                The distance in mm between each slice
+            `PixelSpaxing` (tuple)
+                The space in mm between pixels for both height and width of a slice, respectively
+            `RescaleIntercept` (float)
+                The value to add to each pixel of the scan after scaling with `RescaleSlope` to turn the pixel values of the scan into Hounsfield Units (HU)
+            `RescaleSlope` (float)
+                The value to multiply each pixel of the scan by before adding `RescaleIntercept` to turn the pixel values of the scan into Hounsfield Units (HU)
+            `ConvolutionKernel` (str)
+                A label describing the convolution kernel or algorithm used to reconstruct the data
+            `XRayTubeCurrent` (int)
+                X-Ray Tube Current in mA.
+        
+        See example below:
+
+    
+    .. code-block:: python
+    
+        dicom = {
+            "Manufacturer":  'GE MEDICAL SYSTEMS',
+            "SliceThickness" : 2.5,
+            "PixelSpacing" : (0.5, 0.5),
+            "RescaleIntercept" : -1024.0,
+            "RescaleSlope" : 1.0,
+            "ConvolutionKernel" : 'STANDARD',
+            "XRayTubeCurrent" : 160
+        }
+    """
 
     if not os.path.isdir(path):                        
         raise OSError("{} is not a valid directory".format(path))
 
     img = None
 
-    for file in os.listdir(path):
+    for file in sorted(os.listdir(path)):
         if not file.endswith(ends_with):
             continue
 

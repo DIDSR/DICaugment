@@ -25,8 +25,8 @@ __all__ = [
     "SomeOf",
     "OneOf",
     "OneOrOther",
-    "BboxParams",
-    "KeypointParams",
+    # "BboxParams",
+    # "KeypointParams",
     "ReplayCompose",
     "Sequential",
 ]

@@ -728,19 +728,16 @@ class CropAndPad(DualTransform):
                   two ``float`` s ``a`` and ``b`` (crop/pad by a fraction from
                   ``[a, b]``), a ``list`` of ``float`` s (crop/pad by a random
                   value that is contained in the list).
-        pad_mode (int): scipy parameter to determine how the input image is extended during convolution or padding to maintain image shape
-            Must be one of the following:
-                `reflect` (d c b a | a b c d | d c b a)
-                    The input is extended by reflecting about the edge of the last pixel. This mode is also sometimes referred to as half-sample symmetric.
-                `constant` (k k k k | a b c d | k k k k)
-                    The input is extended by filling all values beyond the edge with the same constant value, defined by the cval parameter.
-                `nearest` (a a a a | a b c d | d d d d)
-                    The input is extended by replicating the last pixel.
-                `mirror` (d c b | a b c d | c b a)
-                    The input is extended by reflecting about the center of the last pixel. This mode is also sometimes referred to as whole-sample symmetric.
-                `wrap` (a b c d | a b c d | a b c d)
-                    The input is extended by wrapping around to the opposite edge.
-                https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.gaussian_filter.html
+        pad_mode (str): scipy parameter to determine how the input image is extended during convolution to maintain image shape. Must be one of the following:
+
+            - `reflect` (d c b a | a b c d | d c b a): The input is extended by reflecting about the edge of the last pixel. This mode is also sometimes referred to as half-sample symmetric.
+            - `constant` (k k k k | a b c d | k k k k): The input is extended by filling all values beyond the edge with the same constant value, defined by the cval parameter.
+            - `nearest` (a a a a | a b c d | d d d d): The input is extended by replicating the last pixel.
+            - `mirror` (d c b | a b c d | c b a): The input is extended by reflecting about the center of the last pixel. This mode is also sometimes referred to as whole-sample symmetric.
+            - `wrap` (a b c d | a b c d | a b c d): The input is extended by wrapping around to the opposite edge.
+
+            Reference: https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.median_filter.html
+            
             Default: `constant`
         pad_cval (number, Sequence[number]):
             The constant value to use if pad_mode is ``constant``.

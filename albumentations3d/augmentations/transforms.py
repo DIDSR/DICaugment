@@ -1641,11 +1641,15 @@ class Downscale(ImageOnlyTransform):
     Args:
         scale_min (float): lower bound on the image scale. Should be < 1.
         scale_max (float):  upper bound on the image scale. Should be < 1.
-        interpolation: scipy interpolation method (e.g. albumenations3d.INTER_NEAREST). Could be:
-            - single scipy interpolation flag - selected method will be used for downscale and upscale.
-            - dict(downscale=flag, upscale=flag)
-            - Downscale.Interpolation(downscale=flag, upscale=flag) -
-            Default: Interpolation(downscale=albumenations3d.INTER_NEAREST, upscale=albumenations3d.INTER_NEAREST)
+        interpolation (int, dict, Interpolation): scipy interpolation method (e.g. `albumentations3d.INTER_NEAREST`). Could be:
+            
+            - Single Scipy interpolation flag: The selected method will be used for both downscale and upscale.
+            
+            - `dict` of flags: Dictionary with keys 'downscale' and 'upscale' specifying the interpolation flags for each operation.
+            
+            - `Interpolation` object: Downscale.Interpolation object with flags for both downscale and upscale.
+            
+            Default: `Interpolation(downscale=albumentations3d.INTER_NEAREST, upscale=albumentations3d.INTER_NEAREST)`
 
     Targets:
         image
@@ -1674,7 +1678,6 @@ class Downscale(ImageOnlyTransform):
                 "Using default interpolation INTER_NEAREST, which is sub-optimal."
                 "Please specify interpolation mode for downscale and upscale explicitly."
             )
-            # "For additional information see this PR https://github.com/albumentations-team/albumentations/pull/584"
         elif isinstance(interpolation, int):
             self.interpolation = self.Interpolation(downscale=interpolation, upscale=interpolation)
         elif isinstance(interpolation, self.Interpolation):
@@ -1995,19 +1998,16 @@ class Sharpen(ImageOnlyTransform):
         alpha ((float, float)): range to choose the visibility of the sharpened image. At 0, only the original image is
             visible, at 1.0 only its sharpened version is visible. Default: (0.2, 0.5).
         lightness ((float, float)): range to choose the lightness of the sharpened image. Default: (0.5, 1.0).
-        mode (str): scipy parameter to determine how the input image is extended during convolution to maintain image shape
-            Must be one of the following:
-                `reflect` (d c b a | a b c d | d c b a)
-                    The input is extended by reflecting about the edge of the last pixel. This mode is also sometimes referred to as half-sample symmetric.
-                `constant` (k k k k | a b c d | k k k k)
-                    The input is extended by filling all values beyond the edge with the same constant value, defined by the cval parameter.
-                `nearest` (a a a a | a b c d | d d d d)
-                    The input is extended by replicating the last pixel.
-                `mirror` (d c b | a b c d | c b a)
-                    The input is extended by reflecting about the center of the last pixel. This mode is also sometimes referred to as whole-sample symmetric.
-                `wrap` (a b c d | a b c d | a b c d)
-                    The input is extended by wrapping around to the opposite edge.
-                https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.median_filter.html
+        mode (str): scipy parameter to determine how the input image is extended during convolution to maintain image shape. Must be one of the following:
+
+            - `reflect` (d c b a | a b c d | d c b a): The input is extended by reflecting about the edge of the last pixel. This mode is also sometimes referred to as half-sample symmetric.
+            - `constant` (k k k k | a b c d | k k k k): The input is extended by filling all values beyond the edge with the same constant value, defined by the cval parameter.
+            - `nearest` (a a a a | a b c d | d d d d): The input is extended by replicating the last pixel.
+            - `mirror` (d c b | a b c d | c b a): The input is extended by reflecting about the center of the last pixel. This mode is also sometimes referred to as whole-sample symmetric.
+            - `wrap` (a b c d | a b c d | a b c d): The input is extended by wrapping around to the opposite edge.
+
+            Reference: https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.median_filter.html
+            
             Default: `constant`
         cval (int,float): The fill value when mode = `constant`. Default: 0
         p (float): probability of applying the transform. Default: 0.5.
@@ -2377,25 +2377,22 @@ class UnsharpMask(ImageOnlyTransform):
         threshold (float): Value to limit sharpening only for areas with high pixel difference between original image
             and it's smoothed version. Higher threshold means less sharpening on flat areas.
             Must be in range [0, 1]. Default: 0.05.
-        mode (str): scipy parameter to determine how the input image is extended during convolution to maintain image shape
-            Must be one of the following:
-                `reflect` (d c b a | a b c d | d c b a)
-                    The input is extended by reflecting about the edge of the last pixel. This mode is also sometimes referred to as half-sample symmetric.
-                `constant` (k k k k | a b c d | k k k k)
-                    The input is extended by filling all values beyond the edge with the same constant value, defined by the cval parameter.
-                `nearest` (a a a a | a b c d | d d d d)
-                    The input is extended by replicating the last pixel.
-                `mirror` (d c b | a b c d | c b a)
-                    The input is extended by reflecting about the center of the last pixel. This mode is also sometimes referred to as whole-sample symmetric.
-                `wrap` (a b c d | a b c d | a b c d)
-                    The input is extended by wrapping around to the opposite edge.
-                https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.gaussian_filter.html
+        mode (str): scipy parameter to determine how the input image is extended during convolution to maintain image shape. Must be one of the following:
+
+            - `reflect` (d c b a | a b c d | d c b a): The input is extended by reflecting about the edge of the last pixel. This mode is also sometimes referred to as half-sample symmetric.
+            - `constant` (k k k k | a b c d | k k k k): The input is extended by filling all values beyond the edge with the same constant value, defined by the cval parameter.
+            - `nearest` (a a a a | a b c d | d d d d): The input is extended by replicating the last pixel.
+            - `mirror` (d c b | a b c d | c b a): The input is extended by reflecting about the center of the last pixel. This mode is also sometimes referred to as whole-sample symmetric.
+            - `wrap` (a b c d | a b c d | a b c d): The input is extended by wrapping around to the opposite edge.
+
+            Reference: https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.median_filter.html
+            
             Default: `constant`
         cval (int,float): The fill value when mode = `constant`. Default: 0
         p (float): probability of applying the transform. Default: 0.5.
 
     Reference:
-        arxiv.org/pdf/2107.10833.pdf
+        https://arxiv.org/pdf/2107.10833.pdf
 
     Targets:
         image
@@ -2457,14 +2454,13 @@ class PixelDropout(DualTransform):
         dropout_prob (float): pixel drop probability. Default: 0.01
         per_channel (bool): if set to `True` drop mask will be sampled fo each channel,
             otherwise the same mask will be sampled for all channels. Default: False
-        drop_value (number or sequence of numbers or None): Value that will be set in dropped place.
-            If set to None value will be sampled randomly, default ranges will be used:
-                - uint8: [0, 255]
-                - uint16: [0, 65535]
-                - uint32: [0, 4294967295]
-                - int16 - [-32768, 32767]
-                - int32 - [-2147483648, 2147483647]
-                - float, double - [0, 1]
+        drop_value (number or sequence of numbers or None): Value that will be set in dropped place. If set to None value will be sampled randomly, default ranges will be used:
+            - uint8: [0, 255]
+            - uint16: [0, 65535]
+            - uint32: [0, 4294967295]
+            - int16 - [-32768, 32767]
+            - int32 - [-2147483648, 2147483647]
+            - float, double - [0, 1]
             Default: 0
         mask_drop_value (number or sequence of numbers or None): Value that will be set in dropped place in masks.
             If set to None masks will be unchanged. Default: 0

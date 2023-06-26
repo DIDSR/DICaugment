@@ -6,3 +6,5 @@ from .augmentations import *
 from .core.composition import *
 from .core.serialization import *
 from .core.transforms_interface import *
+from .core.bbox_utils import BboxParams
+from .core.keypoints_utils import KeypointParams

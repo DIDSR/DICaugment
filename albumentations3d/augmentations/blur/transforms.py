@@ -35,19 +35,16 @@ class Blur(ImageOnlyTransform):
             Should be in range [3, inf). Default: (3, 7).
         by_slice (bool): Whether the kernel should be applied by slice or the image as a whole. If true, a 2D kernel is convolved along each slice of the image.
             Otherwise, a 3D kernel is used. Default: False
-        mode (str): scipy parameter to determine how the input image is extended during convolution to maintain image shape
-            Must be one of the following:
-                `reflect` (d c b a | a b c d | d c b a)
-                    The input is extended by reflecting about the edge of the last pixel. This mode is also sometimes referred to as half-sample symmetric.
-                `constant` (k k k k | a b c d | k k k k)
-                    The input is extended by filling all values beyond the edge with the same constant value, defined by the cval parameter.
-                `nearest` (a a a a | a b c d | d d d d)
-                    The input is extended by replicating the last pixel.
-                `mirror` (d c b | a b c d | c b a)
-                    The input is extended by reflecting about the center of the last pixel. This mode is also sometimes referred to as whole-sample symmetric.
-                `wrap` (a b c d | a b c d | a b c d)
-                    The input is extended by wrapping around to the opposite edge.
-                https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.gaussian_filter.html
+        mode (str): scipy parameter to determine how the input image is extended during convolution to maintain image shape. Must be one of the following:
+
+            - `reflect` (d c b a | a b c d | d c b a): The input is extended by reflecting about the edge of the last pixel. This mode is also sometimes referred to as half-sample symmetric.
+            - `constant` (k k k k | a b c d | k k k k): The input is extended by filling all values beyond the edge with the same constant value, defined by the cval parameter.
+            - `nearest` (a a a a | a b c d | d d d d): The input is extended by replicating the last pixel.
+            - `mirror` (d c b | a b c d | c b a): The input is extended by reflecting about the center of the last pixel. This mode is also sometimes referred to as whole-sample symmetric.
+            - `wrap` (a b c d | a b c d | a b c d): The input is extended by wrapping around to the opposite edge.
+
+            Reference: https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.median_filter.html
+            
             Default: `constant`
         cval (int,float): The fill value when mode = `constant`. Default: 0
         p (float): probability of applying the transform. Default: 0.5.
@@ -162,19 +159,16 @@ class MedianBlur(Blur):
             Must be odd and in range [3, inf). Default: (3, 7).
         by_slice (bool): Whether the kernel should be applied by slice or the image as a whole. If true, a 2D kernel is convolved along each slice of the image.
             Otherwise, a 3D kernel is used. Default: False
-        mode (str): scipy parameter to determine how the input image is extended during convolution to maintain image shape
-            Must be one of the following:
-                `reflect` (d c b a | a b c d | d c b a)
-                    The input is extended by reflecting about the edge of the last pixel. This mode is also sometimes referred to as half-sample symmetric.
-                `constant` (k k k k | a b c d | k k k k)
-                    The input is extended by filling all values beyond the edge with the same constant value, defined by the cval parameter.
-                `nearest` (a a a a | a b c d | d d d d)
-                    The input is extended by replicating the last pixel.
-                `mirror` (d c b | a b c d | c b a)
-                    The input is extended by reflecting about the center of the last pixel. This mode is also sometimes referred to as whole-sample symmetric.
-                `wrap` (a b c d | a b c d | a b c d)
-                    The input is extended by wrapping around to the opposite edge.
-                https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.median_filter.html
+        mode (str): scipy parameter to determine how the input image is extended during convolution to maintain image shape. Must be one of the following:
+
+            - `reflect` (d c b a | a b c d | d c b a): The input is extended by reflecting about the edge of the last pixel. This mode is also sometimes referred to as half-sample symmetric.
+            - `constant` (k k k k | a b c d | k k k k): The input is extended by filling all values beyond the edge with the same constant value, defined by the cval parameter.
+            - `nearest` (a a a a | a b c d | d d d d): The input is extended by replicating the last pixel.
+            - `mirror` (d c b | a b c d | c b a): The input is extended by reflecting about the center of the last pixel. This mode is also sometimes referred to as whole-sample symmetric.
+            - `wrap` (a b c d | a b c d | a b c d): The input is extended by wrapping around to the opposite edge.
+
+            Reference: https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.median_filter.html
+            
             Default: `constant`
         cval (int,float): The fill value when mode = `constant`. Default: 0
         p (float): probability of applying the transform. Default: 0.5.
@@ -210,19 +204,16 @@ class GaussianBlur(ImageOnlyTransform):
             If set to 0 sigma will be computed as `sigma = 0.3*((ksize-1)*0.5 - 1) + 0.8`. Default: 0.
         by_slice (bool): Whether the kernel should be applied by slice or the image as a whole. If true, a 2D kernel is convolved along each slice of the image.
             Otherwise, a 3D kernel is used. Default: False
-        mode (str): scipy parameter to determine how the input image is extended during convolution to maintain image shape
-            Must be one of the following:
-                `reflect` (d c b a | a b c d | d c b a)
-                    The input is extended by reflecting about the edge of the last pixel. This mode is also sometimes referred to as half-sample symmetric.
-                `constant` (k k k k | a b c d | k k k k)
-                    The input is extended by filling all values beyond the edge with the same constant value, defined by the cval parameter.
-                `nearest` (a a a a | a b c d | d d d d)
-                    The input is extended by replicating the last pixel.
-                `mirror` (d c b | a b c d | c b a)
-                    The input is extended by reflecting about the center of the last pixel. This mode is also sometimes referred to as whole-sample symmetric.
-                `wrap` (a b c d | a b c d | a b c d)
-                    The input is extended by wrapping around to the opposite edge.
-                https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.median_filter.html
+        mode (str): scipy parameter to determine how the input image is extended during convolution to maintain image shape. Must be one of the following:
+
+            - `reflect` (d c b a | a b c d | d c b a): The input is extended by reflecting about the edge of the last pixel. This mode is also sometimes referred to as half-sample symmetric.
+            - `constant` (k k k k | a b c d | k k k k): The input is extended by filling all values beyond the edge with the same constant value, defined by the cval parameter.
+            - `nearest` (a a a a | a b c d | d d d d): The input is extended by replicating the last pixel.
+            - `mirror` (d c b | a b c d | c b a): The input is extended by reflecting about the center of the last pixel. This mode is also sometimes referred to as whole-sample symmetric.
+            - `wrap` (a b c d | a b c d | a b c d): The input is extended by wrapping around to the opposite edge.
+
+            Reference: https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.median_filter.html
+            
             Default: `constant`
         cval (int,float): The fill value when mode = `constant`. Default: 0        
         p (float): probability of applying the transform. Default: 0.5.

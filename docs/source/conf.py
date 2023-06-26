@@ -23,7 +23,13 @@ release = '0.0.1'
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = ["sphinx.ext.napoleon", "sphinx.ext.todo", "sphinx.ext.viewcode", "sphinx.ext.autodoc",]
+extensions = [
+    "sphinx.ext.napoleon",
+    "sphinx.ext.todo",
+    "sphinx.ext.viewcode",
+    "sphinx.ext.autodoc",
+    "sphinx-prompt",
+    "sphinx.ext.autosectionlabel"]
 
 templates_path = ['_templates']
 exclude_patterns = []
@@ -36,8 +42,17 @@ add_module_names = False
 
 html_theme = 'sphinx_rtd_theme'
 html_static_path = ['_static']
+html_theme_options = {
+    'collapse_navigation': False,
+    'sticky_navigation': True,
+    'navigation_depth': 5,
+    'includehidden': True,
+    'titles_only': False
+}
 
 
+# def setup(app):
+#    app.add_stylesheet('cli.css')
 
 # def smart_fullname(fullname):
 #     parts = fullname.split(".")

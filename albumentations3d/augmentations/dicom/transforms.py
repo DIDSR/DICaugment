@@ -28,7 +28,26 @@ __all__ = [
 
 class RescaleSlopeIntercept(ImageOnlyTransform):
     """
-    Rescales img to Hounsfields Units (HU) using the `(0028, 1053) Rescale Slope` and `(0028, 1052) Rescale Intercept` values from a dicom header. Long Doc String......
+    Rescales img to Hounsfields Units (HU) using the `(0028, 1053) Rescale Slope` and `(0028, 1052) Rescale Intercept` values from a dicom header.
+    This will return the image with data type `np.int16`.
+    
+    Args:
+        None
+
+    Targets:
+        image, dicom
+
+    Image types:
+        int16, uint16
+    
+    Note:
+        This transformation requires the use a DICOM header object. See `albumentations3d.read_dcm_image()` for full syntax.
+        .. code-block:: python
+
+            import albumentations3d as A
+            image, dicom = A.read_dcm_image(path='path/to/dcm/folder/', return_header=True)
+            aug = A.Compose([A.RescaleSlopeIntercept()])
+            result = aug(image=image, dicom=dicom)
     """
 
     def __init__(self, always_apply: bool = False, p: float = 1.0):
@@ -75,10 +94,19 @@ class SetPixelSpacing(DualTransform):
         p (float): probability of applying the transform. Default: 1.
 
     Targets:
-        image, mask, bboxes, keypoints
+        image, dicom, mask, bboxes, keypoints
 
     Image types:
         uint8, unint16, int16, float32
+    
+    Note:
+        This transformation requires the use a DICOM header object. See `albumentations3d.read_dcm_image()` for full syntax.
+        .. code-block:: python
+
+            import albumentations3d as A
+            image, dicom = A.read_dcm_image(path='path/to/dcm/folder/', return_header=True)
+            aug = A.Compose([A.SetPixelSpacing(space_x=0.5, space_y=0.5, space_z=0.5)])
+            result = aug(image=image, dicom=dicom)
     """
 
     def __init__(self, space_x: float = 1.0, space_y: float = 1.0, space_z: float = 1.0, set_thickness: bool = True, interpolation=INTER_LINEAR, always_apply=False, p=1):
@@ -126,7 +154,7 @@ class SetPixelSpacing(DualTransform):
 class NPSNoise(ImageOnlyTransform):
     """
     Insert random image noise based on the `(0018,1210) Convolution Kernel` type of the dicom header.
-    
+
     Args:
         magnitude ((int, int) or int): scaling magnitude range of noise. If magnitude is a single integer value, the
             range will be (1, magnitude). Default: (50, 150).
@@ -134,10 +162,19 @@ class NPSNoise(ImageOnlyTransform):
         p (float): probability of applying the transform. Default: 1.
 
     Targets:
-        image
+        image, dicom
 
     Image types:
         int16
+
+    Note:
+        This transformation requires the use a DICOM header object. See `albumentations3d.read_dcm_image()` for full syntax.
+        .. code-block:: python
+
+            import albumentations3d as A
+            image, dicom = A.read_dcm_image(path='path/to/dcm/folder/', return_header=True)
+            aug = A.Compose([A.NPSNoise()])
+            result = aug(image=image, dicom=dicom)
     """
 
     def __init__(self, magnitude: int = (50, 150), sample_tube_current: bool = False, always_apply: bool = False, p: float = 1.0):
