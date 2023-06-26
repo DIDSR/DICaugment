@@ -28,7 +28,6 @@ extensions = [
     "sphinx.ext.todo",
     "sphinx.ext.viewcode",
     "sphinx.ext.autodoc",
-    "sphinx-prompt",
     "sphinx.ext.autosectionlabel"]
 
 templates_path = ['_templates']
