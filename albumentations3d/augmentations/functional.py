@@ -18,6 +18,7 @@ from albumentations3d.augmentations.utils import (
     ensure_contiguous,
     is_grayscale_image,
     is_rgb_image,
+    is_multispectral_image,
     is_uint8_or_float32,
     non_rgb_warning,
     preserve_channel_dim,
@@ -206,54 +207,89 @@ def normalize(img, mean, std):
 #     return result_img
 
 
-# @preserve_shape
-# def posterize(img, bits):
-#     """Reduce the number of bits for each color channel.
+@preserve_shape
+def posterize(img, bits):
+    """Reduce the number of bits for each color channel.
 
-#     Args:
-#         img (numpy.ndarray): image to posterize.
-#         bits (int): number of high bits. Must be in range [0, 8]
+    Args:
+        img (numpy.ndarray): image to posterize.
+        bits (int): number of high bits. Must be in range [0, 8]
 
-#     Returns:
-#         numpy.ndarray: Image with reduced color channels.
+    Returns:
+        numpy.ndarray: Image with reduced color channels.
 
-#     """
-#     bits = np.uint8(bits)
+    """
+    bits = np.uint8(bits)
 
-#     if img.dtype != np.uint8:
-#         raise TypeError("Image must have uint8 channel type")
-#     if np.any((bits < 0) | (bits > 8)):
-#         raise ValueError("bits must be in range [0, 8]")
+    dtypes = {
+        'uint8': (np.uint8, 8),
+        'uint16': (np.uint16, 8),
+        'int16' : (np.int16, 16),
+        'int32' : (np.int32, 32)
+    }
 
-#     if not bits.shape or len(bits) == 1:
-#         if bits == 0:
-#             return np.zeros_like(img)
-#         if bits == 8:
-#             return img.copy()
+    if img.dtype.name not in dtypes.keys():
+        raise TypeError("dtype must be one of {}, got {}".format(tuple(dtypes.keys()), img.dtype.name))
+    
+    dtype_func, max_bits = dtypes[img.dtype.name]
 
-#         lut = np.arange(0, 256, dtype=np.uint8)
-#         mask = ~np.uint8(2 ** (8 - bits) - 1)
-#         lut &= mask
+    if np.any((bits < 0) | (bits > max_bits)):
+        raise ValueError("bits must be in range [0, {}] for {} data type".format(max_bits, img.dtype.name))
 
-#         return cv2.LUT(img, lut)
+    if not bits.shape or len(bits) == 1:
+        if bits == 0:
+            return np.zeros_like(img)
+        if bits == max_bits:
+            return img.copy()
+        
 
-#     if not is_rgb_image(img):
-#         raise TypeError("If bits is iterable image must be RGB")
+    if img.dtype.name == 'uint8':
 
-#     result_img = np.empty_like(img)
-#     for i, channel_bits in enumerate(bits):
-#         if channel_bits == 0:
-#             result_img[..., i] = np.zeros_like(img[..., i])
-#         elif channel_bits == 8:
-#             result_img[..., i] = img[..., i].copy()
-#         else:
-#             lut = np.arange(0, 256, dtype=np.uint8)
-#             mask = ~np.uint8(2 ** (8 - channel_bits) - 1)
-#             lut &= mask
+        if not bits.shape or len(bits) == 1:
+            lut = np.arange(0, 256, dtype=np.uint8)
+            mask = ~np.uint8(2 ** (8 - bits) - 1)
+            lut &= mask
 
-#             result_img[..., i] = cv2.LUT(img[..., i], lut)
+            return cv2.LUT(img, lut)
+        
+        if not is_rgb_image(img) and not is_multispectral_image(img):
+            raise TypeError("If bits is iterable, then image must be RGB or Multispectral")
+        
+        result_img = np.empty_like(img)
+        for i, channel_bits in enumerate(bits):
+            if channel_bits == 0:
+                result_img[..., i] = np.zeros_like(img[..., i])
+            elif channel_bits == 8:
+                result_img[..., i] = img[..., i].copy()
+            else:
+                lut = np.arange(0, 256, dtype=np.uint8)
+                mask = ~np.uint8(2 ** (8 - channel_bits) - 1)
+                lut &= mask
 
-#     return result_img
+                result_img[..., i] = cv2.LUT(img[..., i], lut)
+
+        return result_img
+    
+
+    if not bits.shape or len(bits) == 1:
+        mask = ~dtype_func(2 ** (max_bits - bits) - 1)
+        return img.copy() & mask
+
+
+    if not is_rgb_image(img) and not is_multispectral_image(img):
+            raise TypeError("If bits is iterable, then image must be RGB or Multispectral")
+
+    result_img = np.empty_like(img)
+    for i, channel_bits in enumerate(bits):
+        if channel_bits == 0:
+            result_img[..., i] = np.zeros_like(img[..., i])
+        elif channel_bits == max_bits:
+            result_img[..., i] = img[..., i].copy()
+        else:
+            mask = ~dtype_func(2 ** (max_bits - channel_bits) - 1)
+            result_img[..., i] = img[..., i].copy() & mask
+
+    return result_img
 
 
 # def _equalize_pil(img, mask=None):

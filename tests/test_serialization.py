@@ -226,7 +226,7 @@ AUGMENTATION_CLS_PARAMS = [
     [A.LongestMaxSize, {"max_size": 128, "interpolation": 2}],
     # [A.RandomGridShuffle, {"grid": (5, 5)}],
     # [A.Solarize, {"threshold": 32}],
-    # [A.Posterize, {"num_bits": 1}],
+    [A.Posterize, {"num_bits": 8}],
     [A.Equalize, {}], #"mode": "pil", "by_channels": False}],
     # [
     #     A.MultiplicativeNoise,

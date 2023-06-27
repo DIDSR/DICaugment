@@ -19,7 +19,10 @@ IGNORED_CLASSES = {
 
 
 def make_augmentation_docs_link(cls):
-    module_page = ".".join(cls.__module__.split(".")[:-1])
+    if issubclass(cls, albumentations3d.ImageOnlyTransform):
+        module_page = ".".join(cls.__module__.split(".")[:-1])
+    else:
+        module_page = ".".join(cls.__module__.split(".")[1:-1])
     return (
         "[{cls.__name__}](https://albumentations3d.readthedocs.io/en/latest/{module_page}.html#{cls.__module__}.{cls.__name__})"
     ).format(module_page=module_page, cls=cls)

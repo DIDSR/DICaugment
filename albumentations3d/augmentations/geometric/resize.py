@@ -56,7 +56,7 @@ class RandomScale(DualTransform):
         return F.keypoint_scale(keypoint, scale, scale, scale)
     
     def apply_to_dicom(self, dicom: DicomType, scale = 1, **params) -> DicomType:
-        return Fdicom.dicom_scale(dicom, scale, scale, scale)
+        return Fdicom.dicom_scale(dicom, scale, scale)
 
     def get_transform_init_args(self):
         return {"interpolation": self.interpolation, "scale_limit": to_tuple(self.scale_limit, bias=-1.0)}
@@ -111,7 +111,7 @@ class LongestMaxSize(DualTransform):
         width = params["cols"]
         depth = params["slices"]
         scale = max_size / min([height, width, depth])
-        return Fdicom.dicom_scale(dicom, scale, scale, scale)
+        return Fdicom.dicom_scale(dicom, scale, scale)
 
     def get_params(self) -> Dict[str, int]:
         return {"max_size": self.max_size if isinstance(self.max_size, int) else random.choice(self.max_size)}
@@ -168,7 +168,7 @@ class SmallestMaxSize(DualTransform):
         width = params["cols"]
         depth = params["slices"]
         scale = max_size / min([height, width, depth])
-        return Fdicom.dicom_scale(dicom, scale, scale, scale)
+        return Fdicom.dicom_scale(dicom, scale, scale)
 
     def get_params(self) -> Dict[str, Any]:
         return {"max_size": self.max_size if isinstance(self.max_size, int) else random.choice(self.max_size)}
@@ -211,11 +211,9 @@ class Resize(DualTransform):
     def apply_to_dicom(self, dicom: DicomType, **params) -> DicomType:
         height = params["rows"]
         width = params["cols"]
-        depth = params["slices"]
         scale_x = self.width / width
         scale_y = self.height / height
-        scale_z = self.depth / depth
-        return Fdicom.dicom_scale(dicom, scale_x, scale_y, scale_z)
+        return Fdicom.dicom_scale(dicom, scale_x, scale_y)
 
 
     def apply_to_keypoint(self, keypoint: KeypointInternalType, **params) -> KeypointInternalType:

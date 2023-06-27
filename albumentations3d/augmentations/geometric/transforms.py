@@ -178,7 +178,7 @@ class ShiftScaleRotate(DualTransform):
         return F.keypoint_shift_scale_rotate(keypoint, angle, scale, dx, dy, dz, axes, self.crop_to_border, rows, cols, slices)
     
     def apply_to_dicom(self, dicom: DicomType, scale: float = 1, **params) -> DicomType:
-        return Fdicom.dicom_scale(dicom, scale, scale, scale)
+        return Fdicom.dicom_scale(dicom, scale, scale)
 
     def get_params(self) -> Dict[str, Any]:
         return {
@@ -1488,9 +1488,6 @@ class Transpose(DualTransform):
     
     def apply_to_dicom(self, dicom: DicomType, **params) -> DicomType:
         return Fdicom.transpose_dicom(dicom)
-        y, x = dicom["PixelSpacing"]
-        dicom["PixelSpacing"] = (x, y)
-        return dicom
 
     def get_transform_init_args_names(self):
         return ()

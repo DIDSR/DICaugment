@@ -69,7 +69,7 @@ __all__ = [
     # "ISONoise",
     # "Solarize",
     "Equalize",
-    #"Posterize",
+    "Posterize",
     "Downscale",
     #"MultiplicativeNoise",
     #"FancyPCA",
@@ -1057,45 +1057,45 @@ class Normalize(ImageOnlyTransform):
 #         return ("threshold",)
 
 
-# class Posterize(ImageOnlyTransform):
-#     """Reduce the number of bits for each color channel.
+class Posterize(ImageOnlyTransform):
+    """Reduce the number of bits for each color channel.
 
-#     Args:
-#         num_bits ((int, int) or int,
-#                   or list of ints [r, g, b],
-#                   or list of ints [[r1, r1], [g1, g2], [b1, b2]]): number of high bits.
-#             If num_bits is a single value, the range will be [num_bits, num_bits].
-#             Must be in range [0, 8]. Default: 4.
-#         p (float): probability of applying the transform. Default: 0.5.
+    Args:
+        num_bits ((int, int) or int,
+                  or list of ints [r, g, b],
+                  or list of ints [[r1, r1], [g1, g2], [b1, b2]]): number of high bits.
+            If num_bits is a single value, the range will be [num_bits, num_bits].
+            Must be in range [0, n] where n is the number of bits in the image dtype . Default: 8.
+        p (float): probability of applying the transform. Default: 0.5.
 
-#     Targets:
-#     image
+    Targets:
+    image
 
-#     Image types:
-#         uint8
-#     """
+    Image types:
+        uint8, uint16, int16, int32
+    """
 
-#     def __init__(self, num_bits=4, always_apply=False, p=0.5):
-#         super(Posterize, self).__init__(always_apply, p)
+    def __init__(self, num_bits=8, always_apply=False, p=0.5):
+        super(Posterize, self).__init__(always_apply, p)
 
-#         if isinstance(num_bits, (list, tuple)):
-#             if len(num_bits) == 3:
-#                 self.num_bits = [to_tuple(i, 0) for i in num_bits]
-#             else:
-#                 self.num_bits = to_tuple(num_bits, 0)
-#         else:
-#             self.num_bits = to_tuple(num_bits, num_bits)
+        if isinstance(num_bits, (list, tuple)):
+            if len(num_bits) == 3:
+                self.num_bits = [to_tuple(i, 0) for i in num_bits]
+            else:
+                self.num_bits = to_tuple(num_bits, 0)
+        else:
+            self.num_bits = to_tuple(num_bits, num_bits)
 
-#     def apply(self, image, num_bits=1, **params):
-#         return F.posterize(image, num_bits)
+    def apply(self, image, num_bits=1, **params):
+        return F.posterize(image, num_bits)
 
-#     def get_params(self):
-#         if len(self.num_bits) == 3:
-#             return {"num_bits": [random.randint(i[0], i[1]) for i in self.num_bits]}
-#         return {"num_bits": random.randint(self.num_bits[0], self.num_bits[1])}
+    def get_params(self):
+        if len(self.num_bits) > 2:
+            return {"num_bits": [random.randint(i[0], i[1]) for i in self.num_bits]}
+        return {"num_bits": random.randint(self.num_bits[0], self.num_bits[1])}
 
-#     def get_transform_init_args_names(self):
-#         return ("num_bits",)
+    def get_transform_init_args_names(self):
+        return ("num_bits",)
 
 
 class Equalize(ImageOnlyTransform):

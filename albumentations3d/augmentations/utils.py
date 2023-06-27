@@ -102,10 +102,6 @@ def read_dcm_image(path: str, include_header: bool = True, ends_with: str = ""):
 
     Note:
         `DICOM` object types are dictionaries with the following keys:
-            `Manufacturer` (str)
-                The manufacturer of the system
-            `SliceThickness` (float)
-                The distance in mm between each slice
             `PixelSpaxing` (tuple)
                 The space in mm between pixels for both height and width of a slice, respectively
             `RescaleIntercept` (float)
@@ -121,10 +117,8 @@ def read_dcm_image(path: str, include_header: bool = True, ends_with: str = ""):
 
     
     .. code-block:: python
-    
+
         dicom = {
-            "Manufacturer":  'GE MEDICAL SYSTEMS',
-            "SliceThickness" : 2.5,
             "PixelSpacing" : (0.5, 0.5),
             "RescaleIntercept" : -1024.0,
             "RescaleSlope" : 1.0,
@@ -149,8 +143,6 @@ def read_dcm_image(path: str, include_header: bool = True, ends_with: str = ""):
         if img is None:
             img = dcm
             dicom = {
-                "Manufacturer":  obj.Manufacturer,
-                "SliceThickness" : float(obj.SliceThickness),
                 "PixelSpacing" : tuple(map(float, obj.PixelSpacing)),
                 "RescaleIntercept" : float(obj.RescaleIntercept),
                 "RescaleSlope" : float(obj.RescaleSlope),

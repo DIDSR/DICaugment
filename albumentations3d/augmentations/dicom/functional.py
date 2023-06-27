@@ -25,19 +25,16 @@ def reset_dicom_slope_intercept(dicom: DicomType) -> DicomType:
     res["RescaleIntercept"] = 0
     return res
 
-def dicom_scale(dicom: DicomType, scale_x: float, scale_y: float, scale_z: float) -> DicomType:
+def dicom_scale(dicom: DicomType, scale_x: float, scale_y: float) -> DicomType:
     y, x = dicom["PixelSpacing"]
-    z = dicom["SliceThickness"]
     x *= scale_x
     y *= scale_y
-    z *= scale_z
 
     res = {}
     for k,v in dicom.items():
         res[k] = v
     
     res["PixelSpacing"] = (y, x)
-    res["SliceThickness"] = z
     return res
 
 def transpose_dicom(dicom: DicomType) -> DicomType:

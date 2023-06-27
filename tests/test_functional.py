@@ -978,16 +978,16 @@ def test_is_multispectral_image():
 #         assert np.max(result_img) <= max_value
 
 
-# def test_posterize_checks():
-#     img = np.random.random([256, 256, 3])
-#     with pytest.raises(TypeError) as exc_info:
-#         F.posterize(img, 4)
-#     assert str(exc_info.value) == "Image must have uint8 channel type"
+def test_posterize_checks():
+    img = np.random.random([100, 100, 100])
+    with pytest.raises(TypeError) as exc_info:
+        F.posterize(img, 4)
+    assert str(exc_info.value) == "dtype must be one of ('uint8', 'uint16', 'int16', 'int32'), got float64"
 
-#     img = np.random.randint(0, 256, [256, 256], dtype=np.uint8)
-#     with pytest.raises(TypeError) as exc_info:
-#         F.posterize(img, [1, 2, 3])
-#     assert str(exc_info.value) == "If bits is iterable image must be RGB"
+    img = np.random.randint(0, 256, [100,100,100], dtype=np.uint8)
+    with pytest.raises(TypeError) as exc_info:
+        F.posterize(img, [1, 2, 3])
+    assert str(exc_info.value) == "If bits is iterable, then image must be RGB or Multispectral"
 
 
 def test_equalize_checks():

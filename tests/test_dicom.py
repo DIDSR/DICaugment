@@ -9,7 +9,8 @@ from albumentations3d import (
     dicom_scale,
     transpose_dicom,
     Compose,
-    RandomScale
+    RandomScale,
+    NPSNoise
 )
 
 
@@ -73,15 +74,15 @@ def test_reset_dicom_slope_intercept(dicom):
     assert reset_dicom_slope_intercept(dicom) == expected_dcm
 
 @pytest.mark.parametrize(
-    ["dicom", "scale_x", "scale_y", "scale_z", "expected"],
+    ["dicom", "scale_x", "scale_y", "expected"],
     [
-        ({"PixelSpacing" : (0.5,0.5), "SliceThickness": 0.5}, 1.0, 1.0, 1.0, {"PixelSpacing" : (0.5,0.5), "SliceThickness": 0.5} ),
-        ({"PixelSpacing" : (0.5,0.5), "SliceThickness": 0.5}, 2.0, 2.0, 2.0, {"PixelSpacing" : (1.0,1.0), "SliceThickness": 1.0} ),
-        ({"PixelSpacing" : (1.0,1.0), "SliceThickness": 1.0}, 0.5, 0.5, 0.5, {"PixelSpacing" : (0.5,0.5), "SliceThickness": 0.5} ),
+        ({"PixelSpacing" : (0.5,0.5)}, 1.0, 1.0, {"PixelSpacing" : (0.5,0.5)} ),
+        ({"PixelSpacing" : (0.5,0.5)}, 2.0, 2.0, {"PixelSpacing" : (1.0,1.0)} ),
+        ({"PixelSpacing" : (1.0,1.0)}, 0.5, 0.5, {"PixelSpacing" : (0.5,0.5)} ),
     ],
 )
-def test_dicom_scale(dicom, scale_x, scale_y, scale_z, expected):
-    assert dicom_scale(dicom, scale_x, scale_y, scale_z) == expected
+def test_dicom_scale(dicom, scale_x, scale_y, expected):
+    assert dicom_scale(dicom, scale_x, scale_y) == expected
 
 
 @pytest.mark.parametrize(
@@ -100,20 +101,20 @@ def test_transpose_dicom(dicom, expected):
 
 
 @pytest.mark.parametrize(
-    ["dicom", "space_x", "space_y", "space_z", "set_thickness", "expected", "shape"],
+    ["dicom", "space_x", "space_y", "expected", "shape"],
     [
-        ({"PixelSpacing" : (0.5,0.5), "SliceThickness": 0.5}, 0.5, 0.5, 0.5,  True, {"PixelSpacing" : (0.5,0.5), "SliceThickness": 0.5}, (10,10,10)),
-        ({"PixelSpacing" : (0.5,0.5), "SliceThickness": 0.5}, 1.0, 1.0, 1.0,  True, {"PixelSpacing" : (1.0,1.0), "SliceThickness": 1.0}, (20,20,20)),
-        ({"PixelSpacing" : (1.0,1.0), "SliceThickness": 1.0}, 0.5, 0.5, 0.5,  True, {"PixelSpacing" : (0.5,0.5), "SliceThickness": 0.5}, ( 5, 5, 5)),
-        ({"PixelSpacing" : (0.5,0.5), "SliceThickness": 0.5}, 0.5, 0.5, 0.5, False, {"PixelSpacing" : (0.5,0.5), "SliceThickness": 0.5}, (10,10,10)),
-        ({"PixelSpacing" : (0.5,0.5), "SliceThickness": 0.5}, 1.0, 1.0, 1.0, False, {"PixelSpacing" : (1.0,1.0), "SliceThickness": 0.5}, (20,20,10)),
-        ({"PixelSpacing" : (1.0,1.0), "SliceThickness": 1.0}, 0.5, 0.5, 0.5, False, {"PixelSpacing" : (0.5,0.5), "SliceThickness": 1.0}, ( 5, 5,10)),
+        ({"PixelSpacing" : (0.5,0.5) }, 0.5, 0.5, {"PixelSpacing" : (0.5,0.5) }, (10,10,10)),
+        ({"PixelSpacing" : (0.5,0.5) }, 1.0, 1.0, {"PixelSpacing" : (1.0,1.0) }, (20,20,10)),
+        ({"PixelSpacing" : (1.0,1.0) }, 0.5, 0.5, {"PixelSpacing" : (0.5,0.5) }, ( 5, 5,10)),
+        ({"PixelSpacing" : (0.5,0.5) }, 0.5, 0.5, {"PixelSpacing" : (0.5,0.5) }, (10,10,10)),
+        ({"PixelSpacing" : (0.5,0.5) }, 1.0, 1.0, {"PixelSpacing" : (1.0,1.0) }, (20,20,10)),
+        ({"PixelSpacing" : (1.0,1.0) }, 0.5, 0.5, {"PixelSpacing" : (0.5,0.5) }, ( 5, 5,10)),
     ],
 )
-def test_set_pixel_spacing(dicom, space_x, space_y, space_z, set_thickness, expected, shape):
+def test_set_pixel_spacing(dicom, space_x, space_y, expected, shape):
     img = np.ones([10,10,10], dtype= np.uint16)
 
-    aug = Compose([SetPixelSpacing(space_x, space_y, space_z, set_thickness)])
+    aug = Compose([SetPixelSpacing(space_x, space_y)])
 
     data = aug(image = img, dicom = dicom)
 
@@ -125,9 +126,9 @@ def test_set_pixel_spacing(dicom, space_x, space_y, space_z, set_thickness, expe
 @pytest.mark.parametrize(
     ["dicom", "scale_limit", "expected", "shape"],
     [
-        ({"PixelSpacing" : (0.5,0.5), "SliceThickness": 0.5}, ( 0.0,  0.0),  {"PixelSpacing" : (0.5,0.5), "SliceThickness": 0.5}, (10,10,10)),
-        ({"PixelSpacing" : (0.5,0.5), "SliceThickness": 0.5}, ( 1.0,  1.0), {"PixelSpacing" : (1.0,1.0), "SliceThickness": 1.0}, (20,20,20)),
-        ({"PixelSpacing" : (1.0,1.0), "SliceThickness": 1.0}, (-0.5, -0.5), {"PixelSpacing" : (0.5,0.5), "SliceThickness": 0.5}, ( 5, 5, 5)),
+        ({"PixelSpacing" : (0.5,0.5) }, ( 0.0,  0.0),  {"PixelSpacing" : (0.5,0.5) }, (10,10,10)),
+        ({"PixelSpacing" : (0.5,0.5) }, ( 1.0,  1.0),  {"PixelSpacing" : (1.0,1.0) }, (20,20,20)),
+        ({"PixelSpacing" : (1.0,1.0) }, (-0.5, -0.5),  {"PixelSpacing" : (0.5,0.5) }, ( 5, 5, 5)),
     ],
 )
 def test_set_pixel_spacing_with_random_scale(dicom, scale_limit, expected, shape):
@@ -139,3 +140,20 @@ def test_set_pixel_spacing_with_random_scale(dicom, scale_limit, expected, shape
 
     assert data["image"].shape == shape
     assert data["dicom"] == expected
+
+
+def test_nps_noise():
+    img = np.ones([100,100,100], dtype= np.int16)
+
+    dicom = {
+        "PixelSpacing": (0.5, 0.5),
+        "ConvolutionKernel" : 'STANDARD',
+        "XRayTubeCurrent" : 160
+    }
+
+    aug = Compose([NPSNoise(p = 1.0)])
+    out = aug(image = img, dicom = dicom)
+
+    aug = Compose([NPSNoise(sample_tube_current=True, p = 1.0)])
+    out = aug(image = img, dicom = dicom)
+
