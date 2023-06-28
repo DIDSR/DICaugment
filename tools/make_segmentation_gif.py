@@ -68,7 +68,7 @@ def main():
         out.append((result["image"], result["mask"]))
 
 
-    for i in range(img.shape[2]):
+    for i in range(4, img.shape[2]- 4):
         fig, axes = plt.subplots(2, 6, figsize= (20,6))
 
         plt.subplots_adjust(wspace=0.05, hspace=0.02)
@@ -77,7 +77,7 @@ def main():
 
             arr, mask_arr = im_mask
 
-            axes[0][_].imshow(arr[...,i], cmap='gray')
+            axes[0][_].imshow(arr[...,i], cmap='gray', vmin =0, vmax = 1)
             rgb_img = cv2.cvtColor(arr[...,i], cv2.COLOR_GRAY2RGB)
             rgb_mask = color_map[mask_arr[...,i]]
             rgb_img[rgb_mask != 0] = rgb_mask[rgb_mask != 0]
@@ -103,7 +103,7 @@ def main():
 def gif_ify(directory, ext = ".png"):
         frames = [Image.open(im) for im in sorted(glob.glob("{}*{}".format(directory, ext)))]
         first_frame = frames[0]
-        first_frame.save("segmentation_example.gif", format="GIF", append_images = frames[1:], save_all= True, duration = 100, loop = 0)
+        first_frame.save("segmentation_example.gif", format="GIF", append_images = frames[1:] + frames[1:-1][::-1], save_all= True, duration = 100, loop = 0)
 
 
 if __name__ == "__main__":
