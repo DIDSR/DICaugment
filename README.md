@@ -152,6 +152,9 @@ These transforms utilize metadata from a DICOM header file to apply a pixel-leve
 - [RescaleSlopeIntercept](https://albumentations3d.readthedocs.io/en/latest/augmentations.dicom.html#albumentations3d.augmentations.dicom.transforms.RescaleSlopeIntercept)
 - [SetPixelSpacing](https://albumentations3d.readthedocs.io/en/latest/augmentations.dicom.html#albumentations3d.augmentations.dicom.transforms.SetPixelSpacing)
 
+
+![NPS](./tools/nps_example.gif)
+
 ## A few more examples of augmentations
 ### Segmentation
 
