@@ -155,14 +155,17 @@ These transforms utilize metadata from a DICOM header file to apply a pixel-leve
 
 ![NPS](./tools/nps_example.gif)
 
-## A few more examples of augmentations
-### Segmentation
+## A Few More Examples of Augmentations
+### Mask Augmentation for Instance and Semantic Segmentation
 
 ![Segmentation](./tools/segmentation_example.gif)
 
-### 3D Bounding Box and Keypoint Augmentations
-![kp_bbox](./tools/bbox_kp_example.gif)
+### 3D Bounding Box Augmentation for Object Detection
+![bbox](./tools/bbox_example.gif)
 
+
+### Keypoint Augmentations for Keypoint Detection
+![kp](./tools/kp_example.gif)
 <!-- ### Object detection and semantic segmentation on the Mapillary Vistas dataset
 ![vistas](https://habrastorage.org/webt/rz/-h/3j/rz-h3jalbxic8o_fhucxysts4tc.jpeg)
 

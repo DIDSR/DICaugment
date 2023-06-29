@@ -32,7 +32,7 @@ def main():
     mask = np.rot90(nib.load("./amos_data/amos_0024_label.nii.gz").get_fdata()).astype(np.uint8)
 
     vmin = -1024
-    vmax = 2603
+    vmax = 750
 
     img = np.clip(img, vmin, vmax)
     img -= img.min()
