@@ -47,8 +47,8 @@ def main():
         axes[1][0].imshow(high_dose_nps)
         axes[1][1].imshow(low_dose_nps)
 
-        axes[0][0].set_title("High Dose Phantom, 240 mAs, STD=9.49")
-        axes[0][1].set_title("Simulated Low Dose, STD=16.01")
+        axes[0][0].set_title("240 mAs, STD=9.49")
+        axes[0][1].set_title("Random NPSNoise, STD=16.01")
         axes[1][0].set_title("Normalized Radial 1-D NPS", y= 1.0, pad=-25)
         axes[1][1].set_title("Normalized Radial 1-D NPS", y= 1.0, pad=-25)
 

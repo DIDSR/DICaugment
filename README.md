@@ -2,7 +2,7 @@
 <!-- [![PyPI version](https://badge.fury.io/py/albumentations.svg)](https://badge.fury.io/py/albumentations)
 ![CI](https://github.com/albumentations-team/albumentations/workflows/CI/badge.svg) -->
 
-Albumentations3D is a Python package based on the popular image augmentation library [Albumentations](https://github.com/albumentations-team/albumentations), but with specific enhancements for working with volumetric 3D images, such as CT scans. This package provides a collection of powerful and efficient augmentation techniques that can be seamlessly integrated into your machine learning pipeline to improve the performance and robustness of your 3D image models.
+Albumentations3D is a Python package based on the popular image augmentation library [Albumentations](https://github.com/albumentations-team/albumentations), but with specific enhancements for working with volumetric 3D images, such as CT scans. This package provides a collection of powerful and efficient augmentation techniques that can be seamlessly integrated into your machine learning pipeline to augment 3D images used for model development.
 
 
 Below are some examples of some common or unique augmentations that are possible with the Albumentations3D library:
@@ -13,7 +13,7 @@ Below are some examples of some common or unique augmentations that are possible
 
 Albumentations3D offers the following key features:
 
-- 3D-specific augmentation techniques: The package includes a variety of augmentation methods specifically designed for volumetric 3D images, such as CT scans. These techniques can be used to augment the data and improve the generalization of your models. Some of the transformations utilize the metadata availble from a dicom header, allowing users to create transformations that are consistant with an image's acquisition parameters.
+- 3D-specific augmentation techniques: The package includes a variety of augmentation methods specifically designed for volumetric 3D images, such as CT scans. These techniques can be used to augment the data and improve the generalization of your models. Some of the transformations utilize the metadata availble from a dicom header, allowing users to create transformations that are consistent with an image's acquisition parameters.
 
 - Seamless integration: The package is built as an extension of the Albumentations library, making it easy to incorporate 3D augmentation into your existing image processing pipelines. It maintains a similar API and workflow, ensuring a smooth transition for users already familiar with Albumentations.
 
@@ -72,7 +72,7 @@ pip install albumentations3D
 
 ## Usage
 
-To use Albumentations3D, you need to import the necessary modules and define an augmentation pipeline. Here's a simple example demonstrating how to apply a 3D augmentation pipeline to a set of CT scans:
+To use Albumentations3D, you need to import the necessary modules and define an augmentation pipeline. Here's a simple example demonstrating how to apply a 3D augmentation pipeline to a CT scan:
 
 ```python
 import albumentations3d as A
@@ -148,9 +148,32 @@ Spatial-level transforms will simultaneously change both an input image as well 
 
 These transforms utilize metadata from a DICOM header file to apply a pixel-level or spatial-level transformation
 
-- [NPSNoise](https://albumentations3d.readthedocs.io/en/latest/augmentations.dicom.html#albumentations3d.augmentations.dicom.transforms.NPSNoise)
 - [RescaleSlopeIntercept](https://albumentations3d.readthedocs.io/en/latest/augmentations.dicom.html#albumentations3d.augmentations.dicom.transforms.RescaleSlopeIntercept)
 - [SetPixelSpacing](https://albumentations3d.readthedocs.io/en/latest/augmentations.dicom.html#albumentations3d.augmentations.dicom.transforms.SetPixelSpacing)
+- [NPSNoise](https://albumentations3d.readthedocs.io/en/latest/augmentations.dicom.html#albumentations3d.augmentations.dicom.transforms.NPSNoise)
+
+
+The NPSNoise transormation applies a random change in the magnitude of the noise present in the image consistent with the kernel type provided in the DICOM header 
+
+```python
+import albumentations3d as A
+
+scan = A.read_dcm_image(
+  path='path/to/dcm/folder/',
+  return_header=False
+  )
+
+dicom = {
+  "PixelSpacing" : (0.5, 0.5),
+  "RescaleIntercept" : -1024.0,
+  "RescaleSlope" : 1.0,
+  "ConvolutionKernel" : 'STANDARD',
+  "XRayTubeCurrent" : 160
+  }
+
+aug = A.Compose([A.NPSNoise()])
+result = aug(image=scan, dicom=dicom)
+```
 
 
 ![NPS](./tools/nps_example.gif)

@@ -28,7 +28,7 @@ __all__ = [
 
 class RescaleSlopeIntercept(ImageOnlyTransform):
     """
-    Rescales img to Hounsfields Units (HU) using the `(0028, 1053) Rescale Slope` and `(0028, 1052) Rescale Intercept` values from a dicom header.
+    Harmonizes the pixel intensity values using the `(0028, 1053) Rescale Slope` and `(0028, 1052) Rescale Intercept` values from a dicom header.
     This will return the image with data type `np.int16`.
     
     Args:
@@ -82,7 +82,7 @@ class RescaleSlopeIntercept(ImageOnlyTransform):
 
 class SetPixelSpacing(DualTransform):
     """
-    Resize an image so that the `(0028, 0030) Pixel Spacing` values of the dicom header are equal to `space_x` and `space_y` respectively
+    Harmonizes spatial pixel spacing such that the `(0028, 0030) Pixel Spacing` values of the dicom header are equal to `space_x` and `space_y` respectively
     
     Args:
         space_x (float): desired pixel spacing in the width dimension.  Default: 1.0
@@ -147,7 +147,7 @@ class SetPixelSpacing(DualTransform):
 
 class NPSNoise(ImageOnlyTransform):
     """
-    Insert random image noise based on the `(0018,1210) Convolution Kernel` type of the dicom header.
+    Insert random image noise based on the `(0018,1210) Convolution Kernel` type of the dicom header. The current supported kernel types are
 
     Args:
         magnitude ((int, int) or int): scaling magnitude range of noise. If magnitude is a single integer value, the
@@ -160,6 +160,9 @@ class NPSNoise(ImageOnlyTransform):
 
     Image types:
         int16
+
+    Note:
+        The current supported kernel types include: `b10f`, `b20f`, `b22f`, `b26f`, `b30f`, `b31f`, `b35f`, `b36f`, `b40f`, `b41f`, `b43f`, `b45f`, `b46f`, `b50f`, `b60f`, `b70f`, `b75f`, `b80f`, `bone`, `boneplus`, `chest`, `detail`, `edge`, `lung`, `soft`, `standard`
 
     Note:
         This transformation requires the use a DICOM header object. See `albumentations3d.read_dcm_image()` for full syntax.
