@@ -52,6 +52,8 @@ In the future, certain operations that are acheivable through openCV will be imp
 ## Authors
 
 **Jacob McIntosh**
+
+**Mehdi Farhangi**
 <!-- [**Alexander Buslaev** — Computer Vision Engineer at Mapbox](https://www.linkedin.com/in/al-buslaev/) | [Kaggle Master](https://www.kaggle.com/albuslaev)
 
 [**Alex Parinov**](https://www.linkedin.com/in/alex-parinov/) | [Kaggle Master](https://www.kaggle.com/creafz)
