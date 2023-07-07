@@ -85,7 +85,7 @@ class ToPytorch(BasicTransform):
             raise ValueError("Albumentations3D only supports images in HWD or HWDC format")
 
         if len(img.shape) == 3:
-            return Ftorch.img_to_tensor(img.transpose(2, 0, 1), self.normalize)
+            return Ftorch.img_to_tensor(np.expand_dims(img, 3).transpose(3, 2, 0, 1), self.normalize)
         
         else:
             return Ftorch.img_to_tensor(img.transpose(3, 2, 0, 1), self.normalize)

@@ -178,7 +178,7 @@ result = aug(image=scan, dicom=dicom)
 
 ![NPS](./tools/nps_example.gif)
 
-## A Few More Examples of Augmentations
+<!-- ## A Few More Examples of Augmentations
 ### Mask Augmentation for Instance and Semantic Segmentation
 
 ![Segmentation](./tools/segmentation_example.gif)
@@ -188,7 +188,14 @@ result = aug(image=scan, dicom=dicom)
 
 
 ### Keypoint Augmentations for Keypoint Detection
-![kp](./tools/kp_example.gif)
+![kp](./tools/kp_example.gif) -->
+
+
+
+
+
+
+
 <!-- ### Object detection and semantic segmentation on the Mapillary Vistas dataset
 ![vistas](https://habrastorage.org/webt/rz/-h/3j/rz-h3jalbxic8o_fhucxysts4tc.jpeg)
 
@@ -229,6 +236,11 @@ The table shows how many images per second can be processed on a single core; hi
 |ColorJitter           |               **351**                |              78              |                            57                            |              -              |                -                |             -              |
 
 Python and library versions: Python 3.9.5 (default, Jun 23 2021, 15:01:51) [GCC 8.3.0], numpy 1.19.5, pillow-simd 7.0.0.post3, opencv-python 4.5.3.56, scikit-image 0.18.3, scipy 1.7.1. -->
+
+## Meet The Project Team
+...
+...
+...
 
 ## Contributing
 
