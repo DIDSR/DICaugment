@@ -28,15 +28,20 @@ Index
 .. Hidden TOCs
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 0
    :hidden:
    :caption: Getting Started:
 
    installation
    getting.started
+   mask_augmentation
+   bbox_augmentation
+   keypoint_augmentation
+   dicom_augmentation
+   
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :hidden:
    :caption: API Reference:
 

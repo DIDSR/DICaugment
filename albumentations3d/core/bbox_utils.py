@@ -358,10 +358,8 @@ def convert_bbox_to_albumentations(
         rows: Image height.
         cols: Image width.
         slices: Image depth
-
     Returns:
         tuple: A bounding box `(x_min, y_min, z_min, x_max, y_max, z_max)`.
-  
     Note:
         The `coco_3d` format of a bounding box looks like `(x_min, y_min, z_min, width, height, depth)`, e.g. ([97, 12, 5, 150, 200, 10).
         The `pascal_voc_3d` format of a bounding box looks like `(x_min, y_min, z_min, x_max, y_max, z_min)`, e.g. (97, 12, 5, 247, 212, 15).
@@ -422,16 +420,13 @@ def convert_bbox_from_albumentations(
         cols: Image width.
         slices: Image depth.
         check_validity: Check if all boxes are valid boxes.
-
     Returns:
         tuple: A bounding box.
-
     Note:
         The `coco_3d` format of a bounding box looks like `(x_min, y_min, z_min, width, height, depth)`, e.g. ([97, 12, 5, 150, 200, 10).
         The `pascal_voc_3d` format of a bounding box looks like `(x_min, y_min, z_min, x_max, y_max, z_min)`, e.g. (97, 12, 5, 247, 212, 15).
         The `yolo_3d` format of a bounding box looks like `(x, y, z, width, height, depth)`, e.g. (0.3, 0.1, 0.5, 0.05, 0.07, 0.23);
             where `x`, `y`, and `z` are coordinates of the center of the box, all values normalized to 1 by image height, width, and depth.
-
     Raises:
         ValueError: if `target_format` is not equal to `coco_3d`, `pascal_voc_3d` or `yolo_3d`.
 

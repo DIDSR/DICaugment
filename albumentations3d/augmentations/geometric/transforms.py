@@ -63,27 +63,22 @@ class ShiftScaleRotate(DualTransform):
         interpolation: scipy interpolation method (e.g. albumenations3d.INTER_NEAREST). default: albumenations3d.INTER_LINEAR
         border_mode: scipy parameter to determine how the input image is extended during convolution to maintain image shape
             Must be one of the following:
-                `reflect` (d c b a | a b c d | d c b a)
-                    The input is extended by reflecting about the edge of the last pixel. This mode is also sometimes referred to as half-sample symmetric.
-                `constant` (k k k k | a b c d | k k k k)
-                    The input is extended by filling all values beyond the edge with the same constant value, defined by the cval parameter.
-                `nearest` (a a a a | a b c d | d d d d)
-                    The input is extended by replicating the last pixel.
-                `mirror` (d c b | a b c d | c b a)
-                    The input is extended by reflecting about the center of the last pixel. This mode is also sometimes referred to as whole-sample symmetric.
-                `wrap` (a b c d | a b c d | a b c d)
-                    The input is extended by wrapping around to the opposite edge.
+                `reflect` (d c b a | a b c d | d c b a) The input is extended by reflecting about the edge of the last pixel. This mode is also sometimes referred to as half-sample symmetric.
+                `constant` (k k k k | a b c d | k k k k) The input is extended by filling all values beyond the edge with the same constant value, defined by the cval parameter.
+                `nearest` (a a a a | a b c d | d d d d) The input is extended by replicating the last pixel.
+                `mirror` (d c b | a b c d | c b a) The input is extended by reflecting about the center of the last pixel. This mode is also sometimes referred to as whole-sample symmetric.
+                `wrap` (a b c d | a b c d | a b c d) The input is extended by wrapping around to the opposite edge.
                 https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.median_filter.html
             Default: `constant`
-        value (int orfloat): padding value if border_mode is "constant.
+        value (int or float): padding value if border_mode is "constant.
         mask_value (int or float): padding value if border_mode is "constant" applied for masks.
         crop_to_border (bool): If True, then the image is padded or cropped to fit the entire rotation. If False, then original image shape is
             maintained and some portions of the image may be cropped away. Note that any translations are applied after the image is reshaped.
             Default: False
         shift_limit_x ((float, float) or float): shift factor range for width. If it is set then this value
-            instead of shift_limit will be used for shifting width.  If shift_limit_x is a single float value,
-            the range will be (-shift_limit_x, shift_limit_x). Absolute values for lower and upper bounds should lie in
-            the range [0, 1]. Default: None.
+                instead of shift_limit will be used for shifting width.  If shift_limit_x is a single float value,
+                the range will be (-shift_limit_x, shift_limit_x). Absolute values for lower and upper bounds should lie in
+                the range [0, 1]. Default: None.
         shift_limit_y ((float, float) or float): shift factor range for height. If it is set then this value
             instead of shift_limit will be used for shifting height.  If shift_limit_y is a single float value,
             the range will be (-shift_limit_y, shift_limit_y). Absolute values for lower and upper bounds should lie
@@ -1444,9 +1439,11 @@ class Flip(DualTransform):
     """
 
     def apply(self, img: np.ndarray, d: int = 0, **params) -> np.ndarray:
-        """Args:
-        d (int): code that specifies how to flip the input. 0 for vertical flipping, 1 for horizontal flipping,
-                2 for z-axis flip, or -1 for vertical, horizontal, and z-axis flipping
+        """
+        
+        Args:
+            d (int): code that specifies how to flip the input. 0 for vertical flipping, 1 for horizontal flipping,
+                    2 for z-axis flip, or -1 for vertical, horizontal, and z-axis flipping
         """
         return F.random_flip(img, d)
 

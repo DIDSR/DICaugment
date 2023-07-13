@@ -53,13 +53,15 @@ FillValueType = Optional[Union[int, float, Sequence[int], Sequence[float]]]
 
 
 def to_tuple(param, low=None, bias=None):
-    """Convert input argument to min-max tuple
+    """Convert input argument to min-max tuple.
+
     Args:
         param (scalar, tuple or list of 2+ elements): Input value.
             If value is scalar, return value would be (offset - value, offset + value).
             If value is tuple, return value would be value + offset (broadcasted).
         low:  Second element of tuple can be passed as optional argument
         bias: An offset factor added to each element
+    
     """
     if low is not None and bias is not None:
         raise ValueError("Arguments low and bias are mutually exclusive")

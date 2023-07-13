@@ -143,10 +143,11 @@ def bbox_rot90(bbox: BoxInternalType, factor: int, axes: str, rows: int, cols: i
 @angle_2pi_range
 def keypoint_rot90(keypoint: KeypointInternalType, factor: int, axes: str, rows: int, cols: int, slices: int, **params) -> KeypointInternalType:
     """Rotates a bounding box by 90 degrees in the direction dicated by a right-handed coordinate system. 
-        i.e. from a top-level view of the xy plane:
-            Rotation around the z-axis: counterclockwise rotation
-            Rotation around the y-axis: left to right rotation
-            Rotation around the x-axis: bottom to top rotation
+        i.e. from a top-level view of the xy plane;
+            * Rotation around the z-axis; counterclockwise rotation
+            * Rotation around the y-axis; left to right rotation
+            * Rotation around the x-axis; bottom to top rotation
+
     Args:
         keypoint: A keypoint `(x, y, z, angle, scale)`.
         factor: Number of CCW rotations. Must be in range [0;3] See np.rot90.

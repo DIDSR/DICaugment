@@ -637,16 +637,18 @@ class BBoxSafeRandomCrop(DualTransform):
 
 class RandomSizedBBoxSafeCrop(BBoxSafeRandomCrop):
     """Crop a random part of the input and rescale it to some size without loss of bboxes.
+    
     Args:
         height (int): height after crop and resize.
         width (int): width after crop and resize.
         depth (int): depth after crop and resize.
         erosion_rate (float): erosion rate applied on input image height before crop.
-        interpolation (int) : scipy interpolation method (e.g. albumenations3d.INTER_NEAREST)
-            Default: albumenations3d.INTER_LINEAR.
+        interpolation (int) : scipy interpolation method (e.g. albumenations3d.INTER_NEAREST) Default: albumenations3d.INTER_LINEAR.
         p (float): probability of applying the transform. Default: 1.
+
     Targets:
         image, mask, bboxes
+
     Image types:
         uint8, float32
     """
@@ -687,9 +689,7 @@ class CropAndPad(DualTransform):
 
     Args:
         px (int or tuple):
-            The number of pixels to crop (negative values) or pad (positive values)
-            on each side of the image. Either this or the parameter `percent` may
-            be set, not both at the same time.
+            The number of pixels to crop (negative values) or pad (positive values) on each side of the image. Either this or the parameter `percent` may be set, not both at the same time.
                 * If ``None``, then pixel-based cropping/padding will not be used.
                 * If ``int``, then that exact number of pixels will always be cropped/padded.
                 * If a ``tuple`` of two ``int`` s with values ``a`` and ``b``,
@@ -711,23 +711,22 @@ class CropAndPad(DualTransform):
             bottom (both ``10%`` each), as well as ``10%`` of the width at the
             right and left.
             Expected value range is ``(-1.0, inf)``.
-            Either this or the parameter `px` may be set, not both
-            at the same time.
-                * If ``None``, then fraction-based cropping/padding will not be
-                  used.
-                * If ``float``, then that fraction will always be cropped/padded.
-                * If a ``tuple`` of two ``float`` s with values ``a`` and ``b``,
-                  then each side will be cropped/padded by a random fraction
-                  sampled uniformly per image and side from the interval
-                  ``[a, b]``. If however `sample_independently` is set to
-                  ``False``, only one value will be sampled per image and used for
-                  all sides.
-                * If a ``tuple`` of six entries, then the entries represent top, bottom,
-                  left, right, close, far. Each entry may be a single ``float``
-                  (always crop/pad by exactly that percent value), a ``tuple`` of
-                  two ``float`` s ``a`` and ``b`` (crop/pad by a fraction from
-                  ``[a, b]``), a ``list`` of ``float`` s (crop/pad by a random
-                  value that is contained in the list).
+            Either this or the parameter `px` may be set, not both at the same time:
+                    * If ``None``, then fraction-based cropping/padding will not be
+                    used.
+                    * If ``float``, then that fraction will always be cropped/padded.
+                    * If a ``tuple`` of two ``float`` s with values ``a`` and ``b``,
+                    then each side will be cropped/padded by a random fraction
+                    sampled uniformly per image and side from the interval
+                    ``[a, b]``. If however `sample_independently` is set to
+                    ``False``, only one value will be sampled per image and used for
+                    all sides.
+                    * If a ``tuple`` of six entries, then the entries represent top, bottom,
+                    left, right, close, far. Each entry may be a single ``float``
+                    (always crop/pad by exactly that percent value), a ``tuple`` of
+                    two ``float`` s ``a`` and ``b`` (crop/pad by a fraction from
+                    ``[a, b]``), a ``list`` of ``float`` s (crop/pad by a random
+                    value that is contained in the list).
         pad_mode (str): scipy parameter to determine how the input image is extended during convolution to maintain image shape. Must be one of the following:
 
             - `reflect` (d c b a | a b c d | d c b a): The input is extended by reflecting about the edge of the last pixel. This mode is also sometimes referred to as half-sample symmetric.
