@@ -99,25 +99,23 @@ class Rotate(DualTransform):
         interpolation (int): scipy interpolation method (e.g. albumenations3d.INTER_NEAREST). Default: albumentations3d.INTER_LINEAR
         mode (str): scipy parameter to determine how the input image is extended during convolution to maintain image shape. Must be one of the following:
 
-            - `reflect` (d c b a | a b c d | d c b a): The input is extended by reflecting about the edge of the last pixel. This mode is also sometimes referred to as half-sample symmetric.
-            - `constant` (k k k k | a b c d | k k k k): The input is extended by filling all values beyond the edge with the same constant value, defined by the cval parameter.
-            - `nearest` (a a a a | a b c d | d d d d): The input is extended by replicating the last pixel.
-            - `mirror` (d c b | a b c d | c b a): The input is extended by reflecting about the center of the last pixel. This mode is also sometimes referred to as whole-sample symmetric.
-            - `wrap` (a b c d | a b c d | a b c d): The input is extended by wrapping around to the opposite edge.
+            * `reflect` (d c b a | a b c d | d c b a): The input is extended by reflecting about the edge of the last pixel. This mode is also sometimes referred to as half-sample symmetric.
+            * `constant` (k k k k | a b c d | k k k k): The input is extended by filling all values beyond the edge with the same constant value, defined by the cval parameter.
+            * `nearest` (a a a a | a b c d | d d d d): The input is extended by replicating the last pixel.
+            * `mirror` (d c b | a b c d | c b a): The input is extended by reflecting about the center of the last pixel. This mode is also sometimes referred to as whole-sample symmetric.
+            * `wrap` (a b c d | a b c d | a b c d): The input is extended by wrapping around to the opposite edge.
 
             Reference: https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.median_filter.html
             
             Default: `constant`
         value (int or float): The fill value when border_mode = `constant`. Default: 0.
-        mask_value (int, float,
-                    list of ints,
-                    list of float): The fill value when border_mode = `constant` applied for masks. Default: 0.
+        mask_value (int, float, list of ints, list of float): The fill value when border_mode = `constant` applied for masks. Default: 0.
         rotate_method (str): rotation method used for the bounding boxes. Should be one of "largest_box" or "ellipse".
             Default: "largest_box"
         crop_to_border (bool): If True, then the image is cropped to fit the entire rotation. If False, then original image shape is
             maintained and some portions of the image may be cropped away. Default: False
         p (float): probability of applying the transform. Default: 0.5.
-
+        
     Targets:
         image, mask, bboxes, keypoints
 

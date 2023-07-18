@@ -14,10 +14,10 @@
 9. Test this sample script from unit test
 
 ```
-import albumentations3d as A # this will eventually change to albumentations3D
+import albumentations3d as A
 import numpy as np
 
-image = np.randint(0,256, (100,100,100), dtype = np.uint8)
+image = np.random.randint(0,256, (100,100,100), dtype = np.uint8)
 
 # multiple bbox formats are supported, just have to pass them as an arugment, see BboxParams in core/bbox_utils.py for more info
 bboxes = [(20, 30, 40, 40, 50, 50)]
@@ -78,21 +78,21 @@ aug = A.Compose(
 # virtually all pipelines can be serialized and deserialized which makes it easy to save the pipeline
 # to a json and load it in again without having to reintialize all the hyperparameters
 serialized_aug = A.to_dict(aug)
-print(serialized_aug)
+print("Pipeline as a json serialized object:\n", serialized_aug)
 
 
 # all arguments in the augmentation must be named parameters
 try:
     aug_data = aug(image, bboxes) if labels is None else aug(image, bboxes, labels)
 except Exception as e:
-    print(e)
+    print("If keyword arguments aren't provided to the aug() call, this error will occur:\n" , e)
 
 
 # the resulting object is a dictionary of the given items
 aug_data = aug(image=image, bboxes=bboxes) if labels is None else aug(image=image, bboxes=bboxes, labels=labels)
-print(aug_data.keys())
-print('aug_data["image"]', type(aug_data["image"]))
-print('aug_data["bboxes"]', type(aug_data["bboxes"]))
+print("These are the keys of the returned dictionary object", aug_data.keys())
+print('aug_data["image"] has type', type(aug_data["image"]))
+print('aug_data["bboxes"] has type', type(aug_data["bboxes"]))
 
 
 # I recommend using VScode for further exploration if you can as there is an integrated terminal and there is documentation-on-hover for functions and classes

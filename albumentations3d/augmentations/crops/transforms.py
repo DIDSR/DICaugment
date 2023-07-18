@@ -704,39 +704,18 @@ class CropAndPad(DualTransform):
                   ``list`` of ``int`` s (crop/pad by a random value that is
                   contained in the ``list``).
         percent (float or tuple):
-            The number of pixels to crop (negative values) or pad (positive values)
-            on each side of the image given as a *fraction* of the image
-            height/width. E.g. if this is set to ``-0.1``, the transformation will
-            always crop away ``10%`` of the image's height at both the top and the
-            bottom (both ``10%`` each), as well as ``10%`` of the width at the
-            right and left.
-            Expected value range is ``(-1.0, inf)``.
-            Either this or the parameter `px` may be set, not both at the same time:
-                    * If ``None``, then fraction-based cropping/padding will not be
-                    used.
-                    * If ``float``, then that fraction will always be cropped/padded.
-                    * If a ``tuple`` of two ``float`` s with values ``a`` and ``b``,
-                    then each side will be cropped/padded by a random fraction
-                    sampled uniformly per image and side from the interval
-                    ``[a, b]``. If however `sample_independently` is set to
-                    ``False``, only one value will be sampled per image and used for
-                    all sides.
-                    * If a ``tuple`` of six entries, then the entries represent top, bottom,
-                    left, right, close, far. Each entry may be a single ``float``
-                    (always crop/pad by exactly that percent value), a ``tuple`` of
-                    two ``float`` s ``a`` and ``b`` (crop/pad by a fraction from
-                    ``[a, b]``), a ``list`` of ``float`` s (crop/pad by a random
-                    value that is contained in the list).
+            The number of pixels to crop (negative values) or pad (positive values) on each side of the image given as a *fraction* of the image height/width. E.g. if this is set to ``-0.1``, the transformation will always crop away ``10%`` of the image's height at both the top and the bottom (both ``10%`` each), as well as ``10%`` of the width at the right and left. Expected value range is ``(-1.0, inf)``. Either this or the parameter `px` may be set, not both at the same time:
+                * If ``None``, then fraction-based cropping/padding will not be used
+                * If ``float``, then that fraction will always be cropped/padded
+                * If a ``tuple`` of two ``float`` s with values ``a`` and ``b``, then each side will be cropped/padded by a random fraction sampled uniformly per image and side from the interval ``[a, b]``. If however `sample_independently` is set to ``False``, only one value will be sampled per image and used for all sides.
+                * If a ``tuple`` of six entries, then the entries represent top, bottom, left, right, close, far. Each entry may be a single ``float`` (always crop/pad by exactly that percent value), a ``tuple`` of two ``float`` s ``a`` and ``b`` (crop/pad by a fraction from ``[a, b]``), a ``list`` of ``float`` s (crop/pad by a random value that is contained in the list).
         pad_mode (str): scipy parameter to determine how the input image is extended during convolution to maintain image shape. Must be one of the following:
-
             - `reflect` (d c b a | a b c d | d c b a): The input is extended by reflecting about the edge of the last pixel. This mode is also sometimes referred to as half-sample symmetric.
             - `constant` (k k k k | a b c d | k k k k): The input is extended by filling all values beyond the edge with the same constant value, defined by the cval parameter.
             - `nearest` (a a a a | a b c d | d d d d): The input is extended by replicating the last pixel.
             - `mirror` (d c b | a b c d | c b a): The input is extended by reflecting about the center of the last pixel. This mode is also sometimes referred to as whole-sample symmetric.
             - `wrap` (a b c d | a b c d | a b c d): The input is extended by wrapping around to the opposite edge.
-
             Reference: https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.median_filter.html
-            
             Default: `constant`
         pad_cval (number, Sequence[number]):
             The constant value to use if pad_mode is ``constant``.

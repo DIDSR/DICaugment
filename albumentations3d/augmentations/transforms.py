@@ -1061,9 +1061,7 @@ class Posterize(ImageOnlyTransform):
     """Reduce the number of bits for each color channel.
 
     Args:
-        num_bits ((int, int) or int,
-                  or list of ints [r, g, b],
-                  or list of ints [[r1, r1], [g1, g2], [b1, b2]]): number of high bits.
+        num_bits ((int, int) or int, or list of ints [r, g, b], or list of ints [[r1, r2], [g1, g2], [b1, b2]]): number of high bits.
             If num_bits is a single value, the range will be [num_bits, num_bits].
             Must be in range [0, n] where n is the number of bits in the image dtype . Default: 8.
         p (float): probability of applying the transform. Default: 0.5.
@@ -2000,11 +1998,11 @@ class Sharpen(ImageOnlyTransform):
         lightness ((float, float)): range to choose the lightness of the sharpened image. Default: (0.5, 1.0).
         mode (str): scipy parameter to determine how the input image is extended during convolution to maintain image shape. Must be one of the following:
 
-            - `reflect` (d c b a | a b c d | d c b a): The input is extended by reflecting about the edge of the last pixel. This mode is also sometimes referred to as half-sample symmetric.
-            - `constant` (k k k k | a b c d | k k k k): The input is extended by filling all values beyond the edge with the same constant value, defined by the cval parameter.
-            - `nearest` (a a a a | a b c d | d d d d): The input is extended by replicating the last pixel.
-            - `mirror` (d c b | a b c d | c b a): The input is extended by reflecting about the center of the last pixel. This mode is also sometimes referred to as whole-sample symmetric.
-            - `wrap` (a b c d | a b c d | a b c d): The input is extended by wrapping around to the opposite edge.
+            * `reflect` (d c b a | a b c d | d c b a): The input is extended by reflecting about the edge of the last pixel. This mode is also sometimes referred to as half-sample symmetric.
+            * `constant` (k k k k | a b c d | k k k k): The input is extended by filling all values beyond the edge with the same constant value, defined by the cval parameter.
+            * `nearest` (a a a a | a b c d | d d d d): The input is extended by replicating the last pixel.
+            * `mirror` (d c b | a b c d | c b a): The input is extended by reflecting about the center of the last pixel. This mode is also sometimes referred to as whole-sample symmetric.
+            * `wrap` (a b c d | a b c d | a b c d): The input is extended by wrapping around to the opposite edge.
 
             Reference: https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.median_filter.html
             

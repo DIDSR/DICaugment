@@ -61,16 +61,17 @@ class ShiftScaleRotate(DualTransform):
             If a list is passed, then one axis of rotation will be chosen at random for each call of the transformation.
             Default: "xy"
         interpolation: scipy interpolation method (e.g. albumenations3d.INTER_NEAREST). default: albumenations3d.INTER_LINEAR
-        border_mode: scipy parameter to determine how the input image is extended during convolution to maintain image shape
-            Must be one of the following:
-                `reflect` (d c b a | a b c d | d c b a) The input is extended by reflecting about the edge of the last pixel. This mode is also sometimes referred to as half-sample symmetric.
-                `constant` (k k k k | a b c d | k k k k) The input is extended by filling all values beyond the edge with the same constant value, defined by the cval parameter.
-                `nearest` (a a a a | a b c d | d d d d) The input is extended by replicating the last pixel.
-                `mirror` (d c b | a b c d | c b a) The input is extended by reflecting about the center of the last pixel. This mode is also sometimes referred to as whole-sample symmetric.
-                `wrap` (a b c d | a b c d | a b c d) The input is extended by wrapping around to the opposite edge.
-                https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.median_filter.html
-            Default: `constant`
-        value (int or float): padding value if border_mode is "constant.
+        border_mode (str): Scipy parameter to determine how the input image is extended during convolution to maintain image shape. Must be one of the following:
+            
+            * `reflect` (d c b a | a b c d | d c b a): The input is extended by reflecting about the edge of the last pixel. This mode is also sometimes referred to as half-sample symmetric.
+            * `constant` (k k k k | a b c d | k k k k): The input is extended by filling all values beyond the edge with the same constant value, defined by the cval parameter.
+            * `nearest` (a a a a | a b c d | d d d d): The input is extended by replicating the last pixel.
+            * `mirror` (d c b | a b c d | c b a): The input is extended by reflecting about the center of the last pixel. This mode is also sometimes referred to as whole-sample symmetric.
+            * `wrap` (a b c d | a b c d | a b c d): The input is extended by wrapping around to the opposite edge.
+            
+            See https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.median_filter.html
+            Default: `constant`.
+        value (int or float): padding value if border_mode is "constant".
         mask_value (int or float): padding value if border_mode is "constant" applied for masks.
         crop_to_border (bool): If True, then the image is padded or cropped to fit the entire rotation. If False, then original image shape is
             maintained and some portions of the image may be cropped away. Note that any translations are applied after the image is reshaped.
@@ -1055,10 +1056,8 @@ class PadIfNeeded(DualTransform):
             PositionType.TOP_LEFT or PositionType.TOP_RIGHT or PositionType.BOTTOM_LEFT or PositionType.BOTTOM_RIGHT.
             or PositionType.RANDOM. Default: PositionType.CENTER.
         border_mode (OpenCV flag): OpenCV border mode.
-        value (int, float, list of int, list of float): padding value if border_mode is cv2.BORDER_CONSTANT.
-        mask_value (int, float,
-                    list of int,
-                    list of float): padding value for mask if border_mode is cv2.BORDER_CONSTANT.
+        value (int, float, list of int, list of float): padding value if border_mode is "constant".
+        mask_value (int, float, list of int, list of float): padding value for mask if border_mode is "constant".
         p (float): probability of applying the transform. Default: 1.0.
 
     Targets:
