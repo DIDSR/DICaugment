@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE article PUBLIC "-//NLM//DTD JATS (Z39.96) Journal Publishing DTD v1.2 20190208//EN"
+                  "JATS-publishing1.dtd">
+<article xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:xlink="http://www.w3.org/1999/xlink" dtd-version="1.2" article-type="other">
+<front>
+<journal-meta>
+<journal-id></journal-id>
+<journal-title-group>
+<journal-title>Journal of Open Source Software</journal-title>
+<abbrev-journal-title>JOSS</abbrev-journal-title>
+</journal-title-group>
+<issn publication-format="electronic">2475-9066</issn>
+<publisher>
+<publisher-name>Open Journals</publisher-name>
+</publisher>
+</journal-meta>
+<article-meta>
+<article-id pub-id-type="publisher-id">0</article-id>
+<article-id pub-id-type="doi">N/A</article-id>
+<title-group>
+<article-title>Albumentations3D: A Python Package for 3D Medical Imaging
+Augmentation</article-title>
+</title-group>
+<contrib-group>
+<contrib contrib-type="author">
+<contrib-id contrib-id-type="orcid">https://orcid.org/0009-0008-2573-180X</contrib-id>
+<name>
+<surname>McIntosh</surname>
+<given-names>J.</given-names>
+</name>
+<xref ref-type="aff" rid="aff-1"/>
+<xref ref-type="aff" rid="aff-2"/>
+</contrib>
+<contrib contrib-type="author" corresp="yes">
+<name>
+<surname>Farhangi</surname>
+<given-names>M. Mehdi</given-names>
+</name>
+<xref ref-type="aff" rid="aff-1"/>
+<xref ref-type="corresp" rid="cor-1"><sup>*</sup></xref>
+</contrib>
+<aff id="aff-1">
+<institution-wrap>
+<institution>Division of Imaging, Diagnostics, and Software Reliability,
+CDRH, U.S. Food and Drug Administration, Silver Spring, MD 20993,
+USA</institution>
+</institution-wrap>
+</aff>
+<aff id="aff-2">
+<institution-wrap>
+<institution>Oak Ridge Institute for Science and Education, Oak Ridge,
+TN, USA</institution>
+</institution-wrap>
+</aff>
+</contrib-group>
+<author-notes>
+<corresp id="cor-1">* E-mail: <email></email></corresp>
+</author-notes>
+<pub-date date-type="pub" publication-format="electronic" iso-8601-date="2023-08-08">
+<day>8</day>
+<month>8</month>
+<year>2023</year>
+</pub-date>
+<volume>¿VOL?</volume>
+<issue>¿ISSUE?</issue>
+<fpage>¿PAGE?</fpage>
+<permissions>
+<copyright-statement>Authors of papers retain copyright and release the
+work under a Creative Commons Attribution 4.0 International License (CC
+BY 4.0)</copyright-statement>
+<copyright-year>2022</copyright-year>
+<copyright-holder>The article authors</copyright-holder>
+<license license-type="open-access" xlink:href="https://creativecommons.org/licenses/by/4.0/">
+<license-p>Authors of papers retain copyright and release the work under
+a Creative Commons Attribution 4.0 International License (CC BY
+4.0)</license-p>
+</license>
+</permissions>
+<kwd-group kwd-group-type="author">
+<kwd>Python</kwd>
+<kwd>Augmentation</kwd>
+<kwd>Deep Learning</kwd>
+<kwd>Medical</kwd>
+<kwd></kwd>
+</kwd-group>
+</article-meta>
+</front>
+<body>
+<sec id="summary">
+  <title>Summary</title>
+  <p>Computer-aided diagnosis/detection (CADx/CADe) has been a prominent
+  area of research for the subfield of medical image processing. While
+  recent advancements in this field have increased model performance,
+  the success of these models still largely relies on a significant
+  amount of labeled and annotated training data. Because of the medical
+  nature of the subject material, only medical professionals are allowed
+  to annotate and label this medical data [CITE], which makes the
+  annotation process extremely expensive. As a result, data augmentation
+  plays a crucial role in increasing the size and diversity of the
+  limited data, which in turn, reduces the possibility of overfitting
+  and improves the capability of these models to generalize.</p>
+</sec>
+<sec id="statement-of-need">
+  <title>Statement of need</title>
+  <p>Albumentations3D is a Python package based on the popular image
+  augmentation library Albumentations
+  (<xref alt="Buslaev et al., 2020" rid="ref-info11020125" ref-type="bibr">Buslaev
+  et al., 2020</xref>) but with specific enhancements for working with
+  volumetric 3D images, such as CT scans and other volumetric imaging.
+  This package provides a collection of powerful and efficient
+  augmentation techniques that can be seamlessly integrated into a
+  machine-learning pipeline to augment 3D images and volumes.</p>
+  <p>While many image augmentation libraries, like the popular
+  Albumentations library, excel at performing augmentations on
+  traditional 2D or RGB images, they lack the utility to complete these
+  augmentations on 3D images. Albumentations3D addresses this need by
+  extending the success of the Albumentations library for 2D image
+  augmentation to the realm of volumetric 3D images, offering a
+  comprehensive set of transformations and augmentations, ranging from
+  pixel-level intensity transformations to spatial transformations, all
+  designed and optimized for 3D data.</p>
+  <p>One aspect that sets this package apart from other 3D augmentation
+  packages such as Volumentations
+  (<xref alt="Solovyev et al., 2022" rid="ref-solovyev20223d" ref-type="bibr">Solovyev
+  et al., 2022</xref>) is the inclusion of physics-based transformations
+  that can utilize metadata commonly found in DICOM files. TALK ABOUT
+  NPS NOISE
+  (<xref alt="Solomon et al., 2012" rid="ref-Solomon2012-lj" ref-type="bibr">Solomon
+  et al., 2012</xref>)</p>
+  <p>TALK ABOUT CURRENT RESEARCH USING NPS TRANSFORMATIONS</p>
+  <p>The Albumentations3D package provides researchers and clinicians
+  with an efficient and user-friendly solution for augmenting 3D medical
+  imaging datasets. Its capabilities are invaluable where data
+  augmentation is a critical step in the training of a robust and
+  accurate deep-learning model. By providing a comprehensive and
+  user-friendly API for the augmentation of 3D images, Albumentations3D
+  contributes to advancing research in fields such as medical diagnosis,
+  object recognition, and remote sensing. In all, The Albumentations3D
+  package aims to fill a significant gap between the computer vision
+  community and medical imaging community by providing a specialized
+  toolset for augmenting volumetric 3D images that follows a familiar
+  structure commonly used by computer vision experts.</p>
+</sec>
+<sec id="acknowledgements">
+  <title>Acknowledgements</title>
+</sec>
+</body>
+<back>
+<ref-list>
+  <ref id="ref-info11020125">
+    <element-citation publication-type="article-journal">
+      <person-group person-group-type="author">
+        <name><surname>Buslaev</surname><given-names>Alexander</given-names></name>
+        <name><surname>Iglovikov</surname><given-names>Vladimir I.</given-names></name>
+        <name><surname>Khvedchenya</surname><given-names>Eugene</given-names></name>
+        <name><surname>Parinov</surname><given-names>Alex</given-names></name>
+        <name><surname>Druzhinin</surname><given-names>Mikhail</given-names></name>
+        <name><surname>Kalinin</surname><given-names>Alexandr A.</given-names></name>
+      </person-group>
+      <article-title>Albumentations: Fast and flexible image augmentations</article-title>
+      <source>Information</source>
+      <year iso-8601-date="2020">2020</year>
+      <volume>11</volume>
+      <issue>2</issue>
+      <issn>2078-2489</issn>
+      <uri>https://www.mdpi.com/2078-2489/11/2/125</uri>
+      <pub-id pub-id-type="doi">10.3390/info11020125</pub-id>
+    </element-citation>
+  </ref>
+  <ref id="ref-solovyev20223d">
+    <element-citation publication-type="article-journal">
+      <person-group person-group-type="author">
+        <name><surname>Solovyev</surname><given-names>Roman</given-names></name>
+        <name><surname>Kalinin</surname><given-names>Alexandr A</given-names></name>
+        <name><surname>Gabruseva</surname><given-names>Tatiana</given-names></name>
+      </person-group>
+      <article-title>3D convolutional neural networks for stalled brain capillary detection</article-title>
+      <source>Computers in Biology and Medicine</source>
+      <publisher-name>Elsevier</publisher-name>
+      <year iso-8601-date="2022">2022</year>
+      <volume>141</volume>
+      <pub-id pub-id-type="doi">10.1016/j.compbiomed.2021.105089</pub-id>
+      <fpage>105089</fpage>
+      <lpage></lpage>
+    </element-citation>
+  </ref>
+  <ref id="ref-Solomon2012-lj">
+    <element-citation publication-type="article-journal">
+      <person-group person-group-type="author">
+        <name><surname>Solomon</surname><given-names>Justin B</given-names></name>
+        <name><surname>Christianson</surname><given-names>Olav</given-names></name>
+        <name><surname>Samei</surname><given-names>Ehsan</given-names></name>
+      </person-group>
+      <article-title>Quantitative comparison of noise texture across CT scanners from different manufacturers</article-title>
+      <source>Med. Phys.</source>
+      <publisher-name>Wiley</publisher-name>
+      <year iso-8601-date="2012-10">2012</year><month>10</month>
+      <volume>39</volume>
+      <issue>10</issue>
+      <fpage>6048</fpage>
+      <lpage>6055</lpage>
+    </element-citation>
+  </ref>
+</ref-list>
+</back>
+</article>
