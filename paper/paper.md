@@ -40,7 +40,7 @@ Albumentations3D is a Python package based on the popular image augmentation lib
 
 While many image augmentation libraries, like the popular Albumentations library, excel at performing augmentations on traditional 2D or RGB images, they lack the utility to complete these augmentations on 3D images. Albumentations3D addresses this need by extending the success of the Albumentations library for 2D image augmentation to the realm of volumetric 3D images, offering a comprehensive set of transformations and augmentations, ranging from pixel-level intensity transformations to spatial transformations, all designed and optimized for 3D data. 
 
-One aspect that sets this package apart from other 3D augmentation packages such as Volumentations [@solovyev20223d] is the inclusion of physics-based transformations that can utilize metadata commonly found in DICOM files.  TALK ABOUT NPS NOISE [@Solomon2012-lj]
+One aspect that sets this package apart from other 3D augmentation packages such as Volumentations [@solovyev20223d] is the inclusion of physics-based transformations that can utilize metadata commonly found in DICOM files. One example of these transformations computes and inserts into scans a random noise texture that is dependent on the convolution kernel used by the scan's manufacturer during reconstruction. [@Solomon2012-lj]. This transformation can improve data diversity and reduce unseen bias induced by manuifacturer reconstruction algorithms that are invisible to the human eye.
 
 TALK ABOUT CURRENT RESEARCH USING NPS TRANSFORMATIONS
 

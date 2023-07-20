@@ -123,10 +123,14 @@ a Creative Commons Attribution 4.0 International License (CC BY
   packages such as Volumentations
   (<xref alt="Solovyev et al., 2022" rid="ref-solovyev20223d" ref-type="bibr">Solovyev
   et al., 2022</xref>) is the inclusion of physics-based transformations
-  that can utilize metadata commonly found in DICOM files. TALK ABOUT
-  NPS NOISE
+  that can utilize metadata commonly found in DICOM files. One example
+  of these transformations computes and inserts into scans a random
+  noise texture that is dependent on the convolution kernel used by the
+  scan’s manufacturer during reconstruction.
   (<xref alt="Solomon et al., 2012" rid="ref-Solomon2012-lj" ref-type="bibr">Solomon
-  et al., 2012</xref>)</p>
+  et al., 2012</xref>). This transformation can improve data diversity
+  and reduce unseen bias induced by manuifacturer reconstruction
+  algorithms that are invisible to the human eye.</p>
   <p>TALK ABOUT CURRENT RESEARCH USING NPS TRANSFORMATIONS</p>
   <p>The Albumentations3D package provides researchers and clinicians
   with an efficient and user-friendly solution for augmenting 3D medical
