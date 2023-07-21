@@ -11,10 +11,10 @@ authors:
     orcid: 0009-0008-2573-180X
     equal-contrib: false
     affiliation: "1, 2" # (Multiple affiliations must be quoted)
+    corresponding: true
   - name: M. Mehdi Farhangi
     orcid: 0000-0000-0000-0000
     equal-contrib: false # (This is how you can denote equal contributions between multiple authors)
-    corresponding: true
     affiliation: 1
 affiliations:
  - name: Division of Imaging, Diagnostics, and Software Reliability, CDRH, U.S. Food and Drug Administration, Silver Spring, MD 20993, USA

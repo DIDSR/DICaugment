@@ -22,7 +22,7 @@
 Augmentation</article-title>
 </title-group>
 <contrib-group>
-<contrib contrib-type="author">
+<contrib contrib-type="author" corresp="yes">
 <contrib-id contrib-id-type="orcid">https://orcid.org/0009-0008-2573-180X</contrib-id>
 <name>
 <surname>McIntosh</surname>
@@ -30,14 +30,14 @@ Augmentation</article-title>
 </name>
 <xref ref-type="aff" rid="aff-1"/>
 <xref ref-type="aff" rid="aff-2"/>
+<xref ref-type="corresp" rid="cor-1"><sup>*</sup></xref>
 </contrib>
-<contrib contrib-type="author" corresp="yes">
+<contrib contrib-type="author">
 <name>
 <surname>Farhangi</surname>
 <given-names>M. Mehdi</given-names>
 </name>
 <xref ref-type="aff" rid="aff-1"/>
-<xref ref-type="corresp" rid="cor-1"><sup>*</sup></xref>
 </contrib>
 <aff id="aff-1">
 <institution-wrap>
