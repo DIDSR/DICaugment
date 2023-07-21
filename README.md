@@ -2,10 +2,10 @@
 <!-- [![PyPI version](https://badge.fury.io/py/albumentations.svg)](https://badge.fury.io/py/albumentations)
 ![CI](https://github.com/albumentations-team/albumentations/workflows/CI/badge.svg) -->
 
-Albumentations3D is a Python package based on the popular image augmentation library [Albumentations](https://github.com/albumentations-team/albumentations), but with specific enhancements for working with volumetric 3D images, such as CT scans. This package provides a collection of powerful and efficient augmentation techniques that can be seamlessly integrated into your machine learning pipeline to augment 3D images used for model development.
+Albumentations3D is a Python package based on the popular image augmentation library [Albumentations](https://github.com/albumentations-team/albumentations) [[1]](#1), but with specific enhancements for working with volumetric 3D images, such as CT scans. This package provides a collection of powerful and efficient augmentation techniques that can be seamlessly integrated into your machine learning pipeline to augment 3D images.
 
 
-Below are some examples of some common or unique augmentations that are possible with the Albumentations3D library:
+Below are some examples of some common or unique augmentations that are possible with the Albumentations3D library applied on an example obtained from the NLST dataset [[2]](#2):
 ![lungs](./tools/README_example.gif)
 
 
@@ -13,7 +13,7 @@ Below are some examples of some common or unique augmentations that are possible
 
 Albumentations3D offers the following key features:
 
-- 3D-specific augmentation techniques: The package includes a variety of augmentation methods specifically designed for volumetric 3D images, such as CT scans. These techniques can be used to augment the data and improve the generalization of your models. Some of the transformations utilize the metadata availble from a dicom header, allowing users to create transformations that are consistent with an image's acquisition parameters.
+- 3D-specific augmentation techniques: The package includes a variety of augmentation methods specifically designed for volumetric 3D images, such as CT scans. These techniques can be used to augment data and improve model generalization. The package was designed to incorporate the metadata availble in dicom headers, allowing users to create transformations that are consistent with an image's acquisition parameters.
 
 - Seamless integration: The package is built as an extension of the Albumentations library, making it easy to incorporate 3D augmentation into your existing image processing pipelines. It maintains a similar API and workflow, ensuring a smooth transition for users already familiar with Albumentations.
 
@@ -155,22 +155,22 @@ These transforms utilize metadata from a DICOM header file to apply a pixel-leve
 - [NPSNoise](https://albumentations3d.readthedocs.io/en/latest/augmentations.dicom.html#albumentations3d.augmentations.dicom.transforms.NPSNoise)
 
 
-The NPSNoise transormation applies a random change in the magnitude of the noise present in the image consistent with the kernel type provided in the DICOM header 
+The NPSNoise transormation applies a random change in the magnitude of the noise present in the image consistent with the kernel type [[3]](#3) provided in the DICOM header 
 
 ```python
 import albumentations3d as A
 
 scan = A.read_dcm_image(
   path='path/to/dcm/folder/',
-  return_header=False
+  return_header=False         # Set as True to recieve scan and dicom header
   )
 
 dicom = {
-  "PixelSpacing" : (0.5, 0.5),
+  "PixelSpacing" : (0.48, 0.48),
   "RescaleIntercept" : -1024.0,
   "RescaleSlope" : 1.0,
-  "ConvolutionKernel" : 'STANDARD',
-  "XRayTubeCurrent" : 160
+  "ConvolutionKernel" : 'b30f',
+  "XRayTubeCurrent" : 240
   }
 
 aug = A.Compose([A.NPSNoise()])
@@ -254,10 +254,18 @@ Albumentations3D is distributed under the MIT license. See [LICENSE](https://git
 
 ## Acknowledgments
 
-We would like to express our gratitude to the developers of Albumentations for their excellent work on the original library, which served as the foundation for Albumentations3D. We also thank the open-source community for their contributions and feedback.
+We would like to express our gratitude to the developers of Albumentations [[1]](#1) for their excellent work on the original library, which served as the foundation for Albumentations3D. We also thank the open-source community for their contributions and feedback.
 
 <!-- If you find Albumentations3D useful in your research or projects, please consider citing it: -->
 
+
+## Referecences
+
+<a name="1"></a>[1] Buslaev, A., Iglovikov, V. I., Khvedchenya, E., Parinov, A., Druzhinin, M., & Kalinin, A. A. (2020). Albumentations: fast and flexible image augmentations. Information, 11(2), 125.
+
+<a name="2"></a>[2] National Lung Screening Trial Research Team. (2013). Data from the National Lung Screening Trial (NLST) [Data set]. The Cancer Imaging Archive. https://doi.org/10.7937/TCIA.HMQ8-J677
+
+<a name="3"></a>[3] Solomon, Justin B., Olav Christianson, and Ehsan Samei. "Quantitative comparison of noise texture across CT scanners from different manufacturers." Medical physics 39.10 (2012): 6048-6055.
 
 <!-- ## Citing
 
