@@ -98,14 +98,14 @@ Please refer to the [Albumentations3D documentation](https://albumentations3d.re
 ### Pixel-level transforms
 Pixel-level transforms will change just an input image and will leave any additional targets such as masks, bounding boxes, and keypoints unchanged. The list of pixel-level transforms:
 
-- [Blur](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.blur.html#albumentations3d.augmentations.blur.transforms.Blur)
+- [Blur](https://albumentations3d.readthedocs.io/en/latest/augmentations.blur.html#albumentations3d.augmentations.blur.transforms.Blur)
 - [Downscale](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.html#albumentations3d.augmentations.transforms.Downscale)
 - [Equalize](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.html#albumentations3d.augmentations.transforms.Equalize)
 - [FromFloat](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.html#albumentations3d.augmentations.transforms.FromFloat)
 - [GaussNoise](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.html#albumentations3d.augmentations.transforms.GaussNoise)
-- [GaussianBlur](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.blur.html#albumentations3d.augmentations.blur.transforms.GaussianBlur)
+- [GaussianBlur](https://albumentations3d.readthedocs.io/en/latest/augmentations.blur.html#albumentations3d.augmentations.blur.transforms.GaussianBlur)
 - [InvertImg](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.html#albumentations3d.augmentations.transforms.InvertImg)
-- [MedianBlur](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.blur.html#albumentations3d.augmentations.blur.transforms.MedianBlur)
+- [MedianBlur](https://albumentations3d.readthedocs.io/en/latest/augmentations.blur.html#albumentations3d.augmentations.blur.transforms.MedianBlur)
 - [Normalize](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.html#albumentations3d.augmentations.transforms.Normalize)
 - [Posterize](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.html#albumentations3d.augmentations.transforms.Posterize)
 - [RandomBrightnessContrast](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.html#albumentations3d.augmentations.transforms.RandomBrightnessContrast)
@@ -128,9 +128,9 @@ Spatial-level transforms will simultaneously change both an input image as well 
 | [GridDropout](https://albumentations3d.readthedocs.io/en/latest/augmentations.dropout.html#albumentations3d.augmentations.dropout.grid_dropout.GridDropout)                   | ✓     | ✓     |        |           |
 | [HorizontalFlip](https://albumentations3d.readthedocs.io/en/latest/augmentations.geometric.html#albumentations3d.augmentations.geometric.transforms.HorizontalFlip)           | ✓     | ✓     | ✓      | ✓         |
 | [LongestMaxSize](https://albumentations3d.readthedocs.io/en/latest/augmentations.geometric.html#albumentations3d.augmentations.geometric.resize.LongestMaxSize)               | ✓     | ✓     | ✓      | ✓         |
-| [NoOp](https://albumentations3d.readthedocs.io/en/latest/core.html#albumentations3d.core.transforms_interface.NoOp)                                                           | ✓     | ✓     | ✓      | ✓         |
+| [NoOp](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.core.html#albumentations3d.core.transforms_interface.NoOp)                                                           | ✓     | ✓     | ✓      | ✓         |
 | [PadIfNeeded](https://albumentations3d.readthedocs.io/en/latest/augmentations.geometric.html#albumentations3d.augmentations.geometric.transforms.PadIfNeeded)                 | ✓     | ✓     | ✓      | ✓         |
-| [PixelDropout](https://albumentations3d.readthedocs.io/en/latest/augmentations.html#albumentations3d.augmentations.transforms.PixelDropout)                                   | ✓     | ✓     | ✓      | ✓         |
+| [PixelDropout](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.html#albumentations3d.augmentations.transforms.PixelDropout)                                   | ✓     | ✓     | ✓      | ✓         |
 | [RandomCrop](https://albumentations3d.readthedocs.io/en/latest/augmentations.crops.html#albumentations3d.augmentations.crops.transforms.RandomCrop)                           | ✓     | ✓     | ✓      | ✓         |
 | [RandomCropFromBorders](https://albumentations3d.readthedocs.io/en/latest/augmentations.crops.html#albumentations3d.augmentations.crops.transforms.RandomCropFromBorders)     | ✓     | ✓     | ✓      | ✓         |
 | [RandomCropNearBBox](https://albumentations3d.readthedocs.io/en/latest/augmentations.crops.html#albumentations3d.augmentations.crops.transforms.RandomCropNearBBox)           | ✓     | ✓     | ✓      | ✓         |
