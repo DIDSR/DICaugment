@@ -29,8 +29,28 @@ Augmentation</article-title>
 <given-names>J.</given-names>
 </name>
 <xref ref-type="aff" rid="aff-1"/>
-<xref ref-type="aff" rid="aff-2"/>
 <xref ref-type="corresp" rid="cor-1"><sup>*</sup></xref>
+</contrib>
+<contrib contrib-type="author">
+<name>
+<surname>Cao</surname>
+<given-names>Qian</given-names>
+</name>
+<xref ref-type="aff" rid="aff-1"/>
+</contrib>
+<contrib contrib-type="author">
+<name>
+<surname>Sahiner</surname>
+<given-names>Berkman</given-names>
+</name>
+<xref ref-type="aff" rid="aff-1"/>
+</contrib>
+<contrib contrib-type="author">
+<name>
+<surname>Petrick</surname>
+<given-names>Nicholas</given-names>
+</name>
+<xref ref-type="aff" rid="aff-1"/>
 </contrib>
 <contrib contrib-type="author">
 <name>
@@ -44,12 +64,6 @@ Augmentation</article-title>
 <institution>Division of Imaging, Diagnostics, and Software Reliability,
 CDRH, U.S. Food and Drug Administration, Silver Spring, MD 20993,
 USA</institution>
-</institution-wrap>
-</aff>
-<aff id="aff-2">
-<institution-wrap>
-<institution>Oak Ridge Institute for Science and Education, Oak Ridge,
-TN, USA</institution>
 </institution-wrap>
 </aff>
 </contrib-group>
@@ -88,65 +102,169 @@ a Creative Commons Attribution 4.0 International License (CC BY
 <body>
 <sec id="summary">
   <title>Summary</title>
-  <p>Computer-aided diagnosis/detection (CADx/CADe) has been a prominent
-  area of research for the subfield of medical image processing. While
-  recent advancements in this field have increased model performance,
-  the success of these models still largely relies on a significant
-  amount of labeled and annotated training data. Because of the medical
-  nature of the subject material, only medical professionals are allowed
-  to annotate and label this medical data [CITE], which makes the
-  annotation process extremely expensive. As a result, data augmentation
-  plays a crucial role in increasing the size and diversity of the
-  limited data, which in turn, reduces the possibility of overfitting
-  and improves the capability of these models to generalize.</p>
-</sec>
-<sec id="statement-of-need">
-  <title>Statement of need</title>
   <p>Albumentations3D is a Python package based on the popular image
   augmentation library Albumentations
   (<xref alt="Buslaev et al., 2020" rid="ref-info11020125" ref-type="bibr">Buslaev
-  et al., 2020</xref>) but with specific enhancements for working with
+  et al., 2020</xref>), with specific enhancements for working with
   volumetric 3D images, such as CT scans and other volumetric imaging.
   This package provides a collection of powerful and efficient
   augmentation techniques that can be seamlessly integrated into a
-  machine-learning pipeline to augment 3D images and volumes.</p>
-  <p>While many image augmentation libraries, like the popular
-  Albumentations library, excel at performing augmentations on
-  traditional 2D or RGB images, they lack the utility to complete these
-  augmentations on 3D images. Albumentations3D addresses this need by
-  extending the success of the Albumentations library for 2D image
-  augmentation to the realm of volumetric 3D images, offering a
-  comprehensive set of transformations and augmentations, ranging from
-  pixel-level intensity transformations to spatial transformations, all
-  designed and optimized for 3D data.</p>
-  <p>One aspect that sets this package apart from other 3D augmentation
-  packages such as Volumentations
-  (<xref alt="Solovyev et al., 2022" rid="ref-solovyev20223d" ref-type="bibr">Solovyev
-  et al., 2022</xref>) is the inclusion of physics-based transformations
-  that can utilize metadata commonly found in DICOM files. One example
-  of these transformations computes and inserts into scans a random
-  noise texture that is dependent on the convolution kernel used by the
-  scan’s manufacturer during reconstruction.
+  machine-learning pipeline to augment volumetric images. The package
+  was designed to incorporate the metadata available in dicom headers,
+  allowing users to create transformations that are consistent with an
+  image’s acquisition parameters. Albumentations3D extends the success
+  of the Albumentations library for two-dimensional (2D) image
+  augmentation to the realm of volumetric three-dimensional (3D) images,
+  offering a comprehensive set of transformations and augmentations,
+  ranging from pixel-level intensity transformations to spatial
+  transformations, all designed and optimized for 3D data.</p>
+</sec>
+<sec id="statement-of-need">
+  <title>Statement of need</title>
+  <p>The recent advancements in machine learning have significantly
+  improved the performance of AI models across various domains and
+  applications. However, the success of machine learning models still
+  largely relies on a significant amount of labeled and annotated
+  training data. This is a particular limitation in medical imaging
+  applications where imaging data annotation is expensive, time
+  consuming and require clinician expertise to establish a reliable
+  reference standard. Albumentations3D offers contribution in this
+  regard by providing data augmentations that are consistent with
+  pre-existing imaging data annotations available in form of object
+  boundary masks, bounding boxes, or keypoints.</p>
+  <p>Besides different applications for volumetric images,
+  Albumentation3D offers a unique advantage through the integration of
+  physics-based augmentations that leverage metadata from DICOM files in
+  CT imaging; during the reconstruction process of CT images, different
+  manufactures employ different reconstruction kernels, leading to
+  distinct noise textures in the resulting images, often characterized
+  by the Noise Power Spectrum
   (<xref alt="Solomon et al., 2012" rid="ref-Solomon2012-lj" ref-type="bibr">Solomon
-  et al., 2012</xref>). This transformation can improve data diversity
-  and reduce unseen bias induced by manuifacturer reconstruction
-  algorithms that are invisible to the human eye.</p>
-  <p>TALK ABOUT CURRENT RESEARCH USING NPS TRANSFORMATIONS</p>
-  <p>The Albumentations3D package provides researchers and clinicians
-  with an efficient and user-friendly solution for augmenting 3D medical
-  imaging datasets. Its capabilities are invaluable where data
-  augmentation is a critical step in the training of a robust and
-  accurate deep-learning model. By providing a comprehensive and
-  user-friendly API for the augmentation of 3D images, Albumentations3D
-  contributes to advancing research in fields such as medical diagnosis,
-  object recognition, and remote sensing. In all, The Albumentations3D
-  package aims to fill a significant gap between the computer vision
-  community and medical imaging community by providing a specialized
-  toolset for augmenting volumetric 3D images that follows a familiar
-  structure commonly used by computer vision experts.</p>
+  et al., 2012</xref>). Albumentation3D utilizes the NPS profiles from
+  different reconstruction kernels to generate noisy images that are
+  consistent with the imaging acquisition and reconstruction parameters.
+  To illustrate, we computed the Noise Power Spectrum (NPS) obtained
+  from the noise insertion transformations offered by Albumentations3D
+  and compared it against the outcome of white Gaussian noise, which is
+  a common noise insertion method for data augmentation (e.g., MONAI
+  (<xref alt="Cardoso et al., 2022" rid="ref-cardoso2022monai" ref-type="bibr">Cardoso
+  et al., 2022</xref>) and Volumentations
+  (<xref alt="Solovyev et al., 2022" rid="ref-solovyev20223d" ref-type="bibr">Solovyev
+  et al., 2022</xref>)).</p>
+  <p>For this experiment, we utilized a water phantom
+  (<xref alt="Phantom Testing: CT, n.d." rid="ref-Phantom_testing" ref-type="bibr"><italic>Phantom
+  Testing: CT</italic>, n.d.</xref>) scanned by SIEMENS using an imaging
+  acquisition protocol with a B30f reconstruction kernel, 120 kVp, 0.48
+  mm pixel spacing, and an exposure of 240 mAs. The 2D NPS was estimated
+  using the method proposed by Solomon et al.
+  (<xref alt="Solomon et al., 2012" rid="ref-Solomon2012-lj" ref-type="bibr">Solomon
+  et al., 2012</xref>); from the water phantom, we extracted a uniform
+  volumetric region of 128<italic>128</italic>70 dimensions and computed
+  the 2D NPS of each slice by taking the square root of the Fourier
+  transform:</p>
+  <p><named-content id="eqU003A2dnps" content-type="equation"><disp-formula><alternatives>
+  <tex-math><![CDATA[
+  NPS(u,v) = \frac{d_xd_y}{N_xN_y}.\mid F[I(x,y)-P(x,y)]\mid^2]]></tex-math>
+  <mml:math display="block" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mrow><mml:mi>N</mml:mi><mml:mi>P</mml:mi><mml:mi>S</mml:mi><mml:mrow><mml:mo stretchy="true" form="prefix">(</mml:mo><mml:mi>u</mml:mi><mml:mo>,</mml:mo><mml:mi>v</mml:mi><mml:mo stretchy="true" form="postfix">)</mml:mo></mml:mrow><mml:mo>=</mml:mo><mml:mfrac><mml:mrow><mml:msub><mml:mi>d</mml:mi><mml:mi>x</mml:mi></mml:msub><mml:msub><mml:mi>d</mml:mi><mml:mi>y</mml:mi></mml:msub></mml:mrow><mml:mrow><mml:msub><mml:mi>N</mml:mi><mml:mi>x</mml:mi></mml:msub><mml:msub><mml:mi>N</mml:mi><mml:mi>y</mml:mi></mml:msub></mml:mrow></mml:mfrac><mml:mi>.</mml:mi><mml:mo>∣</mml:mo><mml:mi>F</mml:mi><mml:mrow><mml:mo stretchy="true" form="prefix">[</mml:mo><mml:mi>I</mml:mi><mml:mrow><mml:mo stretchy="true" form="prefix">(</mml:mo><mml:mi>x</mml:mi><mml:mo>,</mml:mo><mml:mi>y</mml:mi><mml:mo stretchy="true" form="postfix">)</mml:mo></mml:mrow><mml:mo>−</mml:mo><mml:mi>P</mml:mi><mml:mrow><mml:mo stretchy="true" form="prefix">(</mml:mo><mml:mi>x</mml:mi><mml:mo>,</mml:mo><mml:mi>y</mml:mi><mml:mo stretchy="true" form="postfix">)</mml:mo></mml:mrow><mml:mo stretchy="true" form="postfix">]</mml:mo></mml:mrow><mml:msup><mml:mo>∣</mml:mo><mml:mn>2</mml:mn></mml:msup></mml:mrow></mml:math></alternatives></disp-formula></named-content></p>
+  <p>In equation
+  <xref alt="Equation 1" rid="eqU003A2dnps">Equation 1</xref>,
+  <inline-formula><alternatives>
+  <tex-math><![CDATA[u]]></tex-math>
+  <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mi>u</mml:mi></mml:math></alternatives></inline-formula>
+  and <inline-formula><alternatives>
+  <tex-math><![CDATA[v]]></tex-math>
+  <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mi>v</mml:mi></mml:math></alternatives></inline-formula>
+  represent spatial frequency (<inline-formula><alternatives>
+  <tex-math><![CDATA[mm^{-1}]]></tex-math>
+  <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mrow><mml:mi>m</mml:mi><mml:msup><mml:mi>m</mml:mi><mml:mrow><mml:mo>−</mml:mo><mml:mn>1</mml:mn></mml:mrow></mml:msup></mml:mrow></mml:math></alternatives></inline-formula>)
+  in the <inline-formula><alternatives>
+  <tex-math><![CDATA[x]]></tex-math>
+  <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mi>x</mml:mi></mml:math></alternatives></inline-formula>
+  and <inline-formula><alternatives>
+  <tex-math><![CDATA[y]]></tex-math>
+  <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mi>y</mml:mi></mml:math></alternatives></inline-formula>
+  directions, respectively, <inline-formula><alternatives>
+  <tex-math><![CDATA[d_x]]></tex-math>
+  <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:msub><mml:mi>d</mml:mi><mml:mi>x</mml:mi></mml:msub></mml:math></alternatives></inline-formula>
+  and <inline-formula><alternatives>
+  <tex-math><![CDATA[d_y]]></tex-math>
+  <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:msub><mml:mi>d</mml:mi><mml:mi>y</mml:mi></mml:msub></mml:math></alternatives></inline-formula>
+  are pixel size in millimeter space, <inline-formula><alternatives>
+  <tex-math><![CDATA[N_x]]></tex-math>
+  <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:msub><mml:mi>N</mml:mi><mml:mi>x</mml:mi></mml:msub></mml:math></alternatives></inline-formula>
+  and <inline-formula><alternatives>
+  <tex-math><![CDATA[N_y]]></tex-math>
+  <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:msub><mml:mi>N</mml:mi><mml:mi>y</mml:mi></mml:msub></mml:math></alternatives></inline-formula>
+  are the number of pixels in the <inline-formula><alternatives>
+  <tex-math><![CDATA[x]]></tex-math>
+  <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mi>x</mml:mi></mml:math></alternatives></inline-formula>
+  and <inline-formula><alternatives>
+  <tex-math><![CDATA[y]]></tex-math>
+  <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mi>y</mml:mi></mml:math></alternatives></inline-formula>
+  directions within the selected ROI (i.e., 128*128 px),
+  <inline-formula><alternatives>
+  <tex-math><![CDATA[F]]></tex-math>
+  <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mi>F</mml:mi></mml:math></alternatives></inline-formula>
+  denotes the 2D Fourier transform, <inline-formula><alternatives>
+  <tex-math><![CDATA[I(x,y)]]></tex-math>
+  <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mrow><mml:mi>I</mml:mi><mml:mrow><mml:mo stretchy="true" form="prefix">(</mml:mo><mml:mi>x</mml:mi><mml:mo>,</mml:mo><mml:mi>y</mml:mi><mml:mo stretchy="true" form="postfix">)</mml:mo></mml:mrow></mml:mrow></mml:math></alternatives></inline-formula>
+  is the pixel density in Hounsfield Unit at position
+  <inline-formula><alternatives>
+  <tex-math><![CDATA[(x,y)]]></tex-math>
+  <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mrow><mml:mo stretchy="true" form="prefix">(</mml:mo><mml:mi>x</mml:mi><mml:mo>,</mml:mo><mml:mi>y</mml:mi><mml:mo stretchy="true" form="postfix">)</mml:mo></mml:mrow></mml:math></alternatives></inline-formula>
+  and <inline-formula><alternatives>
+  <tex-math><![CDATA[P]]></tex-math>
+  <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mi>P</mml:mi></mml:math></alternatives></inline-formula>
+  is the second order polynomial fit of <inline-formula><alternatives>
+  <tex-math><![CDATA[I]]></tex-math>
+  <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mi>I</mml:mi></mml:math></alternatives></inline-formula>.
+  Each estimated 2D NPS within the volumetric ROI are normalized by its
+  integral across all frequencies and converted into a one-dimensional
+  radial representation, <inline-formula><alternatives>
+  <tex-math><![CDATA[r^2 = \sqrt{u^2+v^2}]]></tex-math>
+  <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mrow><mml:msup><mml:mi>r</mml:mi><mml:mn>2</mml:mn></mml:msup><mml:mo>=</mml:mo><mml:msqrt><mml:mrow><mml:msup><mml:mi>u</mml:mi><mml:mn>2</mml:mn></mml:msup><mml:mo>+</mml:mo><mml:msup><mml:mi>v</mml:mi><mml:mn>2</mml:mn></mml:msup></mml:mrow></mml:msqrt></mml:mrow></mml:math></alternatives></inline-formula>.
+  The final nNPS(r) was obtained by averaging 2D radial NPS across 70
+  slices within the volumetric image.</p>
+  <fig>
+    <caption><p>(a) Water phantom scanned by SIEMENS with imaging
+    parameters set at 120 kVp, 0.48 mm pixel spacing, and an exposure of
+    240 mAs, and reconstructed using the B30f kernel. The noise
+    magnitude is computed as 9.46. (b) Increasing the noise magnitude by
+    adding white Gaussian noise, resulting in a noisy image with a
+    magnitude of 16.01. (c) Increasing the noise magnitude using
+    Albumentations3D, resulting in a noise image with a magnitude of
+    16.08. Figures (d), (e), and (f) illustrate the benefits of
+    Albumentations3D in offering augmentations consistent with the
+    imaging parameters, demonstrated in terms of the Noise Power
+    Spectrum (NPS) of the augmented
+    image.<styled-content id="figU003Aexample"></styled-content></p></caption>
+    <graphic mimetype="image" mime-subtype="png" xlink:href="media/fig_1.png" />
+  </fig>
+  <p>Figure 1(a) illustrates a slice of the noise region extracted from
+  the uniform water phantom along with the corresponding estimation of
+  the normalized Noise Power Spectrum (nNPS). Figure 2(b) illustrates
+  the outcome of noise insertion using white Gaussian noise, a common
+  approach for noise insertion
+  (<xref alt="Cardoso et al., 2022" rid="ref-cardoso2022monai" ref-type="bibr">Cardoso
+  et al., 2022</xref>), demonstrating the correlation between adjacent
+  pixel values affected by the inserted Gaussian noise. On the right,
+  the outcome of noise insertion by Albumentation3D is illustrated.
+  Despite the increased magnitude of the noise, the correlation among
+  adjacent pixels remained mostly unchanged, as evident in the
+  normalized Noise Power Spectrum (nNPS) shown at the bottom of this
+  figure.</p>
 </sec>
 <sec id="acknowledgements">
   <title>Acknowledgements</title>
+  <p>Jacob McIntosh was supported by an appointment to the Research
+  Participation Program at the Center for Devices and Radiological
+  Health administered by the Oak Ridge Institute for Science and
+  Education through an interagency agreement between the U.S. Department
+  of Energy and the U.S. Food and Drug Administration. The mention of
+  softwares, commercial products, their sources, or their use in
+  connection with material reported herein is not to be construed as
+  either an actual or implied endorsement of such products by the
+  Department of Health and Human Services.</p>
 </sec>
 </body>
 <back>
@@ -171,6 +289,12 @@ a Creative Commons Attribution 4.0 International License (CC BY
       <pub-id pub-id-type="doi">10.3390/info11020125</pub-id>
     </element-citation>
   </ref>
+  <ref id="ref-Phantom_testing">
+    <element-citation>
+      <article-title>Phantom Testing: CT</article-title>
+      <publisher-name>https://accreditationsupport.acr.org/support/solutions/articles/11000056197-phantom-testing-ct-revised-11-9-2022-</publisher-name>
+    </element-citation>
+  </ref>
   <ref id="ref-solovyev20223d">
     <element-citation publication-type="article-journal">
       <person-group person-group-type="author">
@@ -186,6 +310,26 @@ a Creative Commons Attribution 4.0 International License (CC BY
       <pub-id pub-id-type="doi">10.1016/j.compbiomed.2021.105089</pub-id>
       <fpage>105089</fpage>
       <lpage></lpage>
+    </element-citation>
+  </ref>
+  <ref id="ref-cardoso2022monai">
+    <element-citation publication-type="article-journal">
+      <person-group person-group-type="author">
+        <name><surname>Cardoso</surname><given-names>M Jorge</given-names></name>
+        <name><surname>Li</surname><given-names>Wenqi</given-names></name>
+        <name><surname>Brown</surname><given-names>Richard</given-names></name>
+        <name><surname>Ma</surname><given-names>Nic</given-names></name>
+        <name><surname>Kerfoot</surname><given-names>Eric</given-names></name>
+        <name><surname>Wang</surname><given-names>Yiheng</given-names></name>
+        <name><surname>Murrey</surname><given-names>Benjamin</given-names></name>
+        <name><surname>Myronenko</surname><given-names>Andriy</given-names></name>
+        <name><surname>Zhao</surname><given-names>Can</given-names></name>
+        <name><surname>Yang</surname><given-names>Dong</given-names></name>
+        <name><surname>others</surname></name>
+      </person-group>
+      <article-title>Monai: An open-source framework for deep learning in healthcare</article-title>
+      <source>arXiv preprint arXiv:2211.02701</source>
+      <year iso-8601-date="2022">2022</year>
     </element-citation>
   </ref>
   <ref id="ref-Solomon2012-lj">
