@@ -159,9 +159,14 @@ a Creative Commons Attribution 4.0 International License (CC BY
   using the method proposed by Solomon et al.
   (<xref alt="Solomon et al., 2012" rid="ref-Solomon2012-lj" ref-type="bibr">Solomon
   et al., 2012</xref>); from the water phantom, we extracted a uniform
-  volumetric region of 128<italic>128</italic>70 dimensions and computed
-  the 2D NPS of each slice by taking the square root of the Fourier
-  transform:</p>
+  volumetric region of 128 <inline-formula><alternatives>
+  <tex-math><![CDATA[\times]]></tex-math>
+  <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mo>×</mml:mo></mml:math></alternatives></inline-formula>
+  128 <inline-formula><alternatives>
+  <tex-math><![CDATA[\times]]></tex-math>
+  <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mo>×</mml:mo></mml:math></alternatives></inline-formula>
+  70 dimensions and computed the 2D NPS of each slice by taking the
+  square root of the Fourier transform:</p>
   <p><named-content id="eqU003A2dnps" content-type="equation"><disp-formula><alternatives>
   <tex-math><![CDATA[
   NPS(u,v) = \frac{d_xd_y}{N_xN_y}.\mid F[I(x,y)-P(x,y)]\mid^2]]></tex-math>
@@ -201,8 +206,11 @@ a Creative Commons Attribution 4.0 International License (CC BY
   and <inline-formula><alternatives>
   <tex-math><![CDATA[y]]></tex-math>
   <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mi>y</mml:mi></mml:math></alternatives></inline-formula>
-  directions within the selected ROI (i.e., 128*128 px),
+  directions within the selected ROI (i.e. 128
   <inline-formula><alternatives>
+  <tex-math><![CDATA[\times]]></tex-math>
+  <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mo>×</mml:mo></mml:math></alternatives></inline-formula>
+  128 px), <inline-formula><alternatives>
   <tex-math><![CDATA[F]]></tex-math>
   <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mi>F</mml:mi></mml:math></alternatives></inline-formula>
   denotes the 2D Fourier transform, <inline-formula><alternatives>
