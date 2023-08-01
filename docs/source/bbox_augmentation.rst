@@ -98,7 +98,7 @@ Filtering Bounding Boxes
 Class Labels for Bounding Boxes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Most bounding box annotations have associated classes or labels. There are two primary ways to incorporate labels into the pipeline.
+Most bounding box annotations have associated classes or labels. In Albumentations3D, labels are required for bounding boxes. There are two primary ways to incorporate labels into the pipeline.
 
 Internal Labels
 """""""""""""""""""

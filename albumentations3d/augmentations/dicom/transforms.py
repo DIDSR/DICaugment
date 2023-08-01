@@ -147,7 +147,7 @@ class SetPixelSpacing(DualTransform):
 
 class NPSNoise(ImageOnlyTransform):
     """
-    Insert random image noise based on the `(0018,1210) Convolution Kernel` type of the dicom header. The current supported kernel types are
+    Insert random image noise based on the `(0018,1210) Convolution Kernel` type of the dicom header.
 
     Args:
         magnitude ((int, int) or int): scaling magnitude range of noise. If magnitude is a single integer value, the

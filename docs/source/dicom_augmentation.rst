@@ -1,9 +1,9 @@
 Using DICOM Header Metadata in Transforms
 =================================================
 
-Albumentations3D not only supports augmenting 3D images but also provides functionality to augment corresponding segmentation masks with the same set of augmentations.
+Albumentations3D also supports 3D image augmentations that utilize metadata from a DICOM header file to apply both pixel-level and spatial-level transformations
 
-This guide will walk you through the process of using Albumentations3D to augment 3D image masks in sync with the image transformations.
+This guide will walk you through the process of using Albumentations3D to augment 3D images using metadata from a dicom header.
 
 
 1. Import the necessary modules:
@@ -11,66 +11,61 @@ This guide will walk you through the process of using Albumentations3D to augmen
     .. code-block:: python
     
         import albumentations3d as A
-        import nibabel as nib
 
-
-2. Read in scan and mask from disk
+2. Read in scan and dicom header from disk
 
     .. code-block:: python
       
-        scan = nib.load("path/to/scan.nii.gz").get_fdata()
+        scan, dicom = A.read_dcm_image(
+            path='path/to/dcm/folder/',
+            return_header=True         # Set as True to recieve scan and dicom header
+        )
 
     
-    You can read in the mask just as you would read in a scan. The height, width, and depth of the mask must match the respective height, width, and depth of the image.
+    Alternatively, you may define the dicom header manually with a dictionary
 
     .. code-block:: python
 
-        mask = nib.load("path/to/mask.nii.gz").get_fdata()
-
-    For instance segmentation, multiples masks may be needed. The resulting masks should be wrapped in a list
-    
-    .. code-block:: python
-
-        mask1 = nib.load("path/to/mask1.nii.gz").get_fdata()
-        mask2 = nib.load("path/to/mask2.nii.gz").get_fdata()
-        mask3 = nib.load("path/to/mask3.nii.gz").get_fdata()
-        masks = [mask1, mask2, mask3]
+        dicom = {
+            "PixelSpacing" : (0.48, 0.48),
+            "RescaleIntercept" : -1024.0,
+            "RescaleSlope" : 1.0,
+            "ConvolutionKernel" : 'b30f',
+            "XRayTubeCurrent" : 240
+        }
 
 
 3. Define an augmentation pipeline using ``A.Compose``:
 
     .. code-block:: python
 
-        transform = A.Compose([
-            # Add your desired augmentation techniques here
-            # For example:
-            A.Rotate(p=0.5, limit=20, interpolation=1),
-            A.RandomCrop(p=0.5, height=64, width=64, depth=64)
-        ])
+        aug = A.Compose(
+            [
+                # The Rescale Slope Intercept transformation converts the pixel values of a scan into Hounsfield Units (HU)
+                # by using the `RescaleSlope` and `RescaleIntercept` values from the dicom header
+                A.RescaleSlopeIntercept(),
 
+                # The Set Pixel Spacing transformation resizes each slice of the scan so that the `PixelSpacing` value
+                # in the dicom header is equal to `(space_x, space_y)`
+                A.SetPixelSpacing(space_x = 0.5, space_y = 0.5),
+
+                # The NPSNoise transormation applies a random change in the magnitude of the noise present in the 
+                # image consistent with the kernel type provided in the DICOM header.
+                A.NPSNoise(sample_tube_current = True),
+                # with sample_tube_current = True, the magnitude of the noise will be
+                # randomly selected from the range of [0, 500 - `XRayTubeCurrent`]
+            ]
+        )
 
 4. Apply the transformation to your 3D image data and mask
 
-    With a single mask and scan passing through the pipeline, ``transform`` must be called using the explicit keyword arguements: ``image`` and ``mask``, where the scan should be passed in ``image`` and the mask should be passed in ``mask``. The output of this transformation will be a dictionary that contains the augmented scan under the key ``image`` and augmented mask under the key ``mask``
+    As with other augmentation pipelines, ``transform`` must be called using explicit keyword arguements: ``image`` and ``dicom``, where the scan should be passed in ``image`` and the dicom header should be passed in ``dicom``. The output of this transformation will be a dictionary that contains the augmented scan under the key ``image``.
 
     .. code-block:: python
 
-        transformed_output = transform(image=scan, mask=mask)
+        transformed_output = transform(image=scan, dicom=dicom)
         transformed_scan = transformed_output["image"]
-        transformed_mask = transformed_output["mask"]
 
-
-    .. image:: /_static/SegmentationExample.png
-        :width: 1200px
-
-    
-    If there is more than one mask that are associated with a single scan, you should use the ``masks`` argument instead of ``mask`` where ``masks`` is a list of of individual masks.
-
-    .. code-block:: python
-
-        transformed_output = transform(image=scan, masks=masks)
-        transformed_image = transformed_output['image']
-        transformed_masks = transformed_output['masks']
 
 
     

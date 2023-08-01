@@ -136,7 +136,7 @@ class BboxProcessor(DataProcessor):
     def ensure_data_valid(self, data: Dict[str, Any]) -> None:
         for data_name in self.data_fields:
             data_exists = data_name in data and len(data[data_name])
-            if data_exists and len(data[data_name][0]) < 5:
+            if data_exists and len(data[data_name][0]) < 7:
                 if self.params.label_fields is None:
                     raise ValueError(
                         "Please specify 'label_fields' in 'bbox_params' or add labels to the end of bbox "

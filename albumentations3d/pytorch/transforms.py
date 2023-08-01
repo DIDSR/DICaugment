@@ -8,7 +8,7 @@ import torch
 from torchvision.transforms import functional as F
 from . import functional as Ftorch
 
-from ..core.transforms_interface import BasicTransform
+from ..core.transforms_interface import BasicTransform, BoxType, KeypointType
 
 __all__ = ["ToPytorch"]
 
@@ -78,7 +78,9 @@ class ToPytorch(BasicTransform):
 
     @property
     def targets(self) -> Dict[str, Callable]:
-        return {"image": self.apply, "mask": self.apply_to_mask, "masks": self.apply_to_masks}
+        return {"image": self.apply,
+                "mask": self.apply_to_mask,
+                "masks": self.apply_to_masks}
 
     def apply(self, img: np.ndarray, **params) -> torch.tensor:  # skipcq: PYL-W0613
         if len(img.shape) not in [3,4]:

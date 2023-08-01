@@ -36,7 +36,6 @@ Index
    getting.started
    mask_augmentation
    bbox_augmentation
-   keypoint_augmentation
    dicom_augmentation
    
 

@@ -26,7 +26,10 @@ def get_shape(img: Any) -> Tuple[int, int, int]:
                 raise ValueError(
                     f"Albumenatations3D expected numpy.ndarray or torch.Tensor of shape (H,W,D) or (H,W,D,C). Got: {img.shape}"
                 )
-            rows, cols, slices = img.shape[:3]
+            if img.ndim == 3:
+                slices, rows, cols  = img.shape[:3]
+            else:
+                slices, rows, cols = img.shape[1:]
             return rows, cols, slices
     except ImportError:
         pass
