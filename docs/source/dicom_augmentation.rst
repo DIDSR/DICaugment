@@ -51,9 +51,8 @@ This guide will walk you through the process of using Albumentations3D to augmen
 
                 # The NPSNoise transormation applies a random change in the magnitude of the noise present in the 
                 # image consistent with the kernel type provided in the DICOM header.
-                A.NPSNoise(sample_tube_current = True),
-                # with sample_tube_current = True, the magnitude of the noise will be
-                # randomly selected from the range of [0, 500 - `XRayTubeCurrent`]
+                A.NPSNoise(magnitude = (50,150)),
+                # the magnitude of the noise will be randomly selected from the range of [50, 150]
             ]
         )
 
