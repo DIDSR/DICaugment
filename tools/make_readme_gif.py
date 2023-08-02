@@ -32,6 +32,10 @@ def main():
     img = np.clip(img, -1000, 500)
 
 
+    nps_normed = np.load("npsNoise_normalized.npy")
+    guassian_normed = np.load("GaussianNoise_normalized.npy")
+
+
     tranforms = [
         A.NoOp(p=1),
         A.Blur((5,5), p = 1, mode='nearest'),
@@ -52,12 +56,12 @@ def main():
         "Blur",
         "MedianBlur",
         "CoarseDropout",
-        "Unsharp Mask",
+        "GuassianNoise",
         "RandomSizedCrop",
         "VerticalFlip",
         "HorizontalFlip",
         "Downscale",
-        "BrightnessContrast",
+        "NPSNoise",
         "RandomRotate90",
         "Sharpen",
     ]
@@ -77,7 +81,12 @@ def main():
 
         for _,(name, arr) in enumerate(zip(labels, out)):
 
-            axes.flat[_].imshow(arr[...,i], cmap='gray', vmin=-1000, vmax=1000)
+            if _ == 4:
+                 axes.flat[_].imshow(guassian_normed[...,i], cmap='gray', vmin=-800, vmax=1000)
+            elif _ == 9:
+                 axes.flat[_].imshow(nps_normed[...,i], cmap='gray', vmin=-1100, vmax=1000)
+            else:
+                axes.flat[_].imshow(arr[...,i], cmap='gray', vmin=-1000, vmax=1000)
             axes.flat[_].set_title(name)
             axes.flat[_].set_axis_off()
 
