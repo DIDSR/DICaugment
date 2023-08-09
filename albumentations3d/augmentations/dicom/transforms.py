@@ -162,7 +162,7 @@ class NPSNoise(ImageOnlyTransform):
         int16
 
     Note:
-        The current supported kernel types include: `b10f`, `b20f`, `b22f`, `b26f`, `b30f`, `b31f`, `b35f`, `b36f`, `b40f`, `b41f`, `b43f`, `b45f`, `b46f`, `b50f`, `b60f`, `b70f`, `b75f`, `b80f`, `bone`, `boneplus`, `chest`, `detail`, `edge`, `lung`, `soft`, `standard`
+        The current supported kernel types include Siemens kernels: `b10f`, `b20f`, `b22f`, `b26f`, `b30f`, `b31f`, `b35f`, `b36f`, `b40f`, `b41f`, `b43f`, `b45f`, `b46f`, `b50f`, `b60f`, `b70f`, `b75f`, `b80f`, and GE kernels: `bone`, `boneplus`, `chest`, `detail`, `edge`, `lung`, `soft`, `standard`
 
     Note:
         This transformation requires the use a DICOM header object. See `albumentations3d.read_dcm_image()` for full syntax.

@@ -106,19 +106,19 @@ a Creative Commons Attribution 4.0 International License (CC BY
   augmentation library Albumentations
   (<xref alt="Buslaev et al., 2020" rid="ref-info11020125" ref-type="bibr">Buslaev
   et al., 2020</xref>), with specific enhancements for working with
-  volumetric 3D medical images, such as CT scans. This package provides
-  a collection of powerful and efficient augmentation techniques that
-  can be seamlessly integrated into a machine-learning pipeline to
-  augment volumetric medical images. The package was designed to
-  incorporate the metadata available in DICOM headers, allowing users to
-  create transformations that are consistent with an image’s acquisition
-  parameters for specific CT systems and reconstruction kernels.
-  Albumentations3D extends the success of the Albumentations library for
-  two-dimensional (2D) image augmentation to the realm of
-  three-dimensional (3D) images, offering a comprehensive set of
-  transformations and augmentations, ranging from pixel-level intensity
-  transformations to spatial transformations, all designed and optimized
-  for 3D data.</p>
+  volumetric medical images, such as Computed Tomography (CT) scans.
+  This package provides a collection of powerful and efficient
+  augmentation techniques that can be seamlessly integrated into a
+  machine-learning pipeline to augment volumetric medical images. The
+  package was designed to incorporate the metadata available in DICOM
+  headers, allowing users to create transformations that are consistent
+  with an image’s acquisition parameters for specific CT systems and
+  reconstruction kernels. Albumentations3D extends the success of the
+  Albumentations library for two-dimensional (2D) image augmentation to
+  the realm of three-dimensional (3D) images, offering a comprehensive
+  set of transformations and augmentations, ranging from pixel-level
+  intensity transformations to spatial transformations, all designed and
+  optimized for 3D data.</p>
 </sec>
 <sec id="statement-of-need">
   <title>Statement of need</title>
@@ -133,16 +133,18 @@ a Creative Commons Attribution 4.0 International License (CC BY
   use of available labeled and annotated data by providing augmentations
   that are consistent with preexisting imaging data annotations
   available in the form of masks, bounding boxes, and keypoints.</p>
-  <p>Albumentations3D provides a variety of transformations designed to
-  enhance the diversity of 3D image data. A subset of these
+  <p>Considering the distinct geometric and operational factors inherent
+  to 3D images, Albumentations3D extends 2D transformations into 3
+  spatial dimensions, allowing for a variety of transformations designed
+  to enhance the diversity of 3D image data. A subset of these
   transformations includes blurring techniques, such as median blur and
   Gaussian blur, that must utilize convolution to achieve the desired
   output. Notably, Albumentations3D offers a unique capability by
   allowing users to choose between a 2D by-slice convolution or a full
-  3D convolution when applying these blurring augmentations in a
+  3D convolution when applying different blurring augmentations in a
   pipeline. This flexibility caters to a variety of use cases and
   ensures that the blurring effects can be consistent across an entire
-  3D volume, preserving the spatial relationships between slices.</p>
+  3D volume.</p>
   <p>Additionally, Albumentations3D enables users to construct custom
   augmentation pipelines with control over each individual
   transformation. Mimicking the Albumentations
@@ -150,7 +152,7 @@ a Creative Commons Attribution 4.0 International License (CC BY
   et al., 2020</xref>) package, Albumentations3D utilizes the concept of
   augmentation probabilities. This feature allows users to assign a
   probability of occurrence to each transformation within a pipeline,
-  enabling selective and stochastic augmentation of an image dataset. By
+  enabling selective and stochastic augmentation of a dataset. By
   specifying different probabilities for various transformations, users
   can create diverse and balanced augmented datasets that reflect
   real-world variability. This level of control ensures that specific
@@ -181,10 +183,11 @@ a Creative Commons Attribution 4.0 International License (CC BY
   et al., 2022</xref>)).</p>
   <p>For this experiment, we utilized a water phantom
   (<xref alt="Phantom Testing: CT, n.d." rid="ref-Phantom_testing" ref-type="bibr"><italic>Phantom
-  Testing: CT</italic>, n.d.</xref>) scanned by SIEMENS with an exposure
-  of 240 mAs, 120 kVp, and reconstructed with a B30f reconstruction
-  kernel at 0.48 mm in-plane pixel spacing. The 2D NPS was estimated
-  using the method proposed by Solomon et al.
+  Testing: CT</italic>, n.d.</xref>) scanned by Siemens Somatom
+  Definition Flash with an exposure of 240 mAs, 120 kVp, and
+  reconstructed with a B30f reconstruction kernel at 0.48 mm in-plane
+  pixel spacing. The 2D NPS was estimated using the method proposed by
+  Solomon et al.
   (<xref alt="Solomon et al., 2012" rid="ref-Solomon2012-lj" ref-type="bibr">Solomon
   et al., 2012</xref>); from the water phantom, we extracted a uniform
   volumetric region of 128 <inline-formula><alternatives>
@@ -262,8 +265,8 @@ a Creative Commons Attribution 4.0 International License (CC BY
   NPS curves across 70 slices within the volumetric image.</p>
   <fig>
     <caption><p>(a) Water phantom scanned by SIEMENS with imaging
-    parameters set at 120 kVp, 0.48 mm pixel spacing, and an exposure of
-    240 mAs, and reconstructed using the B30f kernel. The noise
+    parameters set at 240 mAs, 120 kVP, and reconstructed with a B30f
+    reconstruction kernel at 0.48 mm in-plane pixel spacing. The noise
     magnitude is computed as 9.46. (b) Increasing the noise magnitude by
     adding white Gaussian noise, resulting in a noisy image with a
     magnitude of 16.01. (c) Increasing the noise magnitude using
@@ -301,6 +304,11 @@ a Creative Commons Attribution 4.0 International License (CC BY
   connection with material reported herein is not to be construed as
   either an actual or implied endorsement of such products by the
   Department of Health and Human Services.</p>
+  <p>We would also like to express our gratitude to the developers of
+  Albumentations for their excellent work on the original library. The
+  pipeline, design, and API - originally introduced in the
+  Albumentations library - served as the foundation for
+  Albumentations3D.</p>
 </sec>
 </body>
 <back>
