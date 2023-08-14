@@ -18,7 +18,7 @@ CHOOSE_INSTALL_REQUIRES = [
 
 def get_version():
     current_dir = os.path.abspath(os.path.dirname(__file__))
-    version_file = os.path.join(current_dir, "albumentations3d", "__init__.py")
+    version_file = os.path.join(current_dir, "dicaugment", "__init__.py")
     with io.open(version_file, encoding="utf-8") as f:
         return re.search(r'^__version__ = [\'"]([^\'"]*)[\'"]', f.read(), re.M).group(1)
 
@@ -55,14 +55,14 @@ def get_install_requirements(install_requires, choose_install_requires):
 
 
 setup(
-    name="albumentations3D",
+    name="DICaugment",
     version=get_version(),
     description="3D volumetric image augmentation library",
     long_description=get_long_description(),
     long_description_content_type="text/markdown",
     author="J. McIntosh, M. Mehdi Farhangi",
     license="MIT",
-    url="https://github.com/jjmcintosh/albumentations3D",
+    url="https://github.com/jjmcintosh/dicaugment",
     packages=find_packages(exclude=["tests"]),
     python_requires=">=3.7",
     package_data={'': ['data/kernels/*.npy']},

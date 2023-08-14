@@ -16,7 +16,7 @@ Subpackages
 Transforms
 ------------------------------------------------
 
-.. automodule:: albumentations3d.augmentations.transforms
+.. automodule:: dicaugment.augmentations.transforms
    :members:
    :undoc-members:
    :show-inheritance:
@@ -25,7 +25,7 @@ Transforms
 Functional
 ------------------------------------------------
 
-.. automodule:: albumentations3d.augmentations.functional
+.. automodule:: dicaugment.augmentations.functional
    :members:
    :undoc-members:
    :show-inheritance:
@@ -34,7 +34,7 @@ Functional
 Utils
 -------------------------------------------
 
-.. automodule:: albumentations3d.augmentations.utils
+.. automodule:: dicaugment.augmentations.utils
    :members:
    :undoc-members:
    :show-inheritance:

@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from albumentations3d import (
+from dicaugment import (
     RescaleSlopeIntercept,
     SetPixelSpacing,
     rescale_slope_intercept,

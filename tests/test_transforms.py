@@ -5,10 +5,10 @@ import cv2
 import numpy as np
 import pytest
 
-import albumentations3d as A
-import albumentations3d.augmentations.functional as F
-import albumentations3d.augmentations.geometric.functional as FGeometric
-from albumentations3d.augmentations.blur.functional import gaussian_blur
+import dicaugment as A
+import dicaugment.augmentations.functional as F
+import dicaugment.augmentations.geometric.functional as FGeometric
+from dicaugment.augmentations.blur.functional import gaussian_blur
 
 from .utils import get_dual_transforms, get_image_only_transforms, get_transforms
 
@@ -117,7 +117,7 @@ def test_shift_scale_rotate_interpolation(interpolation):
 #     image = np.random.randint(low=0, high=256, size=(100, 100, 3), dtype=np.uint8)
 #     mask = np.random.randint(low=0, high=2, size=(100, 100), dtype=np.uint8)
 #     monkeypatch.setattr(
-#         "albumentations.augmentations.geometric.ElasticTransform.get_params", lambda *_: {"random_state": 1111}
+#         "dicaugment.augmentations.geometric.ElasticTransform.get_params", lambda *_: {"random_state": 1111}
 #     )
 #     aug = A.ElasticTransform(alpha=1, sigma=50, alpha_affine=50, interpolation=interpolation, p=1)
 #     data = aug(image=image, mask=mask)
@@ -260,9 +260,6 @@ def test_multiprocessing_support(mp_pool, augmentation_cls, params):
 
 
 def test_force_apply():
-    """
-    Unit test for https://github.com/albumentations-team/albumentations/issues/189
-    """
     aug = A.Compose(
         [
             A.OneOrOther(

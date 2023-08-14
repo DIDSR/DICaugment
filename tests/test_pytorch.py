@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from PIL import Image
 
-import albumentations3d as A
+import dicaugment as A
 
 
 def test_torch_to_tensor_augmentations(image, mask):

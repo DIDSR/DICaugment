@@ -68,7 +68,7 @@ def bboxes():
 
 
 @pytest.fixture
-def albumentations_bboxes():
+def dicaugment_bboxes():
     return [[0.15, 0.12, .20, 0.75, 0.30, 0.40, 1], [0.55, 0.25, 0.50, 0.90, 0.90, 0.8, 2]]
 
 

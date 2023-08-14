@@ -5,7 +5,7 @@ Core
 bbox\_utils
 ----------------------------------------
 
-.. automodule:: albumentations3d.core.bbox_utils
+.. automodule:: dicaugment.core.bbox_utils
    :members:
    :undoc-members:
    :show-inheritance:
@@ -13,7 +13,7 @@ bbox\_utils
 composition
 ----------------------------------------
 
-.. automodule:: albumentations3d.core.composition
+.. automodule:: dicaugment.core.composition
    :members:
    :undoc-members:
    :show-inheritance:
@@ -21,7 +21,7 @@ composition
 keypoints\_utils
 ---------------------------------------------
 
-.. automodule:: albumentations3d.core.keypoints_utils
+.. automodule:: dicaugment.core.keypoints_utils
    :members:
    :undoc-members:
    :show-inheritance:
@@ -29,7 +29,7 @@ keypoints\_utils
 serialization
 ------------------------------------------
 
-.. automodule:: albumentations3d.core.serialization
+.. automodule:: dicaugment.core.serialization
    :members:
    :undoc-members:
    :show-inheritance:
@@ -37,7 +37,7 @@ serialization
 transforms\_interface
 --------------------------------------------------
 
-.. automodule:: albumentations3d.core.transforms_interface
+.. automodule:: dicaugment.core.transforms_interface
    :members:
    :undoc-members:
    :show-inheritance:
@@ -45,7 +45,7 @@ transforms\_interface
 utils
 ----------------------------------
 
-.. automodule:: albumentations3d.core.utils
+.. automodule:: dicaugment.core.utils
    :members:
    :undoc-members:
    :show-inheritance:

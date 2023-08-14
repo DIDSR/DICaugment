@@ -7,11 +7,11 @@ import cv2
 import numpy as np
 import pytest
 
-import albumentations3d as A
-import albumentations3d.augmentations.functional as F
-import albumentations3d.augmentations.geometric.functional as FGeometric
-from albumentations3d.core.serialization import SERIALIZABLE_REGISTRY, shorten_class_name
-from albumentations3d.core.transforms_interface import ImageOnlyTransform
+import dicaugment as A
+import dicaugment.augmentations.functional as F
+import dicaugment.augmentations.geometric.functional as FGeometric
+from dicaugment.core.serialization import SERIALIZABLE_REGISTRY, shorten_class_name
+from dicaugment.core.transforms_interface import ImageOnlyTransform
 
 from .conftest import skipif_no_torch
 from .utils import (
@@ -471,15 +471,15 @@ def test_augmentations_serialization_to_file_with_custom_parameters(
 @pytest.mark.parametrize("seed", TEST_SEEDS)
 @pytest.mark.parametrize("always_apply", (False, True))
 def test_augmentations_for_bboxes_serialization(
-    augmentation_cls, params, p, seed, image, albumentations_bboxes, always_apply
+    augmentation_cls, params, p, seed, image, dicaugment_bboxes, always_apply
 ):
     aug = augmentation_cls(p=p, always_apply=always_apply, **params)
     serialized_aug = A.to_dict(aug)
     deserialized_aug = A.from_dict(serialized_aug)
     set_seed(seed)
-    aug_data = aug(image=image, bboxes=albumentations_bboxes)
+    aug_data = aug(image=image, bboxes=dicaugment_bboxes)
     set_seed(seed)
-    deserialized_aug_data = deserialized_aug(image=image, bboxes=albumentations_bboxes)
+    deserialized_aug_data = deserialized_aug(image=image, bboxes=dicaugment_bboxes)
     assert np.array_equal(aug_data["image"], deserialized_aug_data["image"])
     assert np.array_equal(aug_data["bboxes"], deserialized_aug_data["bboxes"])
 
@@ -767,7 +767,7 @@ def test_additional_targets_for_image_only_serialization(augmentation_cls, param
 
 # @pytest.mark.parametrize("seed", TEST_SEEDS)
 # @pytest.mark.parametrize("p", [1])
-# def test_lambda_serialization(image, mask, albumentations_bboxes, keypoints, seed, p):
+# def test_lambda_serialization(image, mask, dicaugment_bboxes, keypoints, seed, p):
 #     def vflip_image(image, **kwargs):
 #         return FGeometric.vflip(image)
 
@@ -792,9 +792,9 @@ def test_additional_targets_for_image_only_serialization(augmentation_cls, param
 #     serialized_aug = A.to_dict(aug)
 #     deserialized_aug = A.from_dict(serialized_aug, lambda_transforms={"vflip": aug})
 #     set_seed(seed)
-#     aug_data = aug(image=image, mask=mask, bboxes=albumentations_bboxes, keypoints=keypoints)
+#     aug_data = aug(image=image, mask=mask, bboxes=dicaugment_bboxes, keypoints=keypoints)
 #     set_seed(seed)
-#     deserialized_aug_data = deserialized_aug(image=image, mask=mask, bboxes=albumentations_bboxes, keypoints=keypoints)
+#     deserialized_aug_data = deserialized_aug(image=image, mask=mask, bboxes=dicaugment_bboxes, keypoints=keypoints)
 #     assert np.array_equal(aug_data["image"], deserialized_aug_data["image"])
 #     assert np.array_equal(aug_data["mask"], deserialized_aug_data["mask"])
 #     assert np.array_equal(aug_data["bboxes"], deserialized_aug_data["bboxes"])
@@ -880,7 +880,7 @@ def test_serialization_v2_to_dict():
 @pytest.mark.parametrize(
     ["class_fullname", "expected_short_class_name"],
     [
-        ["albumentations3d.augmentations.transforms.HorizontalFlip", "HorizontalFlip"],
+        ["dicaugment.augmentations.transforms.HorizontalFlip", "HorizontalFlip"],
         ["HorizontalFlip", "HorizontalFlip"],
         ["some_module.HorizontalFlip", "some_module.HorizontalFlip"],
     ],

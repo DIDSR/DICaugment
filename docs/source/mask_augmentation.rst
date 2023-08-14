@@ -1,16 +1,16 @@
 Using Masks for Segmentation Tasks
 ==============================================
 
-Albumentations3D not only supports augmenting 3D images but also provides functionality to augment corresponding segmentation masks with the same set of augmentations.
+DICaugment not only supports augmenting 3D images but also provides functionality to augment corresponding segmentation masks with the same set of augmentations.
 
-This guide will walk you through the process of using Albumentations3D to augment 3D image masks in sync with the image transformations.
+This guide will walk you through the process of using DICaugment to augment 3D image masks in sync with the image transformations.
 
 
 1. Import the necessary modules:
 
     .. code-block:: python
     
-        import albumentations3d as A
+        import dicaugment as dca
         import nibabel as nib
 
 
@@ -41,11 +41,11 @@ This guide will walk you through the process of using Albumentations3D to augmen
 
     .. code-block:: python
 
-        transform = A.Compose([
+        transform = dca.Compose([
             # Add your desired augmentation techniques here
             # For example:
-            A.Rotate(p=0.5, limit=20, interpolation=1),
-            A.RandomCrop(height=64, width=64, depth=64)
+            dca.Rotate(p=0.5, limit=20, interpolation=1),
+            dca.RandomCrop(height=64, width=64, depth=64)
         ])
 
 
@@ -74,6 +74,6 @@ This guide will walk you through the process of using Albumentations3D to augmen
 
 
     
-You have learned how to use Albumentations3D to augment 3D image masks for segmentation tasks. Feel free to explore the wide range of augmentation techniques available in Albumentations3D to further enhance your segmentation tasks. For a comprehensive list of available techniques and their parameters, please refer to the :doc:`API Reference <albumentations3d.augmentations>`. If you encounter any issues or have questions, please seek help from the Albumentations3D community on the `Albumentations3D GitHub Discussions <https://github.com/jjmcintosh/albumentations3d/discussions>`_ page.
+You have learned how to use DICaugment to augment 3D image masks for segmentation tasks. Feel free to explore the wide range of augmentation techniques available in DICaugment to further enhance your segmentation tasks. For a comprehensive list of available techniques and their parameters, please refer to the :doc:`API Reference <dicaugment.augmentations>`. If you encounter any issues or have questions, please seek help from the dicaugment community on the `DICaugment GitHub Discussions <https://github.com/jjmcintosh/dicaugment/discussions>`_ page.
 
-Happy augmenting with Albumentations3D in your object detection pipelines!
+Happy augmenting with DICaugment in your object detection pipelines!

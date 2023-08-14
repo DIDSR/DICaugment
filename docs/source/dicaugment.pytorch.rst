@@ -4,7 +4,7 @@ Pytorch
 Transforms
 ------------------------------------------
 
-.. automodule:: albumentations3d.pytorch.transforms
+.. automodule:: dicaugment.pytorch.transforms
    :members:
    :undoc-members:
    :show-inheritance:
@@ -12,7 +12,7 @@ Transforms
 Functional
 ------------------------------------------
 
-.. automodule:: albumentations3d.pytorch.functional
+.. automodule:: dicaugment.pytorch.functional
    :members:
    :undoc-members:
    :show-inheritance:

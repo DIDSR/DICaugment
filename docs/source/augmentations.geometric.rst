@@ -4,15 +4,15 @@ Geometric
 Transforms
 ----------------------------------------------------------
 
-.. automodule:: albumentations3d.augmentations.geometric.transforms
+.. automodule:: dicaugment.augmentations.geometric.transforms
    :members:
    :undoc-members:
    :show-inheritance:
-.. automodule:: albumentations3d.augmentations.geometric.rotate
+.. automodule:: dicaugment.augmentations.geometric.rotate
    :members:
    :undoc-members:
    :show-inheritance:
-.. automodule:: albumentations3d.augmentations.geometric.resize
+.. automodule:: dicaugment.augmentations.geometric.resize
    :members:
    :undoc-members:
    :show-inheritance:
@@ -20,7 +20,7 @@ Transforms
 Functional
 ----------------------------------------------------------
 
-.. automodule:: albumentations3d.augmentations.geometric.functional
+.. automodule:: dicaugment.augmentations.geometric.functional
    :members:
    :undoc-members:
    :show-inheritance:

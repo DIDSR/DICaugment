@@ -8,7 +8,7 @@ import cv2
 import numpy as np
 import pytest
 
-from albumentations3d import (
+from dicaugment import (
     BasicTransform,
     Blur,
     #ChannelShuffle,
@@ -20,8 +20,8 @@ from albumentations3d import (
     Resize,
     Rotate,
 )
-from albumentations3d.core.bbox_utils import check_bboxes
-from albumentations3d.core.composition import (
+from dicaugment.core.bbox_utils import check_bboxes
+from dicaugment.core.composition import (
     BaseCompose,
     BboxParams,
     Compose,
@@ -33,7 +33,7 @@ from albumentations3d.core.composition import (
     Sequential,
     SomeOf,
 )
-from albumentations3d.core.transforms_interface import (
+from dicaugment.core.transforms_interface import (
     DualTransform,
     ImageOnlyTransform,
     to_tuple,

@@ -9,7 +9,7 @@ import sys
 # sys.path.append(os.path.dirname(SCRIPT_DIR))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-import albumentations3d as A
+import dicaugment as A
 import random
 from PIL import Image
 import glob

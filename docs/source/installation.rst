@@ -1,7 +1,7 @@
 Installation
 =============================
 
-This guide will walk you through the installation process for Albumentations3D, a Python package for 3D image augmentation specifically designed for volumetric 3D images like CT scans.
+This guide will walk you through the installation process for DICaugment, a Python package for 3D image augmentation specifically designed for volumetric 3D images like CT scans.
 
 
 
@@ -11,14 +11,14 @@ This guide will walk you through the installation process for Albumentations3D, 
 Prerequisites
 -------------------------
 
-Before installing Albumentations3D, ensure you have the following prerequisites:
+Before installing DICaugment, ensure you have the following prerequisites:
 
 - Python 3.7 or higher
 
 Installation Steps
 -------------------------
 
-Follow these steps to install Albumentations3D:
+Follow these steps to install dicaugment:
 
 1. Open a terminal or command prompt.
 
@@ -43,20 +43,20 @@ Follow these steps to install Albumentations3D:
 
                 source myenv/bin/activate
 
-4. Install Albumentations3D and its dependencies using `pip`:
+4. Install DICaugment and its dependencies using `pip`:
 
     .. code-block:: bash
 
-        pip install albumentations3d
+        pip install dicaugment
 
 
-This will install Albumentations3D along with the required dependencies.
+This will install DICaugment along with the required dependencies.
 
-5. Verify the installation by importing Albumentations3D in Python:
+5. Verify the installation by importing DICaugment in Python:
 
     .. code-block:: python
 
-        import albumentations3d as A
+        import dicaugment as dca
 
 
 If no errors occur, the installation was successful.
@@ -64,31 +64,31 @@ If no errors occur, the installation was successful.
 Upgrade to the Latest Version
 -----------------------------------------
 
-To upgrade to the latest version of Albumentations3D, use the `--upgrade` flag with `pip`:
+To upgrade to the latest version of DICaugment, use the `--upgrade` flag with `pip`:
 
     .. code-block:: bash
         
-        pip install --upgrade albumentations3d
+        pip install --upgrade dicaugment
 
 
-This will update Albumentations3D to the latest available version.
+This will update DICaugment to the latest available version.
 
-Uninstall Albumentations3D
+Uninstall DICaugment
 ----------------------------------------
 
-To uninstall Albumentations3D, use the following `pip` command:
+To uninstall DICaugment, use the following `pip` command:
 
     .. code-block:: bash
         
-        pip uninstall albumentations3d
+        pip uninstall dicaugment
 
 Confirm the uninstallation when prompted.
 
 Additional Notes
 ------------------------------
 
-- It's recommended to install Albumentations3D in a virtual environment to isolate it from other Python packages and prevent conflicts.
+- It's recommended to install DICaugment in a virtual environment to isolate it from other Python packages and prevent conflicts.
 
-- If you encounter any issues during installation, please seek help from the Albumentations3D community on the `Albumentations3D GitHub Discussions <https://github.com/jjmcintosh/albumentations3d/discussions>`_ page.
+- If you encounter any issues during installation, please seek help from the dicaugment community on the `DICaugment GitHub Discussions <https://github.com/jjmcintosh/dicaugment/discussions>`_ page.
 
-Congratulations! You have successfully installed Albumentations3D. You can now proceed to the :doc:`Getting Started <getting.started>` guide to learn how to use Albumentations3D for 3D image augmentation.
+Congratulations! You have successfully installed DICaugment. You can now proceed to the :doc:`Getting Started <getting.started>` guide to learn how to use DICaugment for 3D image augmentation.

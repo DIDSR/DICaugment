@@ -5,7 +5,7 @@ from enum import Enum
 import argparse
 
 sys.path.append("..")
-import albumentations3d  # noqa: E402
+import dicaugment  # noqa: E402
 
 
 IGNORED_CLASSES = {
@@ -19,15 +19,15 @@ IGNORED_CLASSES = {
 
 
 def make_augmentation_docs_link(cls):
-    if issubclass(cls, albumentations3d.ImageOnlyTransform):
+    if issubclass(cls, dicaugment.ImageOnlyTransform):
         module_page = ".".join(cls.__module__.split(".")[:-1])
     else:
         module_page = ".".join(cls.__module__.split(".")[1:-1])
     return (
-        "[{cls.__name__}](https://albumentations3d.readthedocs.io/en/latest/{module_page}.html#{cls.__module__}.{cls.__name__})"
+        "[{cls.__name__}](https://dicaugment.readthedocs.io/en/latest/{module_page}.html#{cls.__module__}.{cls.__name__})"
     ).format(module_page=module_page, cls=cls)
-#albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.crops.html#albumentations3d.augmentations.crops.transforms.CenterCrop
-#https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.dropout.html#albumentations3d.augmentations.dropout.coarse_dropout.CoarseDropout
+#dicaugment.readthedocs.io/en/latest/dicaugment.augmentations.crops.html#dicaugment.augmentations.crops.transforms.CenterCrop
+#https://dicaugment.readthedocs.io/en/latest/dicaugment.augmentations.dropout.html#dicaugment.augmentations.dropout.coarse_dropout.CoarseDropout
 
 class Targets(Enum):
     IMAGE = "Image"
@@ -53,30 +53,30 @@ def make_separator(width, align_center):
 
 def get_transforms_info():
     transforms_info = {}
-    members = inspect.getmembers(albumentations3d)
+    members = inspect.getmembers(dicaugment)
     for name, cls in members:
-        if inspect.isclass(cls) and issubclass(cls, albumentations3d.BasicTransform) and name not in IGNORED_CLASSES:
+        if inspect.isclass(cls) and issubclass(cls, dicaugment.BasicTransform) and name not in IGNORED_CLASSES:
             if "DeprecationWarning" in inspect.getsource(cls) or "FutureWarning" in inspect.getsource(cls):
                 continue
 
             targets = {Targets.IMAGE}
-            if issubclass(cls, albumentations3d.DualTransform):
+            if issubclass(cls, dicaugment.DualTransform):
                 targets.add(Targets.MASKS)
 
             if (
-                hasattr(cls, "apply_to_bbox") and cls.apply_to_bbox is not albumentations3d.DualTransform.apply_to_bbox
+                hasattr(cls, "apply_to_bbox") and cls.apply_to_bbox is not dicaugment.DualTransform.apply_to_bbox
             ) or (
                 hasattr(cls, "apply_to_bboxes")
-                and cls.apply_to_bboxes is not albumentations3d.DualTransform.apply_to_bboxes
+                and cls.apply_to_bboxes is not dicaugment.DualTransform.apply_to_bboxes
             ):
                 targets.add(Targets.BBOXES)
 
             if (
                 hasattr(cls, "apply_to_keypoint")
-                and cls.apply_to_keypoint is not albumentations3d.DualTransform.apply_to_keypoint
+                and cls.apply_to_keypoint is not dicaugment.DualTransform.apply_to_keypoint
             ) or (
                 hasattr(cls, "apply_to_keypoints")
-                and cls.apply_to_keypoints is not albumentations3d.DualTransform.apply_to_keypoints
+                and cls.apply_to_keypoints is not dicaugment.DualTransform.apply_to_keypoints
             ):
                 targets.add(Targets.KEYPOINTS)
 
@@ -91,7 +91,7 @@ def get_transforms_info():
             transforms_info[name] = {
                 "targets": targets,
                 "docs_link": make_augmentation_docs_link(cls),
-                "image_only": issubclass(cls, albumentations3d.ImageOnlyTransform),
+                "image_only": issubclass(cls, dicaugment.ImageOnlyTransform),
             }
     return transforms_info
 

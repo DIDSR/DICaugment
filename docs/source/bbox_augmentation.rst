@@ -6,7 +6,7 @@ Annotatation Formats
 ------------------------
 
 
-3D Bounding Boxes are cuboids that encapsulate an object within a volumetric image. There are many formats to annotate bounding boxes, and Albumentations3D supports 4 formats: ``pascal_voc_3d``, ``albumentations_3d``, ``coco_3d``, and ``yolo_3d``.
+3D Bounding Boxes are cuboids that encapsulate an object within a volumetric image. There are many formats to annotate bounding boxes, and dicaugment supports 4 formats: ``pascal_voc_3d``, ``albumentations_3d``, ``coco_3d``, and ``yolo_3d``.
 
 The following scan has a height of 512px, a width of 512px, and a depth of 64px. The width of the bounding box in this scan is 45px, while the height is 46px, and the depth is 20px.
 
@@ -25,7 +25,7 @@ Coordinates of the example bounding box in this format are ``[265, 211, 0, 310, 
 albumentations_3d
 ~~~~~~~~~~~~~~~~~
 
-``albumentations_3d`` is the internal format for Albumentations3D that uses the same coordinates annotation formats as pascal_voc_3d but is normalized by the height, width, and depth of the image.
+``albumentations_3d`` is the internal format for dicaugment that uses the same coordinates annotation formats as pascal_voc_3d but is normalized by the height, width, and depth of the image.
 Coordinates of the example bounding box in this format are ``[265 / 512, 211 / 512, 0 / 64, 310 / 512, 257 / 512, 20 / 64]`` which simplifies to ``[0.5176, 0.4121, 0, 0.6055, 0.502, 0.3125]``.
 
 
@@ -54,23 +54,23 @@ Augmenting Bounding Boxes
 
     .. code-block:: python
     
-        import albumentations3d as A
+        import dicaugment as dca
 
 
 2. Define an augmentation pipeline using ``A.Compose``:
 
     .. code-block:: python
 
-        transform = A.Compose([
-            A.Rotate(p=0.5, limit=20, interpolation=1),
-            A.RandomCrop(height=64, width=64, depth=64)
+        transform = dca.Compose([
+            dca.Rotate(p=0.5, limit=20, interpolation=1),
+            dca.RandomCrop(height=64, width=64, depth=64)
             ],
-            bbox_params= A.BboxParams(format='pascal_voc_3d')
+            bbox_params= dca.BboxParams(format='pascal_voc_3d')
         )
 
     Note that unlike augmenting only images and masks, if you wish to augment bounding boxes, you must pass an instance of a ``BboxParams`` object to the ``bbox_params`` parameter in the declaration of ``A.Compose``. The ``BboxParams`` object is critical to the pipeline when augmenting bounding boxes because it specifies the annotation format of the bounding boxes that will be passed through the pipeline.
 
-    ``format`` is a required argument for ``BboxParams`` and must be one of ``pascal_voc_3d``, ``albumentations_3d``, ``coco_3d``, and ``yolo_3d``.
+    ``format`` is a required argument for ``BboxParams`` and must be one of ``pascal_voc_3d``, ``dicaugment_3d``, ``coco_3d``, and ``yolo_3d``.
 
 Filtering Bounding Boxes
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -79,11 +79,11 @@ Filtering Bounding Boxes
 
     .. code-block:: python
 
-        transform = A.Compose([
-            A.Rotate(p=0.5, limit=20, interpolation=1),
-            A.RandomCrop(height=64, width=64, depth=64)
+        transform = dca.Compose([
+            dca.Rotate(p=0.5, limit=20, interpolation=1),
+            dca.RandomCrop(height=64, width=64, depth=64)
             ],
-            bbox_params= A.BboxParams(format='pascal_voc_3d', min_planar_area = 400, min_volume = 4000)
+            bbox_params= dca.BboxParams(format='pascal_voc_3d', min_planar_area = 400, min_volume = 4000)
         )
 
     ``min_planar_area`` and ``min_volume`` are some of many parameters for the ``BboxParams`` object that dictate how a pipeline should handle a bounding box if its shape has changed due to a transform such as resizing or cropping.
@@ -92,13 +92,13 @@ Filtering Bounding Boxes
 
     ``min_volume`` is the minimum volume of the bounding box that is required after a transform in order to be maintained. If the resulting volume of a transformed bounding box does not satisfy this condition, then it will be removed and will not be returned from the pipeline.
 
-    See more parameter options in the documentation for `BboxParams <https://albumentations3d.readthedocs.io/en/latest/albumentations3d.core.html#albumentations3d.core.bbox_utils.BboxParams>`_
+    See more parameter options in the documentation for `BboxParams <https://dicaugment.readthedocs.io/en/latest/dicaugment.core.html#dicaugment.core.bbox_utils.BboxParams>`_
 
     
 Class Labels for Bounding Boxes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Most bounding box annotations have associated classes or labels. In Albumentations3D, labels are required for bounding boxes. There are two primary ways to incorporate labels into the pipeline.
+Most bounding box annotations have associated classes or labels. In DICaugment, labels are required for bounding boxes. There are two primary ways to incorporate labels into the pipeline.
 
 Internal Labels
 """""""""""""""""""
@@ -152,11 +152,11 @@ Internal Labels
 
     .. code-block:: python
 
-        transform = A.Compose([
-            A.Rotate(p=0.5, limit=20, interpolation=1),
-            A.RandomCrop(height=64, width=64, depth=64)
+        transform = dca.Compose([
+            dca.Rotate(p=0.5, limit=20, interpolation=1),
+            dca.RandomCrop(height=64, width=64, depth=64)
             ],
-            bbox_params= A.BboxParams(format='pascal_voc_3d', min_planar_area = 400, min_volume = 4000)
+            bbox_params= dca.BboxParams(format='pascal_voc_3d', min_planar_area = 400, min_volume = 4000)
         )
 
         transformed = transform(image = scan, bboxes = bboxes)
@@ -192,11 +192,11 @@ External Labels
 
     .. code-block:: python
 
-        transform = A.Compose([
-            A.Rotate(p=0.5, limit=20, interpolation=1),
-            A.RandomCrop(height=64, width=64, depth=64)
+        transform = dca.Compose([
+            dca.Rotate(p=0.5, limit=20, interpolation=1),
+            dca.RandomCrop(height=64, width=64, depth=64)
             ],
-            bbox_params= A.BboxParams(format='pascal_voc_3d', min_planar_area = 400, min_volume = 4000, label_fields=['class_labels'])
+            bbox_params= dca.BboxParams(format='pascal_voc_3d', min_planar_area = 400, min_volume = 4000, label_fields=['class_labels'])
         )
 
         transformed = transform(image = scan, bboxes = bboxes, class_labels = class_labels)
@@ -213,11 +213,11 @@ External Labels
         class_labels     = [True, False, True, False]
         class_categories = [ "A",   "B",  "B",   "C"]
 
-        transform = A.Compose([
-            A.Rotate(p=0.5, limit=20, interpolation=1),
-            A.RandomCrop(height=64, width=64, depth=64)
+        transform = dca.Compose([
+            dca.Rotate(p=0.5, limit=20, interpolation=1),
+            dca.RandomCrop(height=64, width=64, depth=64)
             ],
-            bbox_params= A.BboxParams(format='pascal_voc_3d', min_planar_area = 400, min_volume = 4000, label_fields=['class_labels', 'class_categories'])
+            bbox_params= dca.BboxParams(format='pascal_voc_3d', min_planar_area = 400, min_volume = 4000, label_fields=['class_labels', 'class_categories'])
         )
 
         transformed = transform(image = scan, bboxes = bboxes, class_labels = class_labels, class_categories = class_categories)
@@ -256,6 +256,6 @@ External Labels
 
 
     
-You have learned how to use Albumentations3D to augment 3D image bounding boxes for object detection. Feel free to explore the wide range of augmentation techniques available in Albumentations3D to further enhance your object detection tasks. For a comprehensive list of available techniques and their parameters, please refer to the :doc:`API Reference <albumentations3d.augmentations>`. If you encounter any issues or have questions, please seek help from the Albumentations3D community on the `Albumentations3D GitHub Discussions <https://github.com/jjmcintosh/albumentations3d/discussions>`_ page.
+You have learned how to use dicaugment to augment 3D image bounding boxes for object detection. Feel free to explore the wide range of augmentation techniques available in dicaugment to further enhance your object detection tasks. For a comprehensive list of available techniques and their parameters, please refer to the :doc:`API Reference <dicaugment.augmentations>`. If you encounter any issues or have questions, please seek help from the dicaugment community on the `dicaugment GitHub Discussions <https://github.com/jjmcintosh/dicaugment/discussions>`_ page.
 
-Happy augmenting with Albumentations3D in your object detection pipeline!
+Happy augmenting with DICaugment in your object detection pipeline!

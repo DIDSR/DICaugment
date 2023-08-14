@@ -5,7 +5,7 @@ Blur
 Transforms
 -----------------------------------------------------
 
-.. automodule:: albumentations3d.augmentations.blur.transforms
+.. automodule:: dicaugment.augmentations.blur.transforms
    :members:
    :undoc-members:
    :show-inheritance:
@@ -13,7 +13,7 @@ Transforms
 Functional
 -----------------------------------------------------
 
-.. automodule:: albumentations3d.augmentations.blur.functional
+.. automodule:: dicaugment.augmentations.blur.functional
    :members:
    :undoc-members:
    :show-inheritance:

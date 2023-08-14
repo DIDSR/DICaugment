@@ -1,19 +1,19 @@
 import numpy as np
 import pytest
 
-from albumentations3d import Crop, RandomCrop, RandomSizedCrop, Rotate
-from albumentations3d.core.bbox_utils import (
+from dicaugment import Crop, RandomCrop, RandomSizedCrop, Rotate
+from dicaugment.core.bbox_utils import (
     calculate_bbox_area_volume,
-    convert_bbox_from_albumentations,
-    convert_bbox_to_albumentations,
-    convert_bboxes_to_albumentations,
+    convert_bbox_from_dicaugment,
+    convert_bbox_to_dicaugment,
+    convert_bboxes_to_dicaugment,
     denormalize_bbox,
     denormalize_bboxes,
     normalize_bbox,
     normalize_bboxes,
 )
-from albumentations3d.core.composition import BboxParams, Compose, ReplayCompose
-from albumentations3d.core.transforms_interface import NoOp
+from dicaugment.core.composition import BboxParams, Compose, ReplayCompose
+from dicaugment.core.transforms_interface import NoOp
 
 
 @pytest.mark.parametrize(
@@ -84,10 +84,10 @@ def test_calculate_bbox_area_volume(bbox, rows, cols, slices, expected):
         ((0.9375, 0.510416, 0.543219, 0.1234375, 0.97638, 0.483940), "yolo_3d", (0.87578125, 0.022226, 0.301249, 0.999218749, 0.998606, 0.785189)),
     ],
 )
-def test_convert_bbox_to_albumentations(bbox, source_format, expected):
+def test_convert_bbox_to_dicaugment(bbox, source_format, expected):
     image = np.ones((100, 100, 100))
 
-    converted_bbox = convert_bbox_to_albumentations(
+    converted_bbox = convert_bbox_to_dicaugment(
         bbox, rows=image.shape[0], cols=image.shape[1], slices=image.shape[2], source_format=source_format
     )
     assert np.all(np.isclose(converted_bbox, expected))
@@ -104,9 +104,9 @@ def test_convert_bbox_to_albumentations(bbox, source_format, expected):
         ((0.00, 0.05, 0.3, 0.40, 0.55, 0.6, 99), "yolo_3d", (0.2, 0.3, 0.45, 0.4, 0.5, 0.3, 99)),
     ],
 )
-def test_convert_bbox_from_albumentations(bbox, target_format, expected):
+def test_convert_bbox_from_dicaugment(bbox, target_format, expected):
     image = np.ones((100, 100, 100))
-    converted_bbox = convert_bbox_from_albumentations(
+    converted_bbox = convert_bbox_from_dicaugment(
         bbox, rows=image.shape[0], cols=image.shape[1], slices=image.shape[2], target_format=target_format
     )
     assert np.all(np.isclose(converted_bbox, expected))
@@ -132,42 +132,42 @@ def test_convert_bbox_from_albumentations(bbox, target_format, expected):
         ((0.26, 0.31, 0.51, 0.41, 0.51, 0.21, 99), "yolo_3d"),
     ],
 )
-def test_convert_bbox_to_albumentations_and_back(bbox, bbox_format):
+def test_convert_bbox_to_dicaugment_and_back(bbox, bbox_format):
     image = np.ones((100, 100, 100))
-    converted_bbox = convert_bbox_to_albumentations(
+    converted_bbox = convert_bbox_to_dicaugment(
         bbox, rows=image.shape[0], cols=image.shape[1], slices=image.shape[2], source_format=bbox_format
     )
-    converted_back_bbox = convert_bbox_from_albumentations(
+    converted_back_bbox = convert_bbox_from_dicaugment(
         converted_bbox, rows=image.shape[0], cols=image.shape[1], slices=image.shape[2], target_format=bbox_format
     )
     assert np.all(np.isclose(converted_back_bbox, bbox))
 
 
-def test_convert_bboxes_to_albumentations():
+def test_convert_bboxes_to_dicaugment():
     bboxes = [(20, 30, 40, 40, 50, 50), (10, 20, 30, 40, 50, 60, 99)]
     image = np.ones((100, 100, 100))
-    converted_bboxes = convert_bboxes_to_albumentations(
+    converted_bboxes = convert_bboxes_to_dicaugment(
         bboxes, rows=image.shape[0], cols=image.shape[1], slices=image.shape[2], source_format="coco_3d"
     )
-    converted_bbox_1 = convert_bbox_to_albumentations(
+    converted_bbox_1 = convert_bbox_to_dicaugment(
         bboxes[0], rows=image.shape[0], cols=image.shape[1], slices=image.shape[2], source_format="coco_3d"
     )
-    converted_bbox_2 = convert_bbox_to_albumentations(
+    converted_bbox_2 = convert_bbox_to_dicaugment(
         bboxes[1], rows=image.shape[0], cols=image.shape[1], slices=image.shape[2], source_format="coco_3d"
     )
     assert converted_bboxes == [converted_bbox_1, converted_bbox_2]
 
 
-def test_convert_bboxes_from_albumentations():
+def test_convert_bboxes_from_dicaugment():
     bboxes = [(0.2, 0.3, 0.4, 0.6, 0.8, 0.9), (0.3, 0.4, 0.5, 0.7, 0.9, 0.9, 99)]
     image = np.ones((100, 100, 100))
-    converted_bboxes = convert_bboxes_to_albumentations(
+    converted_bboxes = convert_bboxes_to_dicaugment(
         bboxes, rows=image.shape[0], cols=image.shape[1], slices=image.shape[2], source_format="coco_3d"
     )
-    converted_bbox_1 = convert_bbox_to_albumentations(
+    converted_bbox_1 = convert_bbox_to_dicaugment(
         bboxes[0], rows=image.shape[0], cols=image.shape[1], slices=image.shape[2], source_format="coco_3d"
     )
-    converted_bbox_2 = convert_bbox_to_albumentations(
+    converted_bbox_2 = convert_bbox_to_dicaugment(
         bboxes[1], rows=image.shape[0], cols=image.shape[1], slices=image.shape[2], source_format="coco_3d"
     )
     assert converted_bboxes == [converted_bbox_1, converted_bbox_2]

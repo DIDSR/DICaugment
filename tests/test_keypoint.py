@@ -3,14 +3,14 @@ import math
 import numpy as np
 import pytest
 
-import albumentations3d as A
-import albumentations3d.augmentations.geometric.functional as FGeometric
-from albumentations3d.core.keypoints_utils import (
+import dicaugment as A
+import dicaugment.augmentations.geometric.functional as FGeometric
+from dicaugment.core.keypoints_utils import (
     angle_to_2pi_range,
-    convert_keypoint_from_albumentations,
-    convert_keypoint_to_albumentations,
-    convert_keypoints_from_albumentations,
-    convert_keypoints_to_albumentations,
+    convert_keypoint_from_dicaugment,
+    convert_keypoint_to_dicaugment,
+    convert_keypoints_from_dicaugment,
+    convert_keypoints_to_dicaugment,
 )
 
 
@@ -25,10 +25,10 @@ from albumentations3d.core.keypoints_utils import (
         ((20, 30, 40, 60, 80), "xyzas", (20, 30, 40, math.radians(60), 80)),
     ],
 )
-def test_convert_keypoint_to_albumentations(kp, source_format, expected):
+def test_convert_keypoint_to_dicaugment(kp, source_format, expected):
     image = np.ones((100, 100, 100))
 
-    converted_keypoint = convert_keypoint_to_albumentations(
+    converted_keypoint = convert_keypoint_to_dicaugment(
         kp, rows=image.shape[0], cols=image.shape[1], slices=image.shape[2], source_format=source_format
     )
     assert converted_keypoint == expected
@@ -44,9 +44,9 @@ def test_convert_keypoint_to_albumentations(kp, source_format, expected):
         ((20, 30, 40, 0.6, 80), "xyzas", (20, 30, 40, math.degrees(0.6), 80)),
     ],
 )
-def test_convert_keypoint_from_albumentations(kp, target_format, expected):
+def test_convert_keypoint_from_dicaugment(kp, target_format, expected):
     image = np.ones((100, 100, 100))
-    converted_keypoint = convert_keypoint_from_albumentations(
+    converted_keypoint = convert_keypoint_from_dicaugment(
         kp, rows=image.shape[0], cols=image.shape[1], slices=image.shape[2], target_format=target_format
     )
     assert converted_keypoint == expected
@@ -61,42 +61,42 @@ def test_convert_keypoint_from_albumentations(kp, target_format, expected):
         ((20, 30, 60, 80, 99), "zyx"),
     ],
 )
-def test_convert_keypoint_to_albumentations_and_back(kp, keypoint_format):
+def test_convert_keypoint_to_dicaugment_and_back(kp, keypoint_format):
     image = np.ones((100, 100, 100))
-    converted_kp = convert_keypoint_to_albumentations(
+    converted_kp = convert_keypoint_to_dicaugment(
         kp, rows=image.shape[0], cols=image.shape[1], slices=image.shape[2], source_format=keypoint_format
     )
-    converted_back_kp = convert_keypoint_from_albumentations(
+    converted_back_kp = convert_keypoint_from_dicaugment(
         converted_kp, rows=image.shape[0], cols=image.shape[1], slices=image.shape[2], target_format=keypoint_format
     )
     assert converted_back_kp == kp
 
 
-def test_convert_keypoints_to_albumentations():
+def test_convert_keypoints_to_dicaugment():
     keypoints = [(20, 30, 40, 50, 60), (30, 40, 50, 60, 70, 99)]
     image = np.ones((100, 100, 100))
-    converted_keypoints = convert_keypoints_to_albumentations(
+    converted_keypoints = convert_keypoints_to_dicaugment(
         keypoints, rows=image.shape[0], cols=image.shape[1], slices=image.shape[2], source_format="xyzas"
     )
-    converted_keypoint_1 = convert_keypoint_to_albumentations(
+    converted_keypoint_1 = convert_keypoint_to_dicaugment(
         keypoints[0], rows=image.shape[0], cols=image.shape[1], slices=image.shape[2], source_format="xyzas"
     )
-    converted_keypoint_2 = convert_keypoint_to_albumentations(
+    converted_keypoint_2 = convert_keypoint_to_dicaugment(
         keypoints[1], rows=image.shape[0], cols=image.shape[1], slices=image.shape[2], source_format="xyzas"
     )
     assert converted_keypoints == [converted_keypoint_1, converted_keypoint_2]
 
 
-def test_convert_keypoints_from_albumentations():
+def test_convert_keypoints_from_dicaugment():
     keypoints = [(0.2, 0.3, 0.6, 0.8, 0.85), (0.3, 0.4, 0.7, 0.9, 0.2, 99)]
     image = np.ones((100, 100, 100))
-    converted_keypointes = convert_keypoints_from_albumentations(
+    converted_keypointes = convert_keypoints_from_dicaugment(
         keypoints, rows=image.shape[0], cols=image.shape[1], slices=image.shape[2], target_format="xyzas"
     )
-    converted_keypoint_1 = convert_keypoint_from_albumentations(
+    converted_keypoint_1 = convert_keypoint_from_dicaugment(
         keypoints[0], rows=image.shape[0], cols=image.shape[1], slices=image.shape[2], target_format="xyzas"
     )
-    converted_keypoint_2 = convert_keypoint_from_albumentations(
+    converted_keypoint_2 = convert_keypoint_from_dicaugment(
         keypoints[1], rows=image.shape[0], cols=image.shape[1], slices=image.shape[2], target_format="xyzas"
     )
     assert converted_keypointes == [converted_keypoint_1, converted_keypoint_2]

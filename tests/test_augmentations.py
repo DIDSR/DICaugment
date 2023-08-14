@@ -5,7 +5,7 @@ import cv2
 import numpy as np
 import pytest
 
-import albumentations3d as A
+import dicaugment as A
 
 from numpy.testing import assert_array_almost_equal_nulp
 

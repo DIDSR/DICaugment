@@ -4,7 +4,7 @@ Dicom
 Transforms
 ------------------------------------------------------
 
-.. automodule:: albumentations3d.augmentations.dicom.transforms
+.. automodule:: dicaugment.augmentations.dicom.transforms
    :members:
    :undoc-members:
    :show-inheritance:
@@ -12,7 +12,7 @@ Transforms
 Functional
 ------------------------------------------------------
 
-.. automodule:: albumentations3d.augmentations.dicom.functional
+.. automodule:: dicaugment.augmentations.dicom.functional
    :members:
    :undoc-members:
    :show-inheritance:

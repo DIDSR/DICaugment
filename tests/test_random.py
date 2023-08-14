@@ -3,7 +3,7 @@ import random
 import numpy as np
 import pytest
 
-from albumentations3d import random_utils
+from dicaugment import random_utils
 
 
 def _calc(args):

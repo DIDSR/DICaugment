@@ -4,7 +4,7 @@ Crops
 Transforms
 ------------------------------------------------------
 
-.. automodule:: albumentations3d.augmentations.crops.transforms
+.. automodule:: dicaugment.augmentations.crops.transforms
    :members:
    :undoc-members:
    :show-inheritance:
@@ -12,7 +12,7 @@ Transforms
 Functional
 ------------------------------------------------------
 
-.. automodule:: albumentations3d.augmentations.crops.functional
+.. automodule:: dicaugment.augmentations.crops.functional
    :members:
    :undoc-members:
    :show-inheritance:
