@@ -1,30 +1,30 @@
-# Albumentations3D
+# DICaugment
 <!-- [![PyPI version](https://badge.fury.io/py/albumentations.svg)](https://badge.fury.io/py/albumentations)
 ![CI](https://github.com/albumentations-team/albumentations/workflows/CI/badge.svg) -->
 
-Albumentations3D is a Python package based on the popular image augmentation library [Albumentations](https://github.com/albumentations-team/albumentations) [[1]](#1), but with specific enhancements for working with volumetric 3D images, such as CT scans. This package provides a collection of powerful and efficient augmentation techniques that can be seamlessly integrated into your machine learning pipeline to augment 3D images.
+DICaugment is a Python package based on the popular image augmentation library [Albumentations](https://github.com/albumentations-team/albumentations) [[1]](#1), but with specific enhancements for working with volumetric 3D images, such as CT scans. This package provides a collection of powerful and efficient augmentation techniques that can be seamlessly integrated into your machine learning pipeline to augment 3D images.
 
 
-Below are some examples of some common or unique augmentations that are possible with the Albumentations3D library applied on an example obtained from the NLST dataset [[2]](#2):
+Below are some examples of some common or unique augmentations that are possible with the DICaugment library applied on an example obtained from the NLST dataset [[2]](#2):
 ![lungs](./tools/README_example.gif)
 
 
 ## Features
 
-Albumentations3D offers the following key features:
+dicaugment offers the following key features:
 
-- 3D-specific augmentation techniques: The package includes a variety of augmentation methods specifically designed for volumetric 3D images, such as CT scans. These techniques can be used to augment data and improve model generalization. The package was designed to incorporate the metadata availble in dicom headers, allowing users to create transformations that are consistent with an image's acquisition parameters.
+- 3D-specific augmentation techniques: The package includes a variety of augmentation methods specifically designed for volumetric 3D images, such as CT scans. These techniques can be used to augment data and improve model generalization. The package was designed to incorporate the metadata availble in DICOM headers, allowing users to create transformations that are consistent with an image's acquisition parameters.
 
 - Seamless integration: The package is built as an extension of the Albumentations library, making it easy to incorporate 3D augmentation into your existing image processing pipelines. It maintains a similar API and workflow, ensuring a smooth transition for users already familiar with Albumentations.
 
-- Flexibility: Albumentations3D is designed to be flexible, allowing users to create custom augmentation pipelines tailored to their specific needs. The modular architecture of the package makes it easy create long and complex augmentation pipelines suitable for their needs.
+- Flexibility: DICaugment is designed to be flexible, allowing users to create custom augmentation pipelines tailored to their specific needs. The modular architecture of the package makes it easy create long and complex augmentation pipelines suitable for their needs.
 
 
-## Key Differences between Albumentations3D and Albumentations
+## Key Differences between DICaugment and Albumentations
 
-- **Dimensionality** is a key difference as Albumentations and most other augmentation libraries do not support volumetric images while Albumentations3D is specifically tailored for these types of images
+- **Dimensionality** is a key difference as Albumentations and most other augmentation libraries do not support volumetric images while DICaugment is specifically tailored for these types of images
 
-- The **backbone** of Albumentations mainly relies on operations in the [openCV](https://opencv.org/) framework while Albumentations relies on [SciPy](https://scipy.org/). As Albumentations3D is specifically designed to operate on multidimensional data SciPY is used throughout the library.
+- The **backbone** of Albumentations mainly relies on operations in the [openCV](https://opencv.org/) framework while DICaugment relies on [SciPy](https://scipy.org/). As DICaugment is specifically designed to operate on multidimensional data SciPY is used throughout the library.
 In the future, certain operations that are acheivable through openCV will be implemented.
 
 
@@ -66,101 +66,101 @@ In the future, certain operations that are acheivable through openCV will be imp
 
 
 ## Installation
-Albumentations3D requires Python 3.7 or higher. To install the latest version using `pip`:
+DICaugment requires Python 3.7 or higher. To install the latest version using `pip`:
 
 ```
-pip install albumentations3D
+pip install DICaugment
 ```
 
 ## Usage
 
-To use Albumentations3D, you need to import the necessary modules and define an augmentation pipeline. Here's a simple example demonstrating how to apply a 3D augmentation pipeline to a CT scan:
+To use DICaugment, you need to import the necessary modules and define an augmentation pipeline. Here's a simple example demonstrating how to apply a 3D augmentation pipeline to a CT scan:
 
 ```python
-import albumentations3d as A
+import dicaugment as dca
 
 # Define the augmentation pipeline
-transform = A.Compose([
-    A.Rotate(p=0.5, limit=20, interpolation=1),
-    A.RandomCrop(p=0.5, size=(64, 64, 64))
+transform = dca.Compose([
+    dca.Rotate(p=0.5, limit=20, interpolation=1),
+    dca.RandomCrop(p=0.5, size=(64, 64, 64))
 ])
 
 # Apply the augmentation pipeline to a CT scan
 augmented_scan = transform(image=scan)["image"]
 ```
 
-In the example above, we import the `albumentations3d` module and create an instance of `A.Compose` to define our augmentation pipeline. We then specify the desired augmentation techniques, such as rotation (`A.Rotate`) and random cropping (`A.RandomCrop`), along with their respective parameters. Finally, we apply the transformation to a CT scan using the `transform` function.
+In the example above, we import the `dicaugment` module and create an instance of `dca.Compose` to define our augmentation pipeline. We then specify the desired augmentation techniques, such as rotation (`dca.Rotate`) and random cropping (`dca.RandomCrop`), along with their respective parameters. Finally, we apply the transformation to a CT scan using the `transform` function.
 
-Please refer to the [Albumentations3D documentation](https://albumentations3d.readthedocs.io/) for more detailed usage instructions and a comprehensive list of available augmentation techniques.
+Please refer to the [DICaugment documentation](https://dicaugment.readthedocs.io/) for more detailed usage instructions and a comprehensive list of available augmentation techniques.
 
 ## List of augmentations
 
 ### Pixel-level transforms
 Pixel-level transforms will change just an input image and will leave any additional targets such as masks, bounding boxes, and keypoints unchanged. The list of pixel-level transforms:
 
-- [Blur](https://albumentations3d.readthedocs.io/en/latest/augmentations.blur.html#albumentations3d.augmentations.blur.transforms.Blur)
-- [Downscale](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.html#albumentations3d.augmentations.transforms.Downscale)
-- [Equalize](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.html#albumentations3d.augmentations.transforms.Equalize)
-- [FromFloat](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.html#albumentations3d.augmentations.transforms.FromFloat)
-- [GaussNoise](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.html#albumentations3d.augmentations.transforms.GaussNoise)
-- [GaussianBlur](https://albumentations3d.readthedocs.io/en/latest/augmentations.blur.html#albumentations3d.augmentations.blur.transforms.GaussianBlur)
-- [InvertImg](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.html#albumentations3d.augmentations.transforms.InvertImg)
-- [MedianBlur](https://albumentations3d.readthedocs.io/en/latest/augmentations.blur.html#albumentations3d.augmentations.blur.transforms.MedianBlur)
-- [Normalize](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.html#albumentations3d.augmentations.transforms.Normalize)
-- [Posterize](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.html#albumentations3d.augmentations.transforms.Posterize)
-- [RandomBrightnessContrast](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.html#albumentations3d.augmentations.transforms.RandomBrightnessContrast)
-- [RandomGamma](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.html#albumentations3d.augmentations.transforms.RandomGamma)
-- [Sharpen](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.html#albumentations3d.augmentations.transforms.Sharpen)
-- [ToFloat](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.html#albumentations3d.augmentations.transforms.ToFloat)
-- [UnsharpMask](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.html#albumentations3d.augmentations.transforms.UnsharpMask)
+- [Blur](https://dicaugment.readthedocs.io/en/latest/augmentations.blur.html#dicaugment.augmentations.blur.transforms.Blur)
+- [Downscale](https://dicaugment.readthedocs.io/en/latest/dicaugment.augmentations.html#dicaugment.augmentations.transforms.Downscale)
+- [Equalize](https://dicaugment.readthedocs.io/en/latest/dicaugment.augmentations.html#dicaugment.augmentations.transforms.Equalize)
+- [FromFloat](https://dicaugment.readthedocs.io/en/latest/dicaugment.augmentations.html#dicaugment.augmentations.transforms.FromFloat)
+- [GaussNoise](https://dicaugment.readthedocs.io/en/latest/dicaugment.augmentations.html#dicaugment.augmentations.transforms.GaussNoise)
+- [GaussianBlur](https://dicaugment.readthedocs.io/en/latest/augmentations.blur.html#dicaugment.augmentations.blur.transforms.GaussianBlur)
+- [InvertImg](https://dicaugment.readthedocs.io/en/latest/dicaugment.augmentations.html#dicaugment.augmentations.transforms.InvertImg)
+- [MedianBlur](https://dicaugment.readthedocs.io/en/latest/augmentations.blur.html#dicaugment.augmentations.blur.transforms.MedianBlur)
+- [Normalize](https://dicaugment.readthedocs.io/en/latest/dicaugment.augmentations.html#dicaugment.augmentations.transforms.Normalize)
+- [Posterize](https://dicaugment.readthedocs.io/en/latest/dicaugment.augmentations.html#dicaugment.augmentations.transforms.Posterize)
+- [RandomBrightnessContrast](https://dicaugment.readthedocs.io/en/latest/dicaugment.augmentations.html#dicaugment.augmentations.transforms.RandomBrightnessContrast)
+- [RandomGamma](https://dicaugment.readthedocs.io/en/latest/dicaugment.augmentations.html#dicaugment.augmentations.transforms.RandomGamma)
+- [Sharpen](https://dicaugment.readthedocs.io/en/latest/dicaugment.augmentations.html#dicaugment.augmentations.transforms.Sharpen)
+- [ToFloat](https://dicaugment.readthedocs.io/en/latest/dicaugment.augmentations.html#dicaugment.augmentations.transforms.ToFloat)
+- [UnsharpMask](https://dicaugment.readthedocs.io/en/latest/dicaugment.augmentations.html#dicaugment.augmentations.transforms.UnsharpMask)
 
 ### Spatial-level transforms
 Spatial-level transforms will simultaneously change both an input image as well as additional targets such as masks, bounding boxes, and keypoints. The following table shows which additional targets are supported by each transform.
 
 | Transform                                                                                                                                                                     | Image | Masks | BBoxes | Keypoints |
 | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---: | :---: | :----: | :-------: |
-| [BBoxSafeRandomCrop](https://albumentations3d.readthedocs.io/en/latest/augmentations.crops.html#albumentations3d.augmentations.crops.transforms.BBoxSafeRandomCrop)           | ✓     | ✓     | ✓      |           |
-| [CenterCrop](https://albumentations3d.readthedocs.io/en/latest/augmentations.crops.html#albumentations3d.augmentations.crops.transforms.CenterCrop)                           | ✓     | ✓     | ✓      | ✓         |
-| [CoarseDropout](https://albumentations3d.readthedocs.io/en/latest/augmentations.dropout.html#albumentations3d.augmentations.dropout.coarse_dropout.CoarseDropout)             | ✓     | ✓     |        | ✓         |
-| [Crop](https://albumentations3d.readthedocs.io/en/latest/augmentations.crops.html#albumentations3d.augmentations.crops.transforms.Crop)                                       | ✓     | ✓     | ✓      | ✓         |
-| [CropAndPad](https://albumentations3d.readthedocs.io/en/latest/augmentations.crops.html#albumentations3d.augmentations.crops.transforms.CropAndPad)                           | ✓     | ✓     | ✓      | ✓         |
-| [Flip](https://albumentations3d.readthedocs.io/en/latest/augmentations.geometric.html#albumentations3d.augmentations.geometric.transforms.Flip)                               | ✓     | ✓     | ✓      | ✓         |
-| [GridDropout](https://albumentations3d.readthedocs.io/en/latest/augmentations.dropout.html#albumentations3d.augmentations.dropout.grid_dropout.GridDropout)                   | ✓     | ✓     |        |           |
-| [HorizontalFlip](https://albumentations3d.readthedocs.io/en/latest/augmentations.geometric.html#albumentations3d.augmentations.geometric.transforms.HorizontalFlip)           | ✓     | ✓     | ✓      | ✓         |
-| [LongestMaxSize](https://albumentations3d.readthedocs.io/en/latest/augmentations.geometric.html#albumentations3d.augmentations.geometric.resize.LongestMaxSize)               | ✓     | ✓     | ✓      | ✓         |
-| [NoOp](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.core.html#albumentations3d.core.transforms_interface.NoOp)                                                           | ✓     | ✓     | ✓      | ✓         |
-| [PadIfNeeded](https://albumentations3d.readthedocs.io/en/latest/augmentations.geometric.html#albumentations3d.augmentations.geometric.transforms.PadIfNeeded)                 | ✓     | ✓     | ✓      | ✓         |
-| [PixelDropout](https://albumentations3d.readthedocs.io/en/latest/albumentations3d.augmentations.html#albumentations3d.augmentations.transforms.PixelDropout)                                   | ✓     | ✓     | ✓      | ✓         |
-| [RandomCrop](https://albumentations3d.readthedocs.io/en/latest/augmentations.crops.html#albumentations3d.augmentations.crops.transforms.RandomCrop)                           | ✓     | ✓     | ✓      | ✓         |
-| [RandomCropFromBorders](https://albumentations3d.readthedocs.io/en/latest/augmentations.crops.html#albumentations3d.augmentations.crops.transforms.RandomCropFromBorders)     | ✓     | ✓     | ✓      | ✓         |
-| [RandomCropNearBBox](https://albumentations3d.readthedocs.io/en/latest/augmentations.crops.html#albumentations3d.augmentations.crops.transforms.RandomCropNearBBox)           | ✓     | ✓     | ✓      | ✓         |
-| [RandomRotate90](https://albumentations3d.readthedocs.io/en/latest/augmentations.geometric.html#albumentations3d.augmentations.geometric.rotate.RandomRotate90)               | ✓     | ✓     | ✓      | ✓         |
-| [RandomScale](https://albumentations3d.readthedocs.io/en/latest/augmentations.geometric.html#albumentations3d.augmentations.geometric.resize.RandomScale)                     | ✓     | ✓     | ✓      | ✓         |
-| [RandomSizedBBoxSafeCrop](https://albumentations3d.readthedocs.io/en/latest/augmentations.crops.html#albumentations3d.augmentations.crops.transforms.RandomSizedBBoxSafeCrop) | ✓     | ✓     | ✓      |           |
-| [RandomSizedCrop](https://albumentations3d.readthedocs.io/en/latest/augmentations.crops.html#albumentations3d.augmentations.crops.transforms.RandomSizedCrop)                 | ✓     | ✓     | ✓      | ✓         |
-| [Resize](https://albumentations3d.readthedocs.io/en/latest/augmentations.geometric.html#albumentations3d.augmentations.geometric.resize.Resize)                               | ✓     | ✓     | ✓      | ✓         |
-| [Rotate](https://albumentations3d.readthedocs.io/en/latest/augmentations.geometric.html#albumentations3d.augmentations.geometric.rotate.Rotate)                               | ✓     | ✓     | ✓      | ✓         |
-| [ShiftScaleRotate](https://albumentations3d.readthedocs.io/en/latest/augmentations.geometric.html#albumentations3d.augmentations.geometric.transforms.ShiftScaleRotate)       | ✓     | ✓     | ✓      | ✓         |
-| [SliceFlip](https://albumentations3d.readthedocs.io/en/latest/augmentations.geometric.html#albumentations3d.augmentations.geometric.transforms.SliceFlip)                     | ✓     | ✓     | ✓      | ✓         |
-| [SmallestMaxSize](https://albumentations3d.readthedocs.io/en/latest/augmentations.geometric.html#albumentations3d.augmentations.geometric.resize.SmallestMaxSize)             | ✓     | ✓     | ✓      | ✓         |
-| [Transpose](https://albumentations3d.readthedocs.io/en/latest/augmentations.geometric.html#albumentations3d.augmentations.geometric.transforms.Transpose)                     | ✓     | ✓     | ✓      | ✓         |
-| [VerticalFlip](https://albumentations3d.readthedocs.io/en/latest/augmentations.geometric.html#albumentations3d.augmentations.geometric.transforms.VerticalFlip)               | ✓     | ✓     | ✓      | ✓         |
+| [BBoxSafeRandomCrop](https://dicaugment.readthedocs.io/en/latest/augmentations.crops.html#dicaugment.augmentations.crops.transforms.BBoxSafeRandomCrop)           | ✓     | ✓     | ✓      |           |
+| [CenterCrop](https://dicaugment.readthedocs.io/en/latest/augmentations.crops.html#dicaugment.augmentations.crops.transforms.CenterCrop)                           | ✓     | ✓     | ✓      | ✓         |
+| [CoarseDropout](https://dicaugment.readthedocs.io/en/latest/augmentations.dropout.html#dicaugment.augmentations.dropout.coarse_dropout.CoarseDropout)             | ✓     | ✓     |        | ✓         |
+| [Crop](https://dicaugment.readthedocs.io/en/latest/augmentations.crops.html#dicaugment.augmentations.crops.transforms.Crop)                                       | ✓     | ✓     | ✓      | ✓         |
+| [CropAndPad](https://dicaugment.readthedocs.io/en/latest/augmentations.crops.html#dicaugment.augmentations.crops.transforms.CropAndPad)                           | ✓     | ✓     | ✓      | ✓         |
+| [Flip](https://dicaugment.readthedocs.io/en/latest/augmentations.geometric.html#dicaugment.augmentations.geometric.transforms.Flip)                               | ✓     | ✓     | ✓      | ✓         |
+| [GridDropout](https://dicaugment.readthedocs.io/en/latest/augmentations.dropout.html#dicaugment.augmentations.dropout.grid_dropout.GridDropout)                   | ✓     | ✓     |        |           |
+| [HorizontalFlip](https://dicaugment.readthedocs.io/en/latest/augmentations.geometric.html#dicaugment.augmentations.geometric.transforms.HorizontalFlip)           | ✓     | ✓     | ✓      | ✓         |
+| [LongestMaxSize](https://dicaugment.readthedocs.io/en/latest/augmentations.geometric.html#dicaugment.augmentations.geometric.resize.LongestMaxSize)               | ✓     | ✓     | ✓      | ✓         |
+| [NoOp](https://dicaugment.readthedocs.io/en/latest/dicaugment.core.html#dicaugment.core.transforms_interface.NoOp)                                                           | ✓     | ✓     | ✓      | ✓         |
+| [PadIfNeeded](https://dicaugment.readthedocs.io/en/latest/augmentations.geometric.html#dicaugment.augmentations.geometric.transforms.PadIfNeeded)                 | ✓     | ✓     | ✓      | ✓         |
+| [PixelDropout](https://dicaugment.readthedocs.io/en/latest/dicaugment.augmentations.html#dicaugment.augmentations.transforms.PixelDropout)                                   | ✓     | ✓     | ✓      | ✓         |
+| [RandomCrop](https://dicaugment.readthedocs.io/en/latest/augmentations.crops.html#dicaugment.augmentations.crops.transforms.RandomCrop)                           | ✓     | ✓     | ✓      | ✓         |
+| [RandomCropFromBorders](https://dicaugment.readthedocs.io/en/latest/augmentations.crops.html#dicaugment.augmentations.crops.transforms.RandomCropFromBorders)     | ✓     | ✓     | ✓      | ✓         |
+| [RandomCropNearBBox](https://dicaugment.readthedocs.io/en/latest/augmentations.crops.html#dicaugment.augmentations.crops.transforms.RandomCropNearBBox)           | ✓     | ✓     | ✓      | ✓         |
+| [RandomRotate90](https://dicaugment.readthedocs.io/en/latest/augmentations.geometric.html#dicaugment.augmentations.geometric.rotate.RandomRotate90)               | ✓     | ✓     | ✓      | ✓         |
+| [RandomScale](https://dicaugment.readthedocs.io/en/latest/augmentations.geometric.html#dicaugment.augmentations.geometric.resize.RandomScale)                     | ✓     | ✓     | ✓      | ✓         |
+| [RandomSizedBBoxSafeCrop](https://dicaugment.readthedocs.io/en/latest/augmentations.crops.html#dicaugment.augmentations.crops.transforms.RandomSizedBBoxSafeCrop) | ✓     | ✓     | ✓      |           |
+| [RandomSizedCrop](https://dicaugment.readthedocs.io/en/latest/augmentations.crops.html#dicaugment.augmentations.crops.transforms.RandomSizedCrop)                 | ✓     | ✓     | ✓      | ✓         |
+| [Resize](https://dicaugment.readthedocs.io/en/latest/augmentations.geometric.html#dicaugment.augmentations.geometric.resize.Resize)                               | ✓     | ✓     | ✓      | ✓         |
+| [Rotate](https://dicaugment.readthedocs.io/en/latest/augmentations.geometric.html#dicaugment.augmentations.geometric.rotate.Rotate)                               | ✓     | ✓     | ✓      | ✓         |
+| [ShiftScaleRotate](https://dicaugment.readthedocs.io/en/latest/augmentations.geometric.html#dicaugment.augmentations.geometric.transforms.ShiftScaleRotate)       | ✓     | ✓     | ✓      | ✓         |
+| [SliceFlip](https://dicaugment.readthedocs.io/en/latest/augmentations.geometric.html#dicaugment.augmentations.geometric.transforms.SliceFlip)                     | ✓     | ✓     | ✓      | ✓         |
+| [SmallestMaxSize](https://dicaugment.readthedocs.io/en/latest/augmentations.geometric.html#dicaugment.augmentations.geometric.resize.SmallestMaxSize)             | ✓     | ✓     | ✓      | ✓         |
+| [Transpose](https://dicaugment.readthedocs.io/en/latest/augmentations.geometric.html#dicaugment.augmentations.geometric.transforms.Transpose)                     | ✓     | ✓     | ✓      | ✓         |
+| [VerticalFlip](https://dicaugment.readthedocs.io/en/latest/augmentations.geometric.html#dicaugment.augmentations.geometric.transforms.VerticalFlip)               | ✓     | ✓     | ✓      | ✓         |
 
 ### CT Scan Specific Transforms
 
 These transforms utilize metadata from a DICOM header file to apply a pixel-level or spatial-level transformation
 
-- [RescaleSlopeIntercept](https://albumentations3d.readthedocs.io/en/latest/augmentations.dicom.html#albumentations3d.augmentations.dicom.transforms.RescaleSlopeIntercept)
-- [SetPixelSpacing](https://albumentations3d.readthedocs.io/en/latest/augmentations.dicom.html#albumentations3d.augmentations.dicom.transforms.SetPixelSpacing)
-- [NPSNoise](https://albumentations3d.readthedocs.io/en/latest/augmentations.dicom.html#albumentations3d.augmentations.dicom.transforms.NPSNoise)
+- [RescaleSlopeIntercept](https://dicaugment.readthedocs.io/en/latest/augmentations.dicom.html#dicaugment.augmentations.dicom.transforms.RescaleSlopeIntercept)
+- [SetPixelSpacing](https://dicaugment.readthedocs.io/en/latest/augmentations.dicom.html#dicaugment.augmentations.dicom.transforms.SetPixelSpacing)
+- [NPSNoise](https://dicaugment.readthedocs.io/en/latest/augmentations.dicom.html#dicaugment.augmentations.dicom.transforms.NPSNoise)
 
 
 The NPSNoise transormation applies a random change in the magnitude of the noise present in the image consistent with the kernel type [[3]](#3) provided in the DICOM header 
 
 ```python
-import albumentations3d as A
+import dicaugment as dca
 
-scan = A.read_dcm_image(
+scan = dca.read_dcm_image(
   path='path/to/dcm/folder/',
   return_header=False         # Set as True to recieve scan and dicom header
   )
@@ -173,7 +173,7 @@ dicom = {
   "XRayTubeCurrent" : 240
   }
 
-aug = A.Compose([A.NPSNoise()])
+aug = dca.Compose([dca.NPSNoise()])
 result = aug(image=scan, dicom=dicom)
 ```
 
@@ -239,24 +239,19 @@ The table shows how many images per second can be processed on a single core; hi
 
 Python and library versions: Python 3.9.5 (default, Jun 23 2021, 15:01:51) [GCC 8.3.0], numpy 1.19.5, pillow-simd 7.0.0.post3, opencv-python 4.5.3.56, scikit-image 0.18.3, scipy 1.7.1. -->
 
-## Meet The Project Team
-...
-...
-...
-
 ## Contributing
 
-Contributions to Albumentations3D are welcome! If you have any bug reports, feature requests, or would like to contribute code, please check out the [repository](https://github.com/jjmcintosh/albumentations3d) on GitHub.
+Contributions to DICaugment are welcome! If you have any bug reports, feature requests, or would like to contribute code, please check out the [repository](https://github.com/jjmcintosh/dicaugment) on GitHub.
 
 ## License
 
-Albumentations3D is distributed under the MIT license. See [LICENSE](https://github.com/jjmcintosh/albumentations3d/blob/main/LICENSE) for more information.
+dicaugment is distributed under the MIT license. See [LICENSE](https://github.com/jjmcintosh/dicaugment/blob/main/LICENSE) for more information.
 
 ## Acknowledgments
 
-We would like to express our gratitude to the developers of Albumentations [[1]](#1) for their excellent work on the original library, which served as the foundation for Albumentations3D. We also thank the open-source community for their contributions and feedback.
+We would like to express our gratitude to the developers of Albumentations [[1]](#1) for their excellent work on the original library, which served as the foundation for DICaugment. We also thank the open-source community for their contributions and feedback.
 
-<!-- If you find Albumentations3D useful in your research or projects, please consider citing it: -->
+<!-- If you find dicaugment useful in your research or projects, please consider citing it: -->
 
 
 ## Referecences
