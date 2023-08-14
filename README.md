@@ -69,7 +69,7 @@ In the future, certain operations that are acheivable through openCV will be imp
 DICaugment requires Python 3.7 or higher. To install the latest version using `pip`:
 
 ```
-pip install DICaugment
+pip install dicaugment
 ```
 
 ## Usage
