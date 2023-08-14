@@ -15,7 +15,7 @@ sys.path.insert(0, os.path.abspath("../.."))
 
 
 
-project = 'Albumentations3D'
+project = 'DICaugment'
 copyright = '2023, Jacob McIntosh'
 author = 'Jacob McIntosh'
 release = '0.0.1'

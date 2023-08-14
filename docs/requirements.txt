@@ -6,3 +6,4 @@ torchvision
 tensorflow
 pydicom
 pytest
+sphinx-rtd-theme
