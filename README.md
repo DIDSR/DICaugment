@@ -180,78 +180,19 @@ result = aug(image=scan, dicom=dicom)
 
 ![NPS](./tools/nps_example.gif)
 
-<!-- ## A Few More Examples of Augmentations
-### Mask Augmentation for Instance and Semantic Segmentation
-
-![Segmentation](./tools/segmentation_example.gif)
-
-### 3D Bounding Box Augmentation for Object Detection
-![bbox](./tools/bbox_example.gif)
-
-
-### Keypoint Augmentations for Keypoint Detection
-![kp](./tools/kp_example.gif) -->
-
-
-
-
-
-
-
-<!-- ### Object detection and semantic segmentation on the Mapillary Vistas dataset
-![vistas](https://habrastorage.org/webt/rz/-h/3j/rz-h3jalbxic8o_fhucxysts4tc.jpeg)
-
-### Keypoints augmentation
-<img src="https://habrastorage.org/webt/e-/6k/z-/e-6kz-fugp2heak3jzns3bc-r8o.jpeg" width=100%> -->
-
-
-<!-- ## Benchmarking results
-To run the benchmark yourself, follow the instructions in [benchmark/README.md](https://github.com/albumentations-team/albumentations/blob/master/benchmark/README.md)
-
-Results for running the benchmark on the first 2000 images from the ImageNet validation set using an Intel(R) Xeon(R) Gold 6140 CPU.
-All outputs are converted to a contiguous NumPy array with the np.uint8 data type.
-The table shows how many images per second can be processed on a single core; higher is better.
-
-
-|                      |albumentations<br><small>1.1.0</small>|imgaug<br><small>0.4.0</small>|torchvision (Pillow-SIMD backend)<br><small>0.10.1</small>|keras<br><small>2.6.0</small>|augmentor<br><small>0.2.8</small>|solt<br><small>0.1.9</small>|
-|----------------------|:------------------------------------:|:----------------------------:|:--------------------------------------------------------:|:---------------------------:|:-------------------------------:|:--------------------------:|
-|HorizontalFlip        |              **10220**               |             2702             |                           2517                           |             876             |              2528               |            6798            |
-|VerticalFlip          |               **4438**               |             2141             |                           2151                           |            4381             |              2155               |            3659            |
-|Rotate                |               **389**                |             283              |                           165                            |             28              |               60                |            367             |
-|ShiftScaleRotate      |               **669**                |             425              |                           146                            |             29              |                -                |             -              |
-|Brightness            |               **2765**               |             1124             |                           411                            |             229             |               408               |            2335            |
-|Contrast              |               **2767**               |             1137             |                           349                            |              -              |               346               |            2341            |
-|BrightnessContrast    |               **2746**               |             629              |                           190                            |              -              |               189               |            1196            |
-|ShiftRGB              |               **2758**               |             1093             |                            -                             |             360             |                -                |             -              |
-|ShiftHSV              |               **598**                |             259              |                            59                            |              -              |                -                |            144             |
-|Gamma                 |               **2849**               |              -               |                           388                            |              -              |                -                |            933             |
-|Grayscale             |               **5219**               |             393              |                           723                            |              -              |              1082               |            1309            |
-|RandomCrop64          |              **163550**              |             2562             |                          50159                           |              -              |              42842              |           22260            |
-|PadToSize512          |               **3609**               |              -               |                           602                            |              -              |                -                |            3097            |
-|Resize512             |                 1049                 |             611              |                         **1066**                         |              -              |              1041               |            1017            |
-|RandomSizedCrop_64_512|               **3224**               |             858              |                           1660                           |              -              |              1598               |            2675            |
-|Posterize             |               **2789**               |              -               |                            -                             |              -              |                -                |             -              |
-|Solarize              |               **2761**               |              -               |                            -                             |              -              |                -                |             -              |
-|Equalize              |                 647                  |             385              |                            -                             |              -              |             **765**             |             -              |
-|Multiply              |               **2659**               |             1129             |                            -                             |              -              |                -                |             -              |
-|MultiplyElementwise   |                 111                  |           **200**            |                            -                             |              -              |                -                |             -              |
-|ColorJitter           |               **351**                |              78              |                            57                            |              -              |                -                |             -              |
-
-Python and library versions: Python 3.9.5 (default, Jun 23 2021, 15:01:51) [GCC 8.3.0], numpy 1.19.5, pillow-simd 7.0.0.post3, opencv-python 4.5.3.56, scikit-image 0.18.3, scipy 1.7.1. -->
-
 ## Contributing
 
-Contributions to DICaugment are welcome! If you have any bug reports, feature requests, or would like to contribute code, please check out the [repository](https://github.com/jjmcintosh/dicaugment) on GitHub.
+Contributions to DICaugment are welcome! If you have any bug reports, feature requests, or would like to contribute code, please check out the [repository](https://github.com/DIDSR/dicaugment) on GitHub.
 
 ## License
 
-dicaugment is distributed under the MIT license. See [LICENSE](https://github.com/jjmcintosh/dicaugment/blob/main/LICENSE) for more information.
+DICaugment is distributed under the MIT license. See [LICENSE](https://github.com/jjmcintosh/dicaugment/blob/main/LICENSE) for more information.
 
 ## Acknowledgments
 
 We would like to express our gratitude to the developers of Albumentations [[1]](#1) for their excellent work on the original library, which served as the foundation for DICaugment. We also thank the open-source community for their contributions and feedback.
 
-<!-- If you find dicaugment useful in your research or projects, please consider citing it: -->
+
 
 
 ## Referecences
@@ -261,22 +202,3 @@ We would like to express our gratitude to the developers of Albumentations [[1]]
 <a name="2"></a>[2] National Lung Screening Trial Research Team. (2013). Data from the National Lung Screening Trial (NLST) [Data set]. The Cancer Imaging Archive. https://doi.org/10.7937/TCIA.HMQ8-J677
 
 <a name="3"></a>[3] Solomon, Justin B., Olav Christianson, and Ehsan Samei. "Quantitative comparison of noise texture across CT scanners from different manufacturers." Medical physics 39.10 (2012): 6048-6055.
-
-<!-- ## Citing
-
-If you find this library useful for your research, please consider citing [Albumentations: Fast and Flexible Image Augmentations](https://www.mdpi.com/2078-2489/11/2/125):
-
-```bibtex
-@Article{info11020125,
-    AUTHOR = {Buslaev, Alexander and Iglovikov, Vladimir I. and Khvedchenya, Eugene and Parinov, Alex and Druzhinin, Mikhail and Kalinin, Alexandr A.},
-    TITLE = {Albumentations: Fast and Flexible Image Augmentations},
-    JOURNAL = {Information},
-    VOLUME = {11},
-    YEAR = {2020},
-    NUMBER = {2},
-    ARTICLE-NUMBER = {125},
-    URL = {https://www.mdpi.com/2078-2489/11/2/125},
-    ISSN = {2078-2489},
-    DOI = {10.3390/info11020125}
-}
-``` -->
