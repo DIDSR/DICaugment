@@ -5,7 +5,15 @@ import re
 from pkg_resources import DistributionNotFound, get_distribution
 from setuptools import find_packages, setup
 
-INSTALL_REQUIRES = ["numpy>=1.11.1", "scipy>=1.1.0", "scikit-image>=0.16.1", "PyYAML", "qudida>=0.0.4", "pydicom", "setuptools"]
+INSTALL_REQUIRES = [
+    "numpy>=1.11.1",
+    "scipy>=1.1.0",
+    "scikit-image>=0.16.1",
+    "PyYAML",
+    "qudida>=0.0.4",
+    "pydicom",
+    "setuptools"
+    ]
 
 # If none of packages in first installed, install second package
 CHOOSE_INSTALL_REQUIRES = [
@@ -57,12 +65,12 @@ def get_install_requirements(install_requires, choose_install_requires):
 setup(
     name="DICaugment",
     version=get_version(),
-    description="3D volumetric image augmentation library",
+    description="3D medical image augmentation library",
     long_description=get_long_description(),
     long_description_content_type="text/markdown",
     author="J. McIntosh, M. Mehdi Farhangi",
     license="MIT",
-    url="https://github.com/jjmcintosh/dicaugment",
+    url="https://github.com/DIDSR/dicaugment",
     packages=find_packages(exclude=["tests"]),
     python_requires=">=3.7",
     package_data={'': ['data/kernels/*.npy']},

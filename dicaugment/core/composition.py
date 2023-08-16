@@ -273,6 +273,10 @@ class Compose(BaseCompose):
             if internal_data_name in checked_single:
                 if not isinstance(data, np.ndarray):
                     raise TypeError("{} must be numpy array type".format(data_name))
+                if data.dtype.name == 'float32' and (np.max(data) > 1.0 or np.min(data) < 0.0):
+                    raise ValueError(
+                        "Input array has data type np.float32 but has values outside of the range of [0,1].\n" + 
+                        "If you wish to use floating point values outside of this range, please convert the input array to np.float64")
                 shapes.append(data.shape[:3])
             if internal_data_name in checked_multi:
                 if data is not None:
