@@ -138,13 +138,13 @@ a Creative Commons Attribution 4.0 International License (CC BY
   dimensions, allowing for a variety of transformations designed to
   enhance the diversity of 3D image data. A subset of these
   transformations includes blurring techniques, such as median blur and
-  Gaussian blur, that must utilize convolution to achieve the desired
-  output. Notably, DICaugment offers a unique capability by allowing
-  users to choose between a 2D by-slice convolution or a full 3D
-  convolution when applying different blurring augmentations in a
-  pipeline. This flexibility caters to a variety of use cases and
-  ensures that the blurring effects can be consistent across an entire
-  3D volume.</p>
+  Gaussian blur, that must utilize local spatial operations such as
+  convolution to achieve the desired output. Notably, DICaugment offers
+  a unique capability by allowing users to choose between a 2D by-slice
+  operation or a full 3D operation when applying different blurring
+  augmentations in a pipeline. This flexibility caters to a variety of
+  use cases and ensures that the blurring effects can be consistent
+  across an entire 3D volume.</p>
   <p>Additionally, DICaugment enables users to construct custom
   augmentation pipelines with control over each individual
   transformation. Mimicking the Albumentations
@@ -160,7 +160,7 @@ a Creative Commons Attribution 4.0 International License (CC BY
   transformations, are applied with user-defined frequencies, therefore
   tailoring the augmentation process to the characteristics and use case
   of the dataset.</p>
-  <p>Besides different incorporations for volumetric images, DICaugment
+  <p>Besides standard augmentations for volumetric images, DICaugment
   offers a unique advantage through the addition of physics-based
   augmentations that leverage metadata from DICOM files in CT imaging.
   During the reconstruction process of CT images, different
@@ -168,16 +168,17 @@ a Creative Commons Attribution 4.0 International License (CC BY
   distinct noise textures in the resulting images often characterized by
   the Noise Power Spectrum
   (<xref alt="Solomon et al., 2012" rid="ref-Solomon2012-lj" ref-type="bibr">Solomon
-  et al., 2012</xref>). DICaugment utilizes the NPS profiles from the
-  specific reconstruction kernel to generate noisy images that are
-  consistent with the imaging acquisition and reconstruction parameters
+  et al., 2012</xref>). DICaugment utilizes the Noise Power Spectrum
+  (NPS) profiles from the specific reconstruction kernel to generate
+  noisy images that are consistent with the imaging acquisition and
+  reconstruction parameters
   (<xref alt="Tward &amp; Siewerdsen, 2008" rid="ref-Tward2008-gz" ref-type="bibr">Tward
   &amp; Siewerdsen, 2008</xref>) from the system and acquisition
   parameters used to acquire the original CT dataset. To illustrate, we
-  computed the Noise Power Spectrum (NPS) obtained from the noise
-  insertion transformations offered by DICaugment and compared it
-  against simple white Gaussian noise, which is a common noise insertion
-  method for data augmentation (e.g., MONAI
+  computed the NPS obtained from the noise insertion transformations
+  offered by DICaugment and compared it against simple white Gaussian
+  noise, which is a common noise insertion method for data augmentation
+  (e.g., MONAI
   (<xref alt="Cardoso et al., 2022" rid="ref-cardoso2022monai" ref-type="bibr">Cardoso
   et al., 2022</xref>) and Volumentations
   (<xref alt="Solovyev et al., 2022" rid="ref-solovyev20223d" ref-type="bibr">Solovyev
