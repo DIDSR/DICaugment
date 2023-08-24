@@ -2,7 +2,7 @@
 <!-- [![PyPI version](https://badge.fury.io/py/albumentations.svg)](https://badge.fury.io/py/albumentations)
 ![CI](https://github.com/albumentations-team/albumentations/workflows/CI/badge.svg) -->
 
-DICaugment is a Python package based on the popular image augmentation library [Albumentations](https://github.com/albumentations-team/albumentations) [[1]](#1), but with specific enhancements for working with volumetric 3D images, such as CT scans. This package provides a collection of powerful and efficient augmentation techniques that can be seamlessly integrated into your machine learning pipeline to augment 3D images.
+DICaugment (/daɪkɔːɡˈment/) is a Python package based on the popular image augmentation library [Albumentations](https://github.com/albumentations-team/albumentations) [[1]](#1), but with specific enhancements for working with volumetric 3D images, such as CT scans. This package provides a collection of powerful and efficient augmentation techniques that can be seamlessly integrated into your machine learning pipeline to augment 3D images.
 
 
 Below are some examples of some common or unique augmentations that are possible with the DICaugment library applied on an example obtained from the NLST dataset [[2]](#2):
@@ -11,7 +11,7 @@ Below are some examples of some common or unique augmentations that are possible
 
 ## Features
 
-dicaugment offers the following key features:
+DICaugment offers the following key features:
 
 - 3D-specific augmentation techniques: The package includes a variety of augmentation methods specifically designed for volumetric 3D images, such as CT scans. These techniques can be used to augment data and improve model generalization. The package was designed to incorporate the metadata availble in DICOM headers, allowing users to create transformations that are consistent with an image's acquisition parameters.
 
