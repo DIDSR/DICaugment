@@ -166,12 +166,11 @@ a Creative Commons Attribution 4.0 International License (CC BY
   During the reconstruction process of CT images, different
   manufacturers employ different reconstruction kernels, leading to
   distinct noise textures in the resulting images often characterized by
-  the Noise Power Spectrum
+  the Noise Power Spectrum (NPS)
   (<xref alt="Solomon et al., 2012" rid="ref-Solomon2012-lj" ref-type="bibr">Solomon
-  et al., 2012</xref>). DICaugment utilizes the Noise Power Spectrum
-  (NPS) profiles from the specific reconstruction kernel to generate
-  noisy images that are consistent with the imaging acquisition and
-  reconstruction parameters
+  et al., 2012</xref>). DICaugment utilizes the NPS profiles from the
+  specific reconstruction kernel to generate noisy images that are
+  consistent with the imaging acquisition and reconstruction parameters
   (<xref alt="Tward &amp; Siewerdsen, 2008" rid="ref-Tward2008-gz" ref-type="bibr">Tward
   &amp; Siewerdsen, 2008</xref>) from the system and acquisition
   parameters used to acquire the original CT dataset. To illustrate, we
@@ -198,8 +197,7 @@ a Creative Commons Attribution 4.0 International License (CC BY
   128 <inline-formula><alternatives>
   <tex-math><![CDATA[\times]]></tex-math>
   <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mo>×</mml:mo></mml:math></alternatives></inline-formula>
-  70 dimensions and computed the 2D NPS of each slice by taking the
-  square of the Fourier transform:</p>
+  70 dimensions and computed the 2D NPS of each slice by using:</p>
   <p><named-content id="eqU003A2dnps" content-type="equation"><disp-formula><alternatives>
   <tex-math><![CDATA[
   NPS(u,v) = \frac{d_xd_y}{N_xN_y}.\mid F[I(x,y)-P(x,y)]\mid^2]]></tex-math>
@@ -269,18 +267,18 @@ a Creative Commons Attribution 4.0 International License (CC BY
     <caption><p>(a) Water phantom scanned by a Siemens Somatom
     Definition Flash CT scanner with imaging parameters set at 240 mAs,
     120 kVP, and reconstructed with a B30f reconstruction kernel at 0.48
-    mm in-plane pixel spacing. The noise magnitude is computed as 9.46.
-    (b) Increasing the noise magnitude by adding white Gaussian noise,
-    resulting in a noisy image with a magnitude of 16.01. (c) Increasing
-    the noise magnitude using DICaugment, resulting in a noise image
-    with a magnitude of 16.08. Figures (d), (e), and (f) illustrate the
-    benefits of DICaugment in offering augmentations consistent with the
-    imaging parameters, demonstrated in terms of the Noise Power
-    Spectrum (NPS) of the augmented image (i.e., inserting Gaussian
-    noise produces a high-frequency tail in the NPS that is inconsistent
-    with that of the Seimens scanner while our noise insertion method
-    yields a shape in the NPS that is consistent with that of the
-    Seimens
+    mm in-plane pixel spacing. The noise magnitude is computed as 9.46
+    Hounsfield units (HU). (b) Increasing the noise magnitude by adding
+    white Gaussian noise, resulting in a noisy image with a magnitude of
+    16.01 HU. (c) Increasing the noise magnitude using DICaugment,
+    resulting in a noise image with a magnitude of 16.08 HU. Figures
+    (d), (e), and (f) illustrate the benefits of DICaugment in offering
+    augmentations consistent with the imaging parameters, demonstrated
+    in terms of the Noise Power Spectrum (NPS) of the augmented image
+    (i.e., inserting Gaussian noise produces a high-frequency tail in
+    the NPS that is inconsistent with that of the Seimens scanner while
+    our noise insertion method yields a shape in the NPS that is
+    consistent with that of the Siemens
     scanner).<styled-content id="figU003Aexample"></styled-content></p></caption>
     <graphic mimetype="image" mime-subtype="png" xlink:href="media/fig_1.png" />
   </fig>
@@ -292,12 +290,12 @@ a Creative Commons Attribution 4.0 International License (CC BY
   (<xref alt="Cardoso et al., 2022" rid="ref-cardoso2022monai" ref-type="bibr">Cardoso
   et al., 2022</xref>), demonstrating the lack of correlation between
   adjacent pixels. Figure 1(c) shows the outcome of noise insertion by
-  DICaugment is illustrated. Despite the increased magnitude of the
-  noise, the correlation among adjacent pixels remained essentially
-  unchanged, as evident in the normalized Noise Power Spectrum (nNPS)
-  shown in Figure 1(f). This shows that an increased CT exposure can be
-  simulated through our augmentation process for specific CT imaging
-  systems and kernels.</p>
+  DICaugment. Despite the increased magnitude of the noise, the
+  correlation among adjacent pixels remained essentially unchanged, as
+  evident in the normalized Noise Power Spectrum (nNPS) shown in Figure
+  1(f). This shows that a decreased CT exposure can be simulated through
+  our augmentation process for specific CT imaging systems and
+  kernels.</p>
 </sec>
 <sec id="acknowledgements">
   <title>Acknowledgements</title>
