@@ -4,10 +4,8 @@
 
 DICaugment (/daɪkɔːɡˈment/) is a Python package based on the popular image augmentation library [Albumentations](https://github.com/albumentations-team/albumentations) [[1]](#1), but with specific enhancements for working with volumetric 3D images, such as CT scans. This package provides a collection of powerful and efficient augmentation techniques that can be seamlessly integrated into your machine learning pipeline to augment 3D images.
 
-
 Below are some examples of some common or unique augmentations that are possible with the DICaugment library applied on an example obtained from the NLST dataset [[2]](#2):
-![lungs](./tools/README_example.gif)
-
+![](https://github.com/DIDSR/DICaugment/raw/main/tools/README_example.gif)
 
 ## Features
 
@@ -28,41 +26,12 @@ DICaugment offers the following key features:
 In the future, certain operations that are acheivable through openCV will be implemented.
 
 
-
-<!-- ## Table of contents
-- [Authors](#authors)
-- [Installation](#installation)
-- [Documentation](#documentation)
-- [A simple example](#a-simple-example)
-- [Getting started](#getting-started)
-  - [I am new to image augmentation](#i-am-new-to-image-augmentation)
-  - [I want to use Albumentations for the specific task such as classification or segmentation](#i-want-to-use-albumentations-for-the-specific-task-such-as-classification-or-segmentation)
-  - [I want to know how to use Albumentations with deep learning frameworks](#i-want-to-know-how-to-use-albumentations-with-deep-learning-frameworks)
-  - [I want to explore augmentations and see Albumentations in action](#i-want-to-explore-augmentations-and-see-albumentations-in-action)
-- [Who is using Albumentations](#who-is-using-albumentations)
-- [List of augmentations](#list-of-augmentations)
-  - [Pixel-level transforms](#pixel-level-transforms)
-  - [Spatial-level transforms](#spatial-level-transforms)
-- [A few more examples of augmentations](#a-few-more-examples-of-augmentations)
-- [Benchmarking results](#benchmarking-results)
-- [Contributing](#contributing)
-- [Comments](#comments)
-- [Citing](#citing) -->
-
 ## Authors
 
 **Jacob McIntosh**
 
 **Mehdi Farhangi**
-<!-- [**Alexander Buslaev** — Computer Vision Engineer at Mapbox](https://www.linkedin.com/in/al-buslaev/) | [Kaggle Master](https://www.kaggle.com/albuslaev)
 
-[**Alex Parinov**](https://www.linkedin.com/in/alex-parinov/) | [Kaggle Master](https://www.kaggle.com/creafz)
-
-[**Vladimir I. Iglovikov** — Staff Engineer at Lyft Level5](https://www.linkedin.com/in/iglovikov/) | [Kaggle Grandmaster](https://www.kaggle.com/iglovikov)
-
-[**Evegene Khvedchenya** — Computer Vision Research Engineer at Piñata Farms](https://www.linkedin.com/in/cvtalks/) | [Kaggle Grandmaster](https://www.kaggle.com/bloodaxe)
-
-[**Mikhail Druzhinin**](https://www.linkedin.com/in/mikhail-druzhinin-548229100/) | [Kaggle Expert](https://www.kaggle.com/dipetm) -->
 
 
 ## Installation
@@ -177,8 +146,7 @@ aug = dca.Compose([dca.NPSNoise()])
 result = aug(image=scan, dicom=dicom)
 ```
 
-
-![NPS](./tools/nps_example.gif)
+![](https://github.com/DIDSR/DICaugment/raw/main/tools/nps_example.gif)
 
 ## Contributing
 
