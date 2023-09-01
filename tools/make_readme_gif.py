@@ -76,7 +76,7 @@ def main():
         out.append(np.clip(aug(image = img)["image"], -1000, 1000))
 
 
-    for i in range(img.shape[2]):
+    for i in range(img.shape[2]- 14):
         fig, axes = plt.subplots(3,4, figsize= (10,8))
 
         for _,(name, arr) in enumerate(zip(labels, out)):
@@ -90,7 +90,7 @@ def main():
             axes.flat[_].set_title(name)
             axes.flat[_].set_axis_off()
 
-        fig.savefig("out/im_{:02d}.png".format(i), bbox_inches = "tight", dpi = 200)
+        fig.savefig("out/im_{:02d}.png".format(i), bbox_inches = "tight", dpi = 90)
 
         plt.close(fig)
 
