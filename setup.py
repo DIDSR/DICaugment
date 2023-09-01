@@ -1,5 +1,6 @@
 import io
 import os
+import subprocess
 import re
 
 from pkg_resources import DistributionNotFound, get_distribution
@@ -25,6 +26,8 @@ CHOOSE_INSTALL_REQUIRES = [
 
 
 def get_version():
+
+
     current_dir = os.path.abspath(os.path.dirname(__file__))
     version_file = os.path.join(current_dir, "dicaugment", "__init__.py")
     with io.open(version_file, encoding="utf-8") as f:
@@ -64,7 +67,7 @@ def get_install_requirements(install_requires, choose_install_requires):
 
 setup(
     name="DICaugment",
-    version=get_version(),
+    version='{{VERSION_PLACEHOLDER}}',
     description="3D medical image augmentation library",
     long_description=get_long_description(),
     long_description_content_type="text/markdown",
