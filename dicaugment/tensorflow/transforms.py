@@ -24,21 +24,27 @@ class ToTensorflow(BasicTransform):
 
     @property
     def targets(self) -> Dict[str, Callable]:
-        return {"image": self.apply, "mask": self.apply_to_mask, "masks": self.apply_to_masks}
+        return {
+            "image": self.apply,
+            "mask": self.apply_to_mask,
+            "masks": self.apply_to_masks,
+        }
 
     def apply(self, img: np.ndarray, **params) -> "tf.tensor":  # skipcq: PYL-W0613
-        if len(img.shape) not in [3,4]:
+        if len(img.shape) not in [3, 4]:
             raise ValueError("DICaugment only supports images in HWD or HWDC format")
-        
+
         if len(img.shape) == 3:
-            return tf.convert_to_tensor(np.expand_dims(img,3))
-        
+            return tf.convert_to_tensor(np.expand_dims(img, 3))
+
         else:
             return tf.convert_to_tensor(img)
 
-    def apply_to_mask(self, mask: np.ndarray, **params) -> "tf.tensor":  # skipcq: PYL-W0613
+    def apply_to_mask(
+        self, mask: np.ndarray, **params
+    ) -> "tf.tensor":  # skipcq: PYL-W0613
         if mask.ndim == 3:
-            mask = np.expand_dims(mask,3)
+            mask = np.expand_dims(mask, 3)
         return tf.convert_to_tensor(mask)
 
     def apply_to_masks(self, masks: List[np.ndarray], **params) -> "tf.tensor":

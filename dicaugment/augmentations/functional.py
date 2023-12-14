@@ -25,13 +25,13 @@ from dicaugment.augmentations.utils import (
     preserve_shape,
 )
 
-from ..core.transforms_interface import(
+from ..core.transforms_interface import (
     INTER_NEAREST,
     INTER_LINEAR,
     INTER_QUADRATIC,
     INTER_CUBIC,
     INTER_QUARTIC,
-    INTER_QUINTIC
+    INTER_QUINTIC,
 )
 
 __all__ = [
@@ -78,19 +78,18 @@ __all__ = [
 
 
 def normalize(img, mean, std):
-
     ndim = img.ndim
     axis = None if ndim == 3 else tuple(range(ndim - 1))
 
     # if max_pixel_value == None:
     #     max_pixel_value = np.max(img, axis = axis)
 
-    if mean == None:
-        mean = np.mean(img, axis = axis)
+    if mean is None:
+        mean = np.mean(img, axis=axis)
 
-    if std == None:
-        std = np.std(img, axis = axis)
-    
+    if std is None:
+        std = np.std(img, axis=axis)
+
     mean = np.array(mean, dtype=np.float32)
     # mean *= max_pixel_value
 
@@ -222,39 +221,47 @@ def posterize(img, bits):
     bits = np.uint8(bits)
 
     dtypes = {
-        'uint8': (np.uint8, 8),
-        'uint16': (np.uint16, 8),
-        'int16' : (np.int16, 16),
-        'int32' : (np.int32, 32)
+        "uint8": (np.uint8, 8),
+        "uint16": (np.uint16, 8),
+        "int16": (np.int16, 16),
+        "int32": (np.int32, 32),
     }
 
     if img.dtype.name not in dtypes.keys():
-        raise TypeError("dtype must be one of {}, got {}".format(tuple(dtypes.keys()), img.dtype.name))
-    
+        raise TypeError(
+            "dtype must be one of {}, got {}".format(
+                tuple(dtypes.keys()), img.dtype.name
+            )
+        )
+
     dtype_func, max_bits = dtypes[img.dtype.name]
 
     if np.any((bits < 0) | (bits > max_bits)):
-        raise ValueError("bits must be in range [0, {}] for {} data type".format(max_bits, img.dtype.name))
+        raise ValueError(
+            "bits must be in range [0, {}] for {} data type".format(
+                max_bits, img.dtype.name
+            )
+        )
 
     if not bits.shape or len(bits) == 1:
         if bits == 0:
             return np.zeros_like(img)
         if bits == max_bits:
             return img.copy()
-        
 
-    if img.dtype.name == 'uint8':
-
+    if img.dtype.name == "uint8":
         if not bits.shape or len(bits) == 1:
             lut = np.arange(0, 256, dtype=np.uint8)
             mask = ~np.uint8(2 ** (8 - bits) - 1)
             lut &= mask
 
             return cv2.LUT(img, lut)
-        
+
         if not is_rgb_image(img) and not is_multispectral_image(img):
-            raise TypeError("If bits is iterable, then image must be RGB or Multispectral")
-        
+            raise TypeError(
+                "If bits is iterable, then image must be RGB or Multispectral"
+            )
+
         result_img = np.empty_like(img)
         for i, channel_bits in enumerate(bits):
             if channel_bits == 0:
@@ -269,15 +276,13 @@ def posterize(img, bits):
                 result_img[..., i] = cv2.LUT(img[..., i], lut)
 
         return result_img
-    
 
     if not bits.shape or len(bits) == 1:
         mask = ~dtype_func(2 ** (max_bits - bits) - 1)
         return img.copy() & mask
 
-
     if not is_rgb_image(img) and not is_multispectral_image(img):
-            raise TypeError("If bits is iterable, then image must be RGB or Multispectral")
+        raise TypeError("If bits is iterable, then image must be RGB or Multispectral")
 
     result_img = np.empty_like(img)
     for i, channel_bits in enumerate(bits):
@@ -311,24 +316,24 @@ def posterize(img, bits):
 
 #     return cv2.LUT(img, np.array(lut))
 
-def _calcHist(img: np.ndarray, mask: Union[np.ndarray,None], nbins: int, hist_range: Tuple):
 
+def _calcHist(
+    img: np.ndarray, mask: Union[np.ndarray, None], nbins: int, hist_range: Tuple
+):
     if not mask:
-        mask = np.ones_like(img, dtype = np.bool_)
+        mask = np.ones_like(img, dtype=np.bool_)
 
-    bins = np.linspace(hist_range[0], hist_range[1]+1, nbins + 1)
+    bins = np.linspace(hist_range[0], hist_range[1] + 1, nbins + 1)
 
-    return np.histogram(img[mask.astype(np.bool_)], bins = bins)[0]
-
+    return np.histogram(img[mask.astype(np.bool_)], bins=bins)[0]
 
 
 def _equalize_cv(img, hist_range, mask=None):
-
     lo, hi = hist_range
     histogram = sum(map(lambda x: _calcHist(x, mask, hi - lo, hist_range), img)).ravel()
 
     total = np.sum(histogram)
-    histogram = histogram/total
+    histogram = histogram / total
     cumsum = (np.cumsum(histogram) * (hi - lo)) + lo
 
     lut = {}
@@ -336,12 +341,11 @@ def _equalize_cv(img, hist_range, mask=None):
     for i in range(lo, hi):
         lut[i] = clip(round(cumsum[i - lo]), img.dtype, lo, hi)
 
-    return np.vectorize(lambda x: lut.get(x,x))(img)
-
+    return np.vectorize(lambda x: lut.get(x, x))(img)
 
 
 @preserve_channel_dim
-def equalize(img, hist_range = None, mask=None):
+def equalize(img, hist_range=None, mask=None):
     """Equalize the image histogram.
 
     Args:
@@ -354,18 +358,26 @@ def equalize(img, hist_range = None, mask=None):
         numpy.ndarray: Equalized image.
 
     """
-    if img.dtype not in {np.dtype('uint8'), np.dtype('uint16'), np.dtype('int16'), np.dtype('int32')}:
+    if img.dtype not in {
+        np.dtype("uint8"),
+        np.dtype("uint16"),
+        np.dtype("int16"),
+        np.dtype("int32"),
+    }:
         raise TypeError("Image must have int or uint type")
 
     if mask is not None:
         if not is_grayscale_image(mask) and is_grayscale_image(img):
-            raise ValueError("Wrong mask shape. Image shape: {}. " "Mask shape: {}".format(img.shape, mask.shape))
+            raise ValueError(
+                "Wrong mask shape. Image shape: {}. "
+                "Mask shape: {}".format(img.shape, mask.shape)
+            )
         # if not by_channels and not is_grayscale_image(mask):
         #     raise ValueError(
         #         "When by_channels=False only 1-channel mask ared supported. " "Mask shape: {}".format(mask.shape)
         #     )
 
-    if hist_range == None:
+    if hist_range is None:
         hist_range = (0, np.max(img))
 
     if mask is not None:
@@ -500,20 +512,23 @@ def clahe(img, clip_limit=2.0, tile_grid_size=(8, 8)):
 
 @preserve_shape
 @clipped
-def convolve(img, kernel, mode = "constant", cval = 0):
-
-    convolve_fn = _maybe_process_by_channel(ndimage.convolve, weights = kernel, mode = mode, cval = cval)
+def convolve(img, kernel, mode="constant", cval=0):
+    convolve_fn = _maybe_process_by_channel(
+        ndimage.convolve, weights=kernel, mode=mode, cval=cval
+    )
     return convolve_fn(img)
 
 
-@preserve_shape 
+@preserve_shape
 def image_compression(img, quality, image_type):
     if image_type in [".jpeg", ".jpg"]:
         quality_flag = cv2.IMWRITE_JPEG_QUALITY
     elif image_type == ".webp":
         quality_flag = cv2.IMWRITE_WEBP_QUALITY
     else:
-        NotImplementedError("Only '.jpg' and '.webp' compression transforms are implemented. ")
+        NotImplementedError(
+            "Only '.jpg' and '.webp' compression transforms are implemented. "
+        )
 
     input_dtype = img.dtype
     needs_float = False
@@ -528,7 +543,9 @@ def image_compression(img, quality, image_type):
         img = from_float(img, dtype=np.dtype("uint8"))
         needs_float = True
     elif input_dtype not in (np.uint8, np.float32):
-        raise ValueError("Unexpected dtype {} for image augmentation".format(input_dtype))
+        raise ValueError(
+            "Unexpected dtype {} for image augmentation".format(input_dtype)
+        )
 
     _, encoded_img = cv2.imencode(image_type, img, (int(quality_flag), quality))
     img = cv2.imdecode(encoded_img, cv2.IMREAD_UNCHANGED)
@@ -565,7 +582,9 @@ def add_snow(img, snow_point, brightness_coeff):
         img = from_float(img, dtype=np.dtype("uint8"))
         needs_float = True
     elif input_dtype not in (np.uint8, np.float32):
-        raise ValueError("Unexpected dtype {} for RandomSnow augmentation".format(input_dtype))
+        raise ValueError(
+            "Unexpected dtype {} for RandomSnow augmentation".format(input_dtype)
+        )
 
     image_HLS = cv2.cvtColor(img, cv2.COLOR_RGB2HLS)
     image_HLS = np.array(image_HLS, dtype=np.float32)
@@ -622,11 +641,13 @@ def add_rain(
         img = from_float(img, dtype=np.dtype("uint8"))
         needs_float = True
     elif input_dtype not in (np.uint8, np.float32):
-        raise ValueError("Unexpected dtype {} for RandomRain augmentation".format(input_dtype))
+        raise ValueError(
+            "Unexpected dtype {} for RandomRain augmentation".format(input_dtype)
+        )
 
     image = img.copy()
 
-    for (rain_drop_x0, rain_drop_y0) in rain_drops:
+    for rain_drop_x0, rain_drop_y0 in rain_drops:
         rain_drop_x1 = rain_drop_x0 + slant
         rain_drop_y1 = rain_drop_y0 + drop_length
 
@@ -675,7 +696,9 @@ def add_fog(img, fog_coef, alpha_coef, haze_list):
         img = from_float(img, dtype=np.dtype("uint8"))
         needs_float = True
     elif input_dtype not in (np.uint8, np.float32):
-        raise ValueError("Unexpected dtype {} for RandomFog augmentation".format(input_dtype))
+        raise ValueError(
+            "Unexpected dtype {} for RandomFog augmentation".format(input_dtype)
+        )
 
     width = img.shape[1]
 
@@ -728,12 +751,14 @@ def add_sun_flare(img, flare_center_x, flare_center_y, src_radius, src_color, ci
         img = from_float(img, dtype=np.dtype("uint8"))
         needs_float = True
     elif input_dtype not in (np.uint8, np.float32):
-        raise ValueError("Unexpected dtype {} for RandomSunFlareaugmentation".format(input_dtype))
+        raise ValueError(
+            "Unexpected dtype {} for RandomSunFlareaugmentation".format(input_dtype)
+        )
 
     overlay = img.copy()
     output = img.copy()
 
-    for (alpha, (x, y), rad3, (r_color, g_color, b_color)) in circles:
+    for alpha, (x, y), rad3, (r_color, g_color, b_color) in circles:
         cv2.circle(overlay, (x, y), rad3, (r_color, g_color, b_color), -1)
 
         cv2.addWeighted(overlay, alpha, output, 1 - alpha, 0, output)
@@ -746,7 +771,11 @@ def add_sun_flare(img, flare_center_x, flare_center_y, src_radius, src_color, ci
     rad = np.linspace(1, src_radius, num=num_times)
     for i in range(num_times):
         cv2.circle(overlay, point, int(rad[i]), src_color, -1)
-        alp = alpha[num_times - i - 1] * alpha[num_times - i - 1] * alpha[num_times - i - 1]
+        alp = (
+            alpha[num_times - i - 1]
+            * alpha[num_times - i - 1]
+            * alpha[num_times - i - 1]
+        )
         cv2.addWeighted(overlay, alp, output, 1 - alp, 0, output)
 
     image_rgb = output
@@ -780,7 +809,9 @@ def add_shadow(img, vertices_list):
         img = from_float(img, dtype=np.dtype("uint8"))
         needs_float = True
     elif input_dtype not in (np.uint8, np.float32):
-        raise ValueError("Unexpected dtype {} for RandomShadow augmentation".format(input_dtype))
+        raise ValueError(
+            "Unexpected dtype {} for RandomShadow augmentation".format(input_dtype)
+        )
 
     image_hls = cv2.cvtColor(img, cv2.COLOR_RGB2HLS)
     mask = np.zeros_like(img)
@@ -824,7 +855,9 @@ def add_gravel(img: np.ndarray, gravels: list):
         img = from_float(img, dtype=np.dtype("uint8"))
         needs_float = True
     elif input_dtype not in (np.uint8, np.float32):
-        raise ValueError("Unexpected dtype {} for AddGravel augmentation".format(input_dtype))
+        raise ValueError(
+            "Unexpected dtype {} for AddGravel augmentation".format(input_dtype)
+        )
 
     image_hls = cv2.cvtColor(img, cv2.COLOR_RGB2HLS)
 
@@ -843,13 +876,13 @@ def add_gravel(img: np.ndarray, gravels: list):
 def invert(img: np.ndarray) -> np.ndarray:
     # Supports all the valid dtypes
     # clips the img to avoid unexpected behaviour.
-    if img.dtype == np.float32  and np.max(img) > 1.0:
+    if img.dtype == np.float32 and np.max(img) > 1.0:
         warn(
             "Images with dtype float32 are expected to remain in the range of [0,1]. Returned image will contain negative values",
-            UserWarning
+            UserWarning,
         )
 
-    return MAX_VALUES_BY_DTYPE[img.dtype] - (img + MIN_VALUES_BY_DTYPE[img.dtype]) 
+    return MAX_VALUES_BY_DTYPE[img.dtype] - (img + MIN_VALUES_BY_DTYPE[img.dtype])
 
 
 def channel_shuffle(img, channels_shuffled):
@@ -870,21 +903,21 @@ def gauss_noise(image, gauss):
 
 
 @clipped
-def _brightness_contrast_adjust(img, alpha=1, beta=0, max_brightness = None):
+def _brightness_contrast_adjust(img, alpha=1, beta=0, max_brightness=None):
     dtype = img.dtype
     img = img.astype("float32")
 
     if alpha != 1:
         img *= alpha
     if beta != 0:
-        if max_brightness != None:
+        if max_brightness is not None:
             img += beta * max_brightness
         else:
             img += beta * np.mean(img)
-    
-    if max_brightness != None:
+
+    if max_brightness is not None:
         img = np.clip(img, MIN_VALUES_BY_DTYPE[dtype], max_brightness)
-    
+
     return img
 
 
@@ -909,8 +942,8 @@ def _brightness_contrast_adjust(img, alpha=1, beta=0, max_brightness = None):
 #     return img
 
 
-def brightness_contrast_adjust(img, alpha=1, beta=0, max_brightness = None):
-        return _brightness_contrast_adjust(img, alpha, beta, max_brightness)
+def brightness_contrast_adjust(img, alpha=1, beta=0, max_brightness=None):
+    return _brightness_contrast_adjust(img, alpha, beta, max_brightness)
 
 
 @clipped
@@ -940,8 +973,12 @@ def iso_noise(image, color_shift=0.05, intensity=0.5, random_state=None, **kwarg
     hls = cv2.cvtColor(image, cv2.COLOR_RGB2HLS)
     _, stddev = cv2.meanStdDev(hls)
 
-    luminance_noise = random_utils.poisson(stddev[1] * intensity * 255, size=hls.shape[:2], random_state=random_state)
-    color_noise = random_utils.normal(0, color_shift * 360 * intensity, size=hls.shape[:2], random_state=random_state)
+    luminance_noise = random_utils.poisson(
+        stddev[1] * intensity * 255, size=hls.shape[:2], random_state=random_state
+    )
+    color_noise = random_utils.normal(
+        0, color_shift * 360 * intensity, size=hls.shape[:2], random_state=random_state
+    )
 
     hue = hls[..., 0]
     hue += color_noise
@@ -965,33 +1002,35 @@ def gray_to_rgb(img):
 
 
 @preserve_shape
-def downscale(img, scale, down_interpolation= INTER_LINEAR, up_interpolation=INTER_LINEAR):
-
-    h,w,d = img.shape[:3]
+def downscale(
+    img, scale, down_interpolation=INTER_LINEAR, up_interpolation=INTER_LINEAR
+):
+    h, w, d = img.shape[:3]
 
     if img.ndim == 4:
         upscaled = np.zeros_like(img)
         for i in range(img.shape[-1]):
-
-            downscaled = ndimage.zoom(img[...,i], scale, order = down_interpolation)
+            downscaled = ndimage.zoom(img[..., i], scale, order=down_interpolation)
             inv_scale_h = h / downscaled.shape[0]
-            inv_scale_w = w / downscaled.shape[1] 
+            inv_scale_w = w / downscaled.shape[1]
             inv_scale_d = d / downscaled.shape[2]
-            inv_scale = (inv_scale_h,inv_scale_w,inv_scale_d)
-            upscaled[...,i] = ndimage.zoom(downscaled, inv_scale, order = up_interpolation)
-    
+            inv_scale = (inv_scale_h, inv_scale_w, inv_scale_d)
+            upscaled[..., i] = ndimage.zoom(
+                downscaled, inv_scale, order=up_interpolation
+            )
+
     else:
-        downscaled = ndimage.zoom(img, scale, order = down_interpolation)
+        downscaled = ndimage.zoom(img, scale, order=down_interpolation)
         inv_scale_h = h / downscaled.shape[0]
-        inv_scale_w = w / downscaled.shape[1] 
+        inv_scale_w = w / downscaled.shape[1]
         inv_scale_d = d / downscaled.shape[2]
-        inv_scale = (inv_scale_h,inv_scale_w,inv_scale_d)
-        upscaled = ndimage.zoom(downscaled, inv_scale, order = up_interpolation)
+        inv_scale = (inv_scale_h, inv_scale_w, inv_scale_d)
+        upscaled = ndimage.zoom(downscaled, inv_scale, order=up_interpolation)
 
     return upscaled
 
 
-def to_float(img, min_value = None, max_value=None):
+def to_float(img, min_value=None, max_value=None):
     if max_value is None or min_value is None:
         try:
             max_value = MAX_VALUES_BY_DTYPE[img.dtype]
@@ -1004,7 +1043,7 @@ def to_float(img, min_value = None, max_value=None):
     return (img.astype("float32") - min_value) / (max_value - min_value)
 
 
-def from_float(img, dtype, min_value = None, max_value=None):
+def from_float(img, dtype, min_value=None, max_value=None):
     if max_value is None or min_value is None:
         try:
             max_value = MAX_VALUES_BY_DTYPE[np.dtype(dtype)]
@@ -1072,7 +1111,7 @@ def _multiply_uint8_optimized(img, multiplier):
     images = []
     for i in range(channels):
         func = _maybe_process_in_chunks(cv2.LUT, lut=lut[:, i])
-        images.append(func(img[...,i]))
+        images.append(func(img[..., i]))
     return np.stack(images, axis=-1)
 
 
@@ -1371,21 +1410,41 @@ def add_weighted(img1, alpha, img2, beta):
 
 @clipped
 @preserve_shape
-def unsharp_mask(image: np.ndarray, ksize: int, sigma: float = 0.0, alpha: float = 0.2, threshold: float = 0.05, mode: str = 'constant', cval: Union[float,int] = 0):
-
+def unsharp_mask(
+    image: np.ndarray,
+    ksize: int,
+    sigma: float = 0.0,
+    alpha: float = 0.2,
+    threshold: float = 0.05,
+    mode: str = "constant",
+    cval: Union[float, int] = 0,
+):
     input_dtype = image.dtype
-    if input_dtype in {np.dtype("uint8"), np.dtype("uint16"),np.dtype("int16"), np.dtype("int32")}:
+    if input_dtype in {
+        np.dtype("uint8"),
+        np.dtype("uint16"),
+        np.dtype("int16"),
+        np.dtype("int32"),
+    }:
         image = to_float(image)
     elif input_dtype not in MAX_VALUES_BY_DTYPE.keys():
-        raise ValueError("Unexpected dtype {} for UnsharpMask augmentation".format(input_dtype))
-    
+        raise ValueError(
+            "Unexpected dtype {} for UnsharpMask augmentation".format(input_dtype)
+        )
+
     if ksize == 0:
         ksize = round(sigma * 8) + 1
-    
+
     if sigma == 0:
-        sigma = 0.3*((ksize-1)*0.5 - 1) + 0.8
-    
-    blur_fn = _maybe_process_by_channel(ndimage.gaussian_filter, sigma= sigma, radius= ((ksize - 1)//2,)*3, mode = mode, cval = cval)
+        sigma = 0.3 * ((ksize - 1) * 0.5 - 1) + 0.8
+
+    blur_fn = _maybe_process_by_channel(
+        ndimage.gaussian_filter,
+        sigma=sigma,
+        radius=((ksize - 1) // 2,) * 3,
+        mode=mode,
+        cval=cval,
+    )
     blur = blur_fn(image)
 
     residual = image - blur
@@ -1397,7 +1456,7 @@ def unsharp_mask(image: np.ndarray, ksize: int, sigma: float = 0.0, alpha: float
     sharp = image + alpha * residual
     # Avoid color noise artefacts.
     sharp = np.clip(sharp, 0, 1)
-    
+
     soft_mask = blur_fn(mask)
 
     output = soft_mask * sharp + (1 - soft_mask) * image
@@ -1405,7 +1464,9 @@ def unsharp_mask(image: np.ndarray, ksize: int, sigma: float = 0.0, alpha: float
 
 
 @preserve_shape
-def pixel_dropout(image: np.ndarray, drop_mask: np.ndarray, drop_value: Union[float, Sequence[float]]) -> np.ndarray:
+def pixel_dropout(
+    image: np.ndarray, drop_mask: np.ndarray, drop_value: Union[float, Sequence[float]]
+) -> np.ndarray:
     if isinstance(drop_value, (int, float)) and drop_value == 0:
         drop_values = np.zeros_like(image)
     else:

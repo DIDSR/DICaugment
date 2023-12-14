@@ -12,7 +12,7 @@ __all__ = [
     "denormalize_bbox",
     "normalize_bboxes",
     "denormalize_bboxes",
-    "calculate_bbox_area",
+    "calculate_bbox_area_volume",
     "filter_bboxes_by_visibility",
     "convert_bbox_to_dicaugment",
     "convert_bbox_from_dicaugment",
@@ -37,6 +37,7 @@ BB_PASCAL_VOC_3D = "pascal_voc_3d"
 BB_dicaugment_3D = "dicaugment_3d"
 BB_YOLO_3D = "yolo_3d"
 
+
 class BboxParams(Params):
     """
     Parameters of bounding boxes
@@ -55,7 +56,7 @@ class BboxParams(Params):
                 `[x, y, z, width, height, depth]`, e.g. [0.3, 0.4, 0.5, 0.1, 0.2, 0.3];
                 `x`, `y`, `z` - normalized bbox center; `width`, `height`, `depth` - normalized bbox width, height, and depth
 
-            You may also pass a predefined string such as albumentation3D.BB_COCO_3D or 
+            You may also pass a predefined string such as albumentation3D.BB_COCO_3D or
         label_fields (list): list of fields that are joined with boxes, e.g labels.
             Should be same type as boxes.
         min_planar_area (float): minimum area of a bounding box for a single slice. All bounding boxes whose
@@ -126,7 +127,9 @@ class BboxParams(Params):
 
 
 class BboxProcessor(DataProcessor):
-    def __init__(self, params: BboxParams, additional_targets: Optional[Dict[str, str]] = None):
+    def __init__(
+        self, params: BboxParams, additional_targets: Optional[Dict[str, str]] = None
+    ):
         super().__init__(params, additional_targets)
 
     @property
@@ -144,7 +147,9 @@ class BboxProcessor(DataProcessor):
                     )
         if self.params.label_fields:
             if not all(i in data.keys() for i in self.params.label_fields):
-                raise ValueError("Your 'label_fields' are not valid - them must have same names as params in dict")
+                raise ValueError(
+                    "Your 'label_fields' are not valid - them must have same names as params in dict"
+                )
 
     def filter(self, data: Sequence, rows: int, cols: int, slices: int) -> List:
         self.params: BboxParams
@@ -165,14 +170,22 @@ class BboxProcessor(DataProcessor):
     def check(self, data: Sequence, rows: int, cols: int, slices: int) -> None:
         check_bboxes(data)
 
-    def convert_from_dicaugment(self, data: Sequence, rows: int, cols: int, slices: int) -> List[BoxType]:
-        return convert_bboxes_from_dicaugment(data, self.params.format, rows, cols, slices, check_validity=True)
+    def convert_from_dicaugment(
+        self, data: Sequence, rows: int, cols: int, slices: int
+    ) -> List[BoxType]:
+        return convert_bboxes_from_dicaugment(
+            data, self.params.format, rows, cols, slices, check_validity=True
+        )
 
-    def convert_to_dicaugment(self, data: Sequence[BoxType], rows: int, cols: int, slices: int) -> List[BoxType]:
-        return convert_bboxes_to_dicaugment(data, self.params.format, rows, cols, slices, check_validity=True)
+    def convert_to_dicaugment(
+        self, data: Sequence[BoxType], rows: int, cols: int, slices: int
+    ) -> List[BoxType]:
+        return convert_bboxes_to_dicaugment(
+            data, self.params.format, rows, cols, slices, check_validity=True
+        )
 
 
-def normalize_bbox(bbox: TBox, rows: int, cols: int, slices:int) -> TBox:
+def normalize_bbox(bbox: TBox, rows: int, cols: int, slices: int) -> TBox:
     """Normalize coordinates of a bounding box. Divide x-coordinates by image width, y-coordinates
     by image height, and z-coordinates by image depth
 
@@ -242,7 +255,9 @@ def denormalize_bbox(bbox: TBox, rows: int, cols: int, slices: int) -> TBox:
     return cast(BoxType, (x_min, y_min, z_min, x_max, y_max, z_max) + tail)  # type: ignore
 
 
-def normalize_bboxes(bboxes: Sequence[BoxType], rows: int, cols: int, slices: int) -> List[BoxType]:
+def normalize_bboxes(
+    bboxes: Sequence[BoxType], rows: int, cols: int, slices: int
+) -> List[BoxType]:
     """Normalize a list of bounding boxes.
 
     Args:
@@ -258,7 +273,9 @@ def normalize_bboxes(bboxes: Sequence[BoxType], rows: int, cols: int, slices: in
     return [normalize_bbox(bbox, rows, cols, slices) for bbox in bboxes]
 
 
-def denormalize_bboxes(bboxes: Sequence[BoxType], rows: int, cols: int, slices: int) -> List[BoxType]:
+def denormalize_bboxes(
+    bboxes: Sequence[BoxType], rows: int, cols: int, slices: int
+) -> List[BoxType]:
     """Denormalize a list of bounding boxes.
 
     Args:
@@ -274,7 +291,9 @@ def denormalize_bboxes(bboxes: Sequence[BoxType], rows: int, cols: int, slices: 
     return [denormalize_bbox(bbox, rows, cols, slices) for bbox in bboxes]
 
 
-def calculate_bbox_area_volume(bbox: BoxType, rows: int, cols: int, slices: int) -> Tuple[float,float]:
+def calculate_bbox_area_volume(
+    bbox: BoxType, rows: int, cols: int, slices: int
+) -> Tuple[float, float]:
     """Calculate the planar area and volume of a bounding box in (fractional) pixels for a slice.
 
     Args:
@@ -291,8 +310,7 @@ def calculate_bbox_area_volume(bbox: BoxType, rows: int, cols: int, slices: int)
     (x_min, y_min, z_min, x_max, y_max, z_max) = bbox[:6]
     area = (x_max - x_min) * (y_max - y_min)
     volume = area * (z_max - z_min)
-    return area,volume
-
+    return area, volume
 
 
 def filter_bboxes_by_visibility(
@@ -323,15 +341,26 @@ def filter_bboxes_by_visibility(
 
     """
     img_height, img_width, img_depth = original_shape[:3]
-    transformed_img_height, transformed_img_width, transformed_img_depth = transformed_shape[:3]
+    (
+        transformed_img_height,
+        transformed_img_width,
+        transformed_img_depth,
+    ) = transformed_shape[:3]
 
     visible_bboxes = []
     for bbox, transformed_bbox in zip(bboxes, transformed_bboxes):
         if not all(0.0 <= value <= 1.0 for value in transformed_bbox[:6]):
             continue
-        bbox_area, bbox_volume = calculate_bbox_area_volume(bbox, img_height, img_width, img_depth)
-        transformed_bbox_area, transformed_bbox_volume = calculate_bbox_area_volume(transformed_bbox, transformed_img_height, transformed_img_width, transformed_img_depth)
-        
+        bbox_area, bbox_volume = calculate_bbox_area_volume(
+            bbox, img_height, img_width, img_depth
+        )
+        transformed_bbox_area, transformed_bbox_volume = calculate_bbox_area_volume(
+            transformed_bbox,
+            transformed_img_height,
+            transformed_img_width,
+            transformed_img_depth,
+        )
+
         if transformed_bbox_area < min_area:
             continue
         if transformed_bbox_volume < min_volume:
@@ -345,7 +374,12 @@ def filter_bboxes_by_visibility(
 
 
 def convert_bbox_to_dicaugment(
-    bbox: BoxType, source_format: str, rows: int, cols: int, slices: int, check_validity: bool = False
+    bbox: BoxType,
+    source_format: str,
+    rows: int,
+    cols: int,
+    slices: int,
+    check_validity: bool = False,
 ) -> BoxType:
     """Convert a bounding box from a format specified in `source_format` to the format used by dicaugment:
     normalized coordinates of closest top-left and furthest bottom-right corners of the bounding box in a form of
@@ -384,7 +418,9 @@ def convert_bbox_to_dicaugment(
         # https://github.com/pjreddie/darknet/blob/f6d861736038da22c9eb0739dca84003c5a5e275/scripts/voc_label.py#L12
         _bbox = np.array(bbox[:6])
         if check_validity and np.any((_bbox <= 0) | (_bbox > 1)):
-            raise ValueError("In YOLO format all coordinates must be float and in range (0, 1]")
+            raise ValueError(
+                "In YOLO format all coordinates must be float and in range (0, 1]"
+            )
 
         (x, y, z, w, h, d), tail = bbox[:6], bbox[6:]
 
@@ -408,7 +444,12 @@ def convert_bbox_to_dicaugment(
 
 
 def convert_bbox_from_dicaugment(
-    bbox: BoxType, target_format: str, rows: int, cols: int, slices: int, check_validity: bool = False
+    bbox: BoxType,
+    target_format: str,
+    rows: int,
+    cols: int,
+    slices: int,
+    check_validity: bool = False,
 ) -> BoxType:
     """Convert a bounding box from the format used by dicaugment to a format, specified in `target_format`.
 
@@ -457,14 +498,29 @@ def convert_bbox_from_dicaugment(
 
 
 def convert_bboxes_to_dicaugment(
-    bboxes: Sequence[BoxType], source_format: str , rows: int, cols: int, slices: int, check_validity=False
+    bboxes: Sequence[BoxType],
+    source_format: str,
+    rows: int,
+    cols: int,
+    slices: int,
+    check_validity=False,
 ) -> List[BoxType]:
     """Convert a list bounding boxes from a format specified in `source_format` to the format used by dicaugment"""
-    return [convert_bbox_to_dicaugment(bbox, source_format, rows, cols, slices, check_validity) for bbox in bboxes]
+    return [
+        convert_bbox_to_dicaugment(
+            bbox, source_format, rows, cols, slices, check_validity
+        )
+        for bbox in bboxes
+    ]
 
 
 def convert_bboxes_from_dicaugment(
-    bboxes: Sequence[BoxType], target_format: str, rows: int, cols: int, slices: int, check_validity: bool = False
+    bboxes: Sequence[BoxType],
+    target_format: str,
+    rows: int,
+    cols: int,
+    slices: int,
+    check_validity: bool = False,
 ) -> List[BoxType]:
     """Convert a list of bounding boxes from the format used by dicaugment to a format, specified
     in `target_format`.
@@ -481,14 +537,27 @@ def convert_bboxes_from_dicaugment(
         List of bounding boxes.
 
     """
-    return [convert_bbox_from_dicaugment(bbox, target_format, rows, cols, slices, check_validity) for bbox in bboxes]
+    return [
+        convert_bbox_from_dicaugment(
+            bbox, target_format, rows, cols, slices, check_validity
+        )
+        for bbox in bboxes
+    ]
 
 
 def check_bbox(bbox: BoxType) -> None:
     """Check if bbox boundaries are in range 0, 1 and minimums are lesser then maximums"""
-    for name, value in zip(["x_min", "y_min", "z_min", "x_max", "y_max", "z_max"], bbox[:6]):
-        if not 0 <= value <= 1 and not np.isclose(value, 0) and not np.isclose(value, 1):
-            raise ValueError(f"Expected {name} for bbox {bbox} to be in the range [0.0, 1.0], got {value}.")
+    for name, value in zip(
+        ["x_min", "y_min", "z_min", "x_max", "y_max", "z_max"], bbox[:6]
+    ):
+        if (
+            not 0 <= value <= 1
+            and not np.isclose(value, 0)
+            and not np.isclose(value, 1)
+        ):
+            raise ValueError(
+                f"Expected {name} for bbox {bbox} to be in the range [0.0, 1.0], got {value}."
+            )
     x_min, y_min, z_min, x_max, y_max, z_max = bbox[:6]
     if x_max <= x_min:
         raise ValueError(f"x_max is less than or equal to x_min for bbox {bbox}.")
@@ -515,10 +584,10 @@ def filter_bboxes(
     min_volume: float = 0.0,
     min_width: float = 0.0,
     min_height: float = 0.0,
-    min_depth: float = 0.0
+    min_depth: float = 0.0,
 ) -> List[BoxType]:
     """Remove bounding boxes that either lie outside of the visible planar area or volume by more then min_area_visibility
-    or min_volume_visibility, respectively, as well as any bounding boxes or whose planar area/volumne in pixels is under 
+    or min_volume_visibility, respectively, as well as any bounding boxes or whose planar area/volumne in pixels is under
     the threshold set by `min_area` and `min_volume`. Also it crops boxes to final image size.
 
     Args:
@@ -546,16 +615,27 @@ def filter_bboxes(
     resulting_boxes: List[BoxType] = []
     for bbox in bboxes:
         # Calculate areas of bounding box before and after clipping.
-        transformed_box_area, transformed_box_volume = calculate_bbox_area_volume(bbox, rows, cols, slices)
+        transformed_box_area, transformed_box_volume = calculate_bbox_area_volume(
+            bbox, rows, cols, slices
+        )
         bbox, tail = cast(BoxType, tuple(np.clip(bbox[:6], 0, 1.0))), tuple(bbox[6:])
-        clipped_box_area, clipped_box_volume = calculate_bbox_area_volume(bbox, rows, cols, slices)
+        clipped_box_area, clipped_box_volume = calculate_bbox_area_volume(
+            bbox, rows, cols, slices
+        )
 
         # Calculate width and height of the clipped bounding box.
-        x_min, y_min, z_min, x_max, y_max, z_max = denormalize_bbox(bbox, rows, cols, slices)[:6]
-        clipped_width, clipped_height, clipped_depth = x_max - x_min, y_max - y_min, z_max - z_min
+        x_min, y_min, z_min, x_max, y_max, z_max = denormalize_bbox(
+            bbox, rows, cols, slices
+        )[:6]
+        clipped_width, clipped_height, clipped_depth = (
+            x_max - x_min,
+            y_max - y_min,
+            z_max - z_min,
+        )
 
         if (
-            clipped_box_area != 0  # to ensure transformed_box_area!=0 and to handle min_area=0 or min_visibility=0
+            clipped_box_area
+            != 0  # to ensure transformed_box_area!=0 and to handle min_area=0 or min_visibility=0
             and clipped_box_area >= min_planar_area
             and clipped_box_volume >= min_volume
             and clipped_box_area / transformed_box_area >= min_area_visibility
@@ -568,11 +648,17 @@ def filter_bboxes(
     return resulting_boxes
 
 
-def union_of_bboxes(height: int, width: int, depth: int, bboxes: Sequence[BoxType], erosion_rate: float = 0.0) -> BoxType:
+def union_of_bboxes(
+    height: int,
+    width: int,
+    depth: int,
+    bboxes: Sequence[BoxType],
+    erosion_rate: float = 0.0,
+) -> BoxType:
     """Calculate union of bounding boxes.
 
     Args:
-    
+
         height: Height of image or space.
         width: Width of image or space.
         depth: Depth of image or space.
@@ -589,8 +675,16 @@ def union_of_bboxes(height: int, width: int, depth: int, bboxes: Sequence[BoxTyp
     for bbox in bboxes:
         (x_min, y_min, z_min, x_max, y_max, z_max) = bbox[:6]
         w, h, d = x_max - x_min, y_max - y_min, z_max - z_min
-        lim_x1, lim_y1, lim_z1 = x_min + erosion_rate * w, y_min + erosion_rate * h, z_min + erosion_rate * d
-        lim_x2, lim_y2, lim_z2 = x_max - erosion_rate * w, y_max - erosion_rate * h, z_max - erosion_rate * d
+        lim_x1, lim_y1, lim_z1 = (
+            x_min + erosion_rate * w,
+            y_min + erosion_rate * h,
+            z_min + erosion_rate * d,
+        )
+        lim_x2, lim_y2, lim_z2 = (
+            x_max - erosion_rate * w,
+            y_max - erosion_rate * h,
+            z_max - erosion_rate * d,
+        )
         x1, y1, z1 = np.min([x1, lim_x1]), np.min([y1, lim_y1]), np.min([z1, lim_z1])
         x2, y2, z2 = np.max([x2, lim_x2]), np.max([y2, lim_y2]), np.max([z2, lim_z2])
     return x1, y1, z1, x2, y2, z2

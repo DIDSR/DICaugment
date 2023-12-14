@@ -29,7 +29,11 @@ def test_convert_keypoint_to_dicaugment(kp, source_format, expected):
     image = np.ones((100, 100, 100))
 
     converted_keypoint = convert_keypoint_to_dicaugment(
-        kp, rows=image.shape[0], cols=image.shape[1], slices=image.shape[2], source_format=source_format
+        kp,
+        rows=image.shape[0],
+        cols=image.shape[1],
+        slices=image.shape[2],
+        source_format=source_format,
     )
     assert converted_keypoint == expected
 
@@ -47,7 +51,11 @@ def test_convert_keypoint_to_dicaugment(kp, source_format, expected):
 def test_convert_keypoint_from_dicaugment(kp, target_format, expected):
     image = np.ones((100, 100, 100))
     converted_keypoint = convert_keypoint_from_dicaugment(
-        kp, rows=image.shape[0], cols=image.shape[1], slices=image.shape[2], target_format=target_format
+        kp,
+        rows=image.shape[0],
+        cols=image.shape[1],
+        slices=image.shape[2],
+        target_format=target_format,
     )
     assert converted_keypoint == expected
 
@@ -64,10 +72,18 @@ def test_convert_keypoint_from_dicaugment(kp, target_format, expected):
 def test_convert_keypoint_to_dicaugment_and_back(kp, keypoint_format):
     image = np.ones((100, 100, 100))
     converted_kp = convert_keypoint_to_dicaugment(
-        kp, rows=image.shape[0], cols=image.shape[1], slices=image.shape[2], source_format=keypoint_format
+        kp,
+        rows=image.shape[0],
+        cols=image.shape[1],
+        slices=image.shape[2],
+        source_format=keypoint_format,
     )
     converted_back_kp = convert_keypoint_from_dicaugment(
-        converted_kp, rows=image.shape[0], cols=image.shape[1], slices=image.shape[2], target_format=keypoint_format
+        converted_kp,
+        rows=image.shape[0],
+        cols=image.shape[1],
+        slices=image.shape[2],
+        target_format=keypoint_format,
     )
     assert converted_back_kp == kp
 
@@ -76,13 +92,25 @@ def test_convert_keypoints_to_dicaugment():
     keypoints = [(20, 30, 40, 50, 60), (30, 40, 50, 60, 70, 99)]
     image = np.ones((100, 100, 100))
     converted_keypoints = convert_keypoints_to_dicaugment(
-        keypoints, rows=image.shape[0], cols=image.shape[1], slices=image.shape[2], source_format="xyzas"
+        keypoints,
+        rows=image.shape[0],
+        cols=image.shape[1],
+        slices=image.shape[2],
+        source_format="xyzas",
     )
     converted_keypoint_1 = convert_keypoint_to_dicaugment(
-        keypoints[0], rows=image.shape[0], cols=image.shape[1], slices=image.shape[2], source_format="xyzas"
+        keypoints[0],
+        rows=image.shape[0],
+        cols=image.shape[1],
+        slices=image.shape[2],
+        source_format="xyzas",
     )
     converted_keypoint_2 = convert_keypoint_to_dicaugment(
-        keypoints[1], rows=image.shape[0], cols=image.shape[1], slices=image.shape[2], source_format="xyzas"
+        keypoints[1],
+        rows=image.shape[0],
+        cols=image.shape[1],
+        slices=image.shape[2],
+        source_format="xyzas",
     )
     assert converted_keypoints == [converted_keypoint_1, converted_keypoint_2]
 
@@ -91,13 +119,25 @@ def test_convert_keypoints_from_dicaugment():
     keypoints = [(0.2, 0.3, 0.6, 0.8, 0.85), (0.3, 0.4, 0.7, 0.9, 0.2, 99)]
     image = np.ones((100, 100, 100))
     converted_keypointes = convert_keypoints_from_dicaugment(
-        keypoints, rows=image.shape[0], cols=image.shape[1], slices=image.shape[2], target_format="xyzas"
+        keypoints,
+        rows=image.shape[0],
+        cols=image.shape[1],
+        slices=image.shape[2],
+        target_format="xyzas",
     )
     converted_keypoint_1 = convert_keypoint_from_dicaugment(
-        keypoints[0], rows=image.shape[0], cols=image.shape[1], slices=image.shape[2], target_format="xyzas"
+        keypoints[0],
+        rows=image.shape[0],
+        cols=image.shape[1],
+        slices=image.shape[2],
+        target_format="xyzas",
     )
     converted_keypoint_2 = convert_keypoint_from_dicaugment(
-        keypoints[1], rows=image.shape[0], cols=image.shape[1], slices=image.shape[2], target_format="xyzas"
+        keypoints[1],
+        rows=image.shape[0],
+        cols=image.shape[1],
+        slices=image.shape[2],
+        target_format="xyzas",
     )
     assert converted_keypointes == [converted_keypoint_1, converted_keypoint_2]
 
@@ -114,7 +154,10 @@ def test_convert_keypoints_from_dicaugment():
 def test_compose_with_keypoint_noop(keypoints, keypoint_format, labels):
     image = np.ones((100, 100, 100))
     if labels is not None:
-        aug = A.Compose([A.NoOp(p=1.0)], keypoint_params={"format": keypoint_format, "label_fields": ["labels"]})
+        aug = A.Compose(
+            [A.NoOp(p=1.0)],
+            keypoint_params={"format": keypoint_format, "label_fields": ["labels"]},
+        )
         transformed = aug(image=image, keypoints=keypoints, labels=labels)
     else:
         aug = A.Compose([A.NoOp(p=1.0)], keypoint_params={"format": keypoint_format})
@@ -123,10 +166,15 @@ def test_compose_with_keypoint_noop(keypoints, keypoint_format, labels):
     assert transformed["keypoints"] == keypoints
 
 
-@pytest.mark.parametrize(["keypoints", "keypoint_format"], [[[[20, 30, 40, 50, 60]], "xyzas"]])
+@pytest.mark.parametrize(
+    ["keypoints", "keypoint_format"], [[[[20, 30, 40, 50, 60]], "xyzas"]]
+)
 def test_compose_with_keypoint_noop_error_label_fields(keypoints, keypoint_format):
     image = np.ones((100, 100, 100))
-    aug = A.Compose([A.NoOp(p=1.0)], keypoint_params={"format": keypoint_format, "label_fields": "class_id"})
+    aug = A.Compose(
+        [A.NoOp(p=1.0)],
+        keypoint_params={"format": keypoint_format, "label_fields": "class_id"},
+    )
     with pytest.raises(Exception):
         aug(image=image, keypoints=keypoints, cls_id=[0])
 
@@ -143,7 +191,13 @@ def test_compose_with_keypoint_noop_error_label_fields(keypoints, keypoint_forma
 )
 def test_compose_with_keypoint_noop_label_outside(keypoints, keypoint_format, labels):
     image = np.ones((100, 100, 100))
-    aug = A.Compose([A.NoOp(p=1.0)], keypoint_params={"format": keypoint_format, "label_fields": list(labels.keys())})
+    aug = A.Compose(
+        [A.NoOp(p=1.0)],
+        keypoint_params={
+            "format": keypoint_format,
+            "label_fields": list(labels.keys()),
+        },
+    )
     transformed = aug(image=image, keypoints=keypoints, **labels)
     assert np.array_equal(transformed["image"], image)
     assert transformed["keypoints"] == keypoints
@@ -154,7 +208,9 @@ def test_compose_with_keypoint_noop_label_outside(keypoints, keypoint_format, la
 def test_random_sized_crop_size():
     image = np.ones((100, 100, 100))
     keypoints = [(0.2, 0.3, 0.6, 45, 0), (0.3, 0.4, 0.7, 45, 0, 99)]
-    aug = A.RandomSizedCrop(min_max_height=(70, 90), height=50, width=50, depth=50, p=1.0)
+    aug = A.RandomSizedCrop(
+        min_max_height=(70, 90), height=50, width=50, depth=50, p=1.0
+    )
     transformed = aug(image=image, keypoints=keypoints)
     assert transformed["image"].shape == (50, 50, 50)
     assert len(keypoints) == len(transformed["keypoints"])
@@ -196,7 +252,9 @@ def test_keypoint_flips_transform_3x3(aug, keypoints, expected):
     transform = A.Compose([aug(p=1)], keypoint_params={"format": "xyz"})
 
     image = np.ones((3, 3, 3))
-    transformed = transform(image=image, keypoints=keypoints, labels=np.ones(len(keypoints)))
+    transformed = transform(
+        image=image, keypoints=keypoints, labels=np.ones(len(keypoints))
+    )
     assert np.allclose(expected, transformed["keypoints"])
 
 
@@ -218,11 +276,18 @@ def test_keypoint_flips_transform_3x3(aug, keypoints, expected):
 )
 def test_keypoint_transform_format_xyas(aug, keypoints, expected):
     transform = A.Compose(
-        [aug(p=1)], keypoint_params={"format": "xyzas", "angle_in_degrees": True, "label_fields": ["labels"]}
+        [aug(p=1)],
+        keypoint_params={
+            "format": "xyzas",
+            "angle_in_degrees": True,
+            "label_fields": ["labels"],
+        },
     )
 
     image = np.ones((100, 100, 100))
-    transformed = transform(image=image, keypoints=keypoints, labels=np.ones(len(keypoints)))
+    transformed = transform(
+        image=image, keypoints=keypoints, labels=np.ones(len(keypoints))
+    )
     assert np.allclose(expected, transformed["keypoints"])
 
 
@@ -236,11 +301,12 @@ def test_keypoint_transform_format_xyas(aug, keypoints, expected):
         #
         ((20, 30, 40, math.pi / 2, 0), (59, 30, 20, math.pi / 2, 0), 1, "xz"),
         ((20, 30, 40, math.pi / 2, 0), (79, 30, 59, math.pi / 2, 0), 2, "xz"),
-        
     ],
 )
 def test_keypoint_rotate90(keypoint, expected, factor, axes):
-    actual = FGeometric.keypoint_rot90(keypoint, factor, axes=axes, rows=100, cols=100, slices=100)
+    actual = FGeometric.keypoint_rot90(
+        keypoint, factor, axes=axes, rows=100, cols=100, slices=100
+    )
     assert actual == expected
 
 
@@ -254,7 +320,6 @@ def test_keypoint_rotate90(keypoint, expected, factor, axes):
         #
         ((20, 30, 40, math.pi / 2, 0), (40, 30, 79, math.pi / 2, 0), 90, "yz"),
         ((20, 30, 40, math.pi / 2, 0), (79, 30, 59, math.pi / 2, 0), 180, "yz"),
-
         # [[20, 30, math.pi / 2, 0], [20, 30, math.pi / 2, 0], 0],
         # [[20, 30, math.pi / 2, 0], [30, 79, math.pi, 0], 90],
         # [[20, 30, math.pi / 2, 0], [79, 69, 3 * math.pi / 2, 0], 180],
@@ -264,7 +329,9 @@ def test_keypoint_rotate90(keypoint, expected, factor, axes):
     ],
 )
 def test_keypoint_rotate(keypoint, expected, angle, axes):
-    actual = FGeometric.keypoint_rotate(keypoint, angle, axes, rows=100, cols=100, slices=100, crop_to_border=False)
+    actual = FGeometric.keypoint_rotate(
+        keypoint, angle, axes, rows=100, cols=100, slices=100, crop_to_border=False
+    )
     np.testing.assert_allclose(actual, expected, atol=1e-7)
 
 
@@ -286,7 +353,9 @@ def test_keypoint_scale(keypoint, expected, scale):
     [[[50, 50, 50, 0, 5], [120, 160, 50, math.pi / 2, 10], 90, 2, 0.1, 0.1]],
 )
 def test_keypoint_shift_scale_rotate(keypoint, expected, angle, scale, dx, dy):
-    actual = FGeometric.keypoint_shift_scale_rotate(keypoint, angle, scale, dx, dy, dz=0, rows=100, cols=200, slices=100)
+    actual = FGeometric.keypoint_shift_scale_rotate(
+        keypoint, angle, scale, dx, dy, dz=0, rows=100, cols=200, slices=100
+    )
     np.testing.assert_allclose(actual, expected, rtol=1e-4)
 
 
@@ -294,7 +363,11 @@ def test_compose_with_additional_targets():
     image = np.ones((100, 100, 100))
     keypoints = [(10, 10, 10), (50, 50, 50)]
     kp1 = [(15, 15, 15), (55, 55, 55)]
-    aug = A.Compose([A.CenterCrop(50, 50, 50)], keypoint_params={"format": "xyz"}, additional_targets={"kp1": "keypoints"})
+    aug = A.Compose(
+        [A.CenterCrop(50, 50, 50)],
+        keypoint_params={"format": "xyz"},
+        additional_targets={"kp1": "keypoints"},
+    )
     transformed = aug(image=image, keypoints=keypoints, kp1=kp1)
     assert transformed["keypoints"] == [(25, 25, 25)]
     assert transformed["kp1"] == [(30, 30, 30)]
@@ -320,23 +393,73 @@ def test_angle_to_2pi_range(angle, expected):
 
 def test_coarse_dropout():
     aug = A.Compose(
-        [A.CoarseDropout(min_holes=1, max_holes=1, min_height=128, max_width=128, min_width=128, max_height=128, min_depth=128, max_depth=128, p=1)],
+        [
+            A.CoarseDropout(
+                min_holes=1,
+                max_holes=1,
+                min_height=128,
+                max_width=128,
+                min_width=128,
+                max_height=128,
+                min_depth=128,
+                max_depth=128,
+                p=1,
+            )
+        ],
         keypoint_params=A.KeypointParams(format="xyz"),
     )
 
-    result = aug(image=np.zeros((128, 128, 128)), keypoints=((10, 10, 10), (20, 30, 40)))
+    result = aug(
+        image=np.zeros((128, 128, 128)), keypoints=((10, 10, 10), (20, 30, 40))
+    )
     assert len(result["keypoints"]) == 0
 
 
 @pytest.mark.parametrize(
     ["keypoints", "expected_keypoints", "holes"],
     [
-        [[(50, 50, 50, 0, 0), (75, 75, 75, 0, 0)], [], [(40, 40, 40, 60, 60, 60), (70, 70, 70, 80, 80, 80), (10, 10, 10, 20, 20, 20)]],
-        [[(50, 50, 50, 0, 0), (75, 75, 75, 0, 0)], [], [(10, 10, 10, 20, 20, 20), (40, 40, 40, 60, 60, 60), (70, 70, 70, 80, 80, 80)]],
-        [[(50, 50, 50, 0, 0), (75, 75, 75, 0, 0)], [], [(40, 40, 40, 60, 60, 60), (10, 10, 10, 20, 20, 20), (70, 70, 70, 80, 80, 80)]],
-        [[(50, 50, 50, 0, 0), (75, 75, 75, 0, 0)], [(75, 75, 75, 0, 0)], [(40, 40, 40, 60, 60, 60), (10, 10, 10, 20, 20, 20)]],
-        [[(50, 50, 50, 0, 0), (75, 75, 75, 0, 0)], [(50, 50, 50, 0, 0)], [(70, 70, 70, 80, 80, 80), (10, 10, 10, 20, 20, 20)]],
-        [[(50, 50, 50, 0, 0), (75, 75, 75, 0, 0)], [(50, 50, 50, 0, 0), (75, 75, 75, 0, 0)], [(10, 10, 10, 20, 20, 20)]],
+        [
+            [(50, 50, 50, 0, 0), (75, 75, 75, 0, 0)],
+            [],
+            [
+                (40, 40, 40, 60, 60, 60),
+                (70, 70, 70, 80, 80, 80),
+                (10, 10, 10, 20, 20, 20),
+            ],
+        ],
+        [
+            [(50, 50, 50, 0, 0), (75, 75, 75, 0, 0)],
+            [],
+            [
+                (10, 10, 10, 20, 20, 20),
+                (40, 40, 40, 60, 60, 60),
+                (70, 70, 70, 80, 80, 80),
+            ],
+        ],
+        [
+            [(50, 50, 50, 0, 0), (75, 75, 75, 0, 0)],
+            [],
+            [
+                (40, 40, 40, 60, 60, 60),
+                (10, 10, 10, 20, 20, 20),
+                (70, 70, 70, 80, 80, 80),
+            ],
+        ],
+        [
+            [(50, 50, 50, 0, 0), (75, 75, 75, 0, 0)],
+            [(75, 75, 75, 0, 0)],
+            [(40, 40, 40, 60, 60, 60), (10, 10, 10, 20, 20, 20)],
+        ],
+        [
+            [(50, 50, 50, 0, 0), (75, 75, 75, 0, 0)],
+            [(50, 50, 50, 0, 0)],
+            [(70, 70, 70, 80, 80, 80), (10, 10, 10, 20, 20, 20)],
+        ],
+        [
+            [(50, 50, 50, 0, 0), (75, 75, 75, 0, 0)],
+            [(50, 50, 50, 0, 0), (75, 75, 75, 0, 0)],
+            [(10, 10, 10, 20, 20, 20)],
+        ],
     ],
 )
 def test_coarse_dropout_remove_keypoints(keypoints, expected_keypoints, holes):

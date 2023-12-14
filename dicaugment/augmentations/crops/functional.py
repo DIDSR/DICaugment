@@ -32,7 +32,17 @@ __all__ = [
 ]
 
 
-def get_random_crop_coords(height: int, width: int, depth: int, crop_height: int, crop_width: int, crop_depth: int, h_start: float, w_start: float, d_start: float):
+def get_random_crop_coords(
+    height: int,
+    width: int,
+    depth: int,
+    crop_height: int,
+    crop_width: int,
+    crop_depth: int,
+    h_start: float,
+    w_start: float,
+    d_start: float,
+):
     # h_start is [0, 1) and should map to [0, (height - crop_height)]  (note inclusive)
     # This is conceptually equivalent to mapping onto `range(0, (height - crop_height + 1))`
     # See: https://github.com/albumentations-team/albumentations/pull/1080
@@ -45,16 +55,39 @@ def get_random_crop_coords(height: int, width: int, depth: int, crop_height: int
     return x1, y1, z1, x2, y2, z2
 
 
-def random_crop(img: np.ndarray, crop_height: int, crop_width: int, crop_depth: int, h_start: float, w_start: float, d_start: float):
+def random_crop(
+    img: np.ndarray,
+    crop_height: int,
+    crop_width: int,
+    crop_depth: int,
+    h_start: float,
+    w_start: float,
+    d_start: float,
+):
     height, width, depth = img.shape[:3]
     if height < crop_height or width < crop_width or depth < crop_depth:
         raise ValueError(
             "Requested crop size ({crop_height}, {crop_width}, {crop_depth}) is "
             "larger than the image size ({height}, {width}, {depth})".format(
-                crop_height=crop_height, crop_width=crop_width, crop_depth=crop_depth, height=height, width=width, depth=depth
+                crop_height=crop_height,
+                crop_width=crop_width,
+                crop_depth=crop_depth,
+                height=height,
+                width=width,
+                depth=depth,
             )
         )
-    x1, y1, z1, x2, y2, z2 = get_random_crop_coords(height, width, depth, crop_height, crop_width, crop_depth, h_start, w_start, d_start)
+    x1, y1, z1, x2, y2, z2 = get_random_crop_coords(
+        height,
+        width,
+        depth,
+        crop_height,
+        crop_width,
+        crop_depth,
+        h_start,
+        w_start,
+        d_start,
+    )
     img = img[y1:y2, x1:x2, z1:z2]
     return img
 
@@ -67,7 +100,7 @@ def crop_bbox_by_coords(
     crop_depth: int,
     rows: int,
     cols: int,
-    slices: int
+    slices: int,
 ):
     """Crop a bounding box using the provided coordinates of bottom-left and top-right corners in pixels and the
     required height and width of the crop.
@@ -89,15 +122,43 @@ def crop_bbox_by_coords(
     bbox = denormalize_bbox(bbox, rows, cols, slices)
     x_min, y_min, z_min, x_max, y_max, z_max = bbox[:6]
     x1, y1, z1, x2, y2, z2 = crop_coords
-    cropped_bbox = x_min - x1, y_min - y1, z_min - z1, x_max - x1, y_max - y1, z_max - z1
+    cropped_bbox = (
+        x_min - x1,
+        y_min - y1,
+        z_min - z1,
+        x_max - x1,
+        y_max - y1,
+        z_max - z1,
+    )
     return normalize_bbox(cropped_bbox, crop_height, crop_width, crop_depth)
 
 
 def bbox_random_crop(
-    bbox: BoxInternalType, crop_height: int, crop_width: int, crop_depth: int, h_start: float, w_start: float, d_start: float, rows: int, cols: int, slices: int
+    bbox: BoxInternalType,
+    crop_height: int,
+    crop_width: int,
+    crop_depth: int,
+    h_start: float,
+    w_start: float,
+    d_start: float,
+    rows: int,
+    cols: int,
+    slices: int,
 ):
-    crop_coords = get_random_crop_coords(rows, cols, slices, crop_height, crop_width, crop_depth, h_start, w_start, d_start)
-    return crop_bbox_by_coords(bbox, crop_coords, crop_height, crop_width, crop_depth, rows, cols, slices)
+    crop_coords = get_random_crop_coords(
+        rows,
+        cols,
+        slices,
+        crop_height,
+        crop_width,
+        crop_depth,
+        h_start,
+        w_start,
+        d_start,
+    )
+    return crop_bbox_by_coords(
+        bbox, crop_coords, crop_height, crop_width, crop_depth, rows, cols, slices
+    )
 
 
 def crop_keypoint_by_coords(
@@ -115,7 +176,7 @@ def crop_keypoint_by_coords(
 
     """
     x, y, z, angle, scale = keypoint[:5]
-    x1, y1, z1, x2, y2, z2= crop_coords
+    x1, y1, z1, x2, y2, z2 = crop_coords
     return x - x1, y - y1, z - z1, angle, scale
 
 
@@ -129,7 +190,7 @@ def keypoint_random_crop(
     d_start: float,
     rows: int,
     cols: int,
-    slices: int
+    slices: int,
 ):
     """Keypoint random crop.
 
@@ -149,11 +210,28 @@ def keypoint_random_crop(
         A keypoint `(x, y, z, angle, scale)`.
 
     """
-    crop_coords = get_random_crop_coords(rows, cols, slices, crop_height, crop_width, crop_depth, h_start, w_start, d_start)
+    crop_coords = get_random_crop_coords(
+        rows,
+        cols,
+        slices,
+        crop_height,
+        crop_width,
+        crop_depth,
+        h_start,
+        w_start,
+        d_start,
+    )
     return crop_keypoint_by_coords(keypoint, crop_coords)
 
 
-def get_center_crop_coords(height: int, width: int, depth: int, crop_height: int, crop_width: int, crop_depth: int):
+def get_center_crop_coords(
+    height: int,
+    width: int,
+    depth: int,
+    crop_height: int,
+    crop_width: int,
+    crop_depth: int,
+):
     y1 = (height - crop_height) // 2
     y2 = y1 + crop_height
     x1 = (width - crop_width) // 2
@@ -169,20 +247,47 @@ def center_crop(img: np.ndarray, crop_height: int, crop_width: int, crop_depth: 
         raise ValueError(
             "Requested crop size ({crop_height}, {crop_width}, {crop_depth}) is "
             "larger than the image size ({height}, {width}, {depth})".format(
-                crop_height=crop_height, crop_width=crop_width, crop_depth=crop_depth, height=height, width=width, depth=depth
+                crop_height=crop_height,
+                crop_width=crop_width,
+                crop_depth=crop_depth,
+                height=height,
+                width=width,
+                depth=depth,
             )
         )
-    x1, y1, z1, x2, y2, z2 = get_center_crop_coords(height, width, depth, crop_height, crop_width, crop_depth)
+    x1, y1, z1, x2, y2, z2 = get_center_crop_coords(
+        height, width, depth, crop_height, crop_width, crop_depth
+    )
     img = img[y1:y2, x1:x2, z1:z2]
     return img
 
 
-def bbox_center_crop(bbox: BoxInternalType, crop_height: int, crop_width: int, crop_depth:int, rows: int, cols: int, slices: int):
-    crop_coords = get_center_crop_coords(rows, cols, slices, crop_height, crop_width, crop_depth)
-    return crop_bbox_by_coords(bbox, crop_coords, crop_height, crop_width, crop_depth, rows, cols, slices)
+def bbox_center_crop(
+    bbox: BoxInternalType,
+    crop_height: int,
+    crop_width: int,
+    crop_depth: int,
+    rows: int,
+    cols: int,
+    slices: int,
+):
+    crop_coords = get_center_crop_coords(
+        rows, cols, slices, crop_height, crop_width, crop_depth
+    )
+    return crop_bbox_by_coords(
+        bbox, crop_coords, crop_height, crop_width, crop_depth, rows, cols, slices
+    )
 
 
-def keypoint_center_crop(keypoint: KeypointInternalType, crop_height: int, crop_width: int, crop_depth:int, rows: int, cols: int, slices: int):
+def keypoint_center_crop(
+    keypoint: KeypointInternalType,
+    crop_height: int,
+    crop_width: int,
+    crop_depth: int,
+    rows: int,
+    cols: int,
+    slices: int,
+):
     """Keypoint center crop.
 
     Args:
@@ -198,38 +303,79 @@ def keypoint_center_crop(keypoint: KeypointInternalType, crop_height: int, crop_
         tuple: A keypoint `(x, y, z, angle, scale)`.
 
     """
-    crop_coords = get_center_crop_coords(rows, cols, slices, crop_height, crop_width, crop_depth)
+    crop_coords = get_center_crop_coords(
+        rows, cols, slices, crop_height, crop_width, crop_depth
+    )
     return crop_keypoint_by_coords(keypoint, crop_coords)
 
 
-def crop(img: np.ndarray, x_min: int, y_min: int, z_min: int, x_max: int, y_max: int, z_max: int):
+def crop(
+    img: np.ndarray,
+    x_min: int,
+    y_min: int,
+    z_min: int,
+    x_max: int,
+    y_max: int,
+    z_max: int,
+):
     height, width, depth = img.shape[:3]
     if x_max <= x_min or y_max <= y_min or z_max <= z_min:
         raise ValueError(
             "Expected x_min < x_max, y_min < y_max, and z_min < z_max. Got"
             " (x_min = {x_min}, y_min = {y_min}, z_min = {z_min}, x_max = {x_max}, y_max = {y_max}, z_max = {z_max})".format(
-                x_min=x_min, x_max=x_max, y_min=y_min, y_max=y_max, z_min=z_min, z_max=z_max
+                x_min=x_min,
+                x_max=x_max,
+                y_min=y_min,
+                y_max=y_max,
+                z_min=z_min,
+                z_max=z_max,
             )
         )
 
-    if x_min < 0 or x_max > width or y_min < 0 or y_max > height or z_min < 0 or z_max > depth:
+    if (
+        x_min < 0
+        or x_max > width
+        or y_min < 0
+        or y_max > height
+        or z_min < 0
+        or z_max > depth
+    ):
         raise ValueError(
             "Values for crop should be non negative and equal or smaller than image sizes. Got "
             "(x_min = {x_min}, y_min = {y_min}, z_min = {z_min}, x_max = {x_max}, y_max = {y_max}, z_max = {z_max}, "
             "height = {height}, width = {width}, depth = {depth})".format(
-                x_min=x_min, x_max=x_max, y_min=y_min, y_max=y_max, z_min=z_min, z_max=z_max, height=height, width=width, depth = depth
+                x_min=x_min,
+                x_max=x_max,
+                y_min=y_min,
+                y_max=y_max,
+                z_min=z_min,
+                z_max=z_max,
+                height=height,
+                width=width,
+                depth=depth,
             )
         )
 
     return img[y_min:y_max, x_min:x_max, z_min:z_max]
 
 
-def bbox_crop(bbox: BoxInternalType, x_min: int, y_min: int, z_min: int, x_max: int, y_max: int, z_max: int, rows: int, cols: int, slices: int):
+def bbox_crop(
+    bbox: BoxInternalType,
+    x_min: int,
+    y_min: int,
+    z_min: int,
+    x_max: int,
+    y_max: int,
+    z_max: int,
+    rows: int,
+    cols: int,
+    slices: int,
+):
     """Crop a bounding box.
 
     Args:
         bbox (tuple): A bounding box `(x_min, y_min, z_min, x_max, y_max, z_max)`.
-        x_min (int): 
+        x_min (int):
         y_min (int):
         z_min (int):
         x_max (int):
@@ -247,10 +393,20 @@ def bbox_crop(bbox: BoxInternalType, x_min: int, y_min: int, z_min: int, x_max: 
     crop_height = y_max - y_min
     crop_width = x_max - x_min
     crop_depth = z_max - z_min
-    return crop_bbox_by_coords(bbox, crop_coords, crop_height, crop_width, crop_depth, rows, cols, slices)
+    return crop_bbox_by_coords(
+        bbox, crop_coords, crop_height, crop_width, crop_depth, rows, cols, slices
+    )
 
 
-def clamping_crop(img: np.ndarray, x_min: int, y_min: int, z_min: int, x_max: int, y_max: int, z_max: int):
+def clamping_crop(
+    img: np.ndarray,
+    x_min: int,
+    y_min: int,
+    z_min: int,
+    x_max: int,
+    y_max: int,
+    z_max: int,
+):
     h, w, d = img.shape[:3]
 
     x_min = max(x_min, 0)
@@ -260,7 +416,10 @@ def clamping_crop(img: np.ndarray, x_min: int, y_min: int, z_min: int, x_max: in
     y_max = min(y_max, h - 1)
     z_max = min(z_max, d - 1)
 
-    return img[int(y_min) : int(y_max), int(x_min) : int(x_max), int(z_min) : int(z_max)]
+    return img[
+        int(y_min) : int(y_max), int(x_min) : int(x_max), int(z_min) : int(z_max)
+    ]
+
 
 @preserve_channel_dim
 def crop_and_pad(
@@ -283,7 +442,9 @@ def crop_and_pad(
         )
 
     if keep_size:
-        img = FGeometric.resize(img, height = cols, width = rows, depth = slices, interpolation = interpolation )
+        img = FGeometric.resize(
+            img, height=cols, width=rows, depth=slices, interpolation=interpolation
+        )
 
     return img
 
@@ -299,17 +460,32 @@ def crop_and_pad_bbox(
     result_cols,
     result_slices,
 ) -> BoxInternalType:
-    
     x1, y1, z1, x2, y2, z2 = denormalize_bbox(bbox, rows, cols, slices)[:6]
 
     if crop_params is not None:
         crop_x, _, crop_y, _, crop_z, _ = crop_params
-        x1, y1, z1, x2, y2, z2 = x1 - crop_x, y1 - crop_y, z1 - crop_z, x2 - crop_x, y2 - crop_y, z2 - crop_z
+        x1, y1, z1, x2, y2, z2 = (
+            x1 - crop_x,
+            y1 - crop_y,
+            z1 - crop_z,
+            x2 - crop_x,
+            y2 - crop_y,
+            z2 - crop_z,
+        )
     if pad_params is not None:
         top, bottom, left, right, close, far = pad_params
-        x1, y1, z1, x2, y2, z2 = x1 + left, y1 + top, z1 + close, x2 + left, y2 + top, z2 + close
+        x1, y1, z1, x2, y2, z2 = (
+            x1 + left,
+            y1 + top,
+            z1 + close,
+            x2 + left,
+            y2 + top,
+            z2 + close,
+        )
 
-    return normalize_bbox((x1, y1, z1, x2, y2, z2), result_rows, result_cols, result_slices)
+    return normalize_bbox(
+        (x1, y1, z1, x2, y2, z2), result_rows, result_cols, result_slices
+    )
 
 
 def crop_and_pad_keypoint(
@@ -333,10 +509,14 @@ def crop_and_pad_keypoint(
         top, bottom, left, right, close, far = pad_params
         x, y, z = x + left, y + top, z + close
 
-    if keep_size and (result_cols != cols or result_rows != rows or result_cols != slices):
+    if keep_size and (
+        result_cols != cols or result_rows != rows or result_cols != slices
+    ):
         scale_x = cols / result_cols
         scale_y = rows / result_rows
         scale_z = slices / result_slices
-        return FGeometric.keypoint_scale((x, y, z, angle, scale), scale_x, scale_y, scale_z)
+        return FGeometric.keypoint_scale(
+            (x, y, z, angle, scale), scale_x, scale_y, scale_z
+        )
 
     return x, y, z, angle, scale

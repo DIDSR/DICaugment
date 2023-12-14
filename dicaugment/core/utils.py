@@ -10,8 +10,7 @@ from .serialization import Serializable
 
 def get_shape(img: Any) -> Tuple[int, int, int]:
     if isinstance(img, np.ndarray):
-
-        if img.ndim not in {3,4}:
+        if img.ndim not in {3, 4}:
             raise ValueError(
                 f"Albumenatations3D expected numpy.ndarray or torch.Tensor of shape (H,W,D) or (H,W,D,C). Got: {img.shape}"
             )
@@ -22,12 +21,12 @@ def get_shape(img: Any) -> Tuple[int, int, int]:
         import torch
 
         if torch.is_tensor(img):
-            if img.ndim not in {3,4}:
+            if img.ndim not in {3, 4}:
                 raise ValueError(
                     f"Albumenatations3D expected numpy.ndarray or torch.Tensor of shape (H,W,D) or (H,W,D,C). Got: {img.shape}"
                 )
             if img.ndim == 3:
-                slices, rows, cols  = img.shape[:3]
+                slices, rows, cols = img.shape[:3]
             else:
                 slices, rows, cols = img.shape[1:]
             return rows, cols, slices
@@ -58,7 +57,9 @@ class Params(Serializable, ABC):
 
 
 class DataProcessor(ABC):
-    def __init__(self, params: Params, additional_targets: Optional[Dict[str, str]] = None):
+    def __init__(
+        self, params: Params, additional_targets: Optional[Dict[str, str]] = None
+    ):
         self.params = params
         self.data_fields = [self.default_data_name]
         if additional_targets is not None:
@@ -82,7 +83,9 @@ class DataProcessor(ABC):
 
         for data_name in self.data_fields:
             data[data_name] = self.filter(data[data_name], rows, cols, slices)
-            data[data_name] = self.check_and_convert(data[data_name], rows, cols, slices, direction="from")
+            data[data_name] = self.check_and_convert(
+                data[data_name], rows, cols, slices, direction="from"
+            )
 
         data = self.remove_label_fields_from_data(data)
         return data
@@ -92,9 +95,13 @@ class DataProcessor(ABC):
 
         rows, cols, slices = get_shape(data["image"])
         for data_name in self.data_fields:
-            data[data_name] = self.check_and_convert(data[data_name], rows, cols, slices, direction="to")
+            data[data_name] = self.check_and_convert(
+                data[data_name], rows, cols, slices, direction="to"
+            )
 
-    def check_and_convert(self, data: Sequence, rows: int, cols: int, slices: int, direction: str = "to") -> Sequence:
+    def check_and_convert(
+        self, data: Sequence, rows: int, cols: int, slices: int, direction: str = "to"
+    ) -> Sequence:
         if self.params.format == "dicaugment_3d":
             self.check(data, rows, cols, slices)
             return data
@@ -104,7 +111,9 @@ class DataProcessor(ABC):
         elif direction == "from":
             return self.convert_from_dicaugment(data, rows, cols, slices)
         else:
-            raise ValueError(f"Invalid direction. Must be `to` or `from`. Got `{direction}`")
+            raise ValueError(
+                f"Invalid direction. Must be `to` or `from`. Got `{direction}`"
+            )
 
     @abstractmethod
     def filter(self, data: Sequence, rows: int, cols: int, slices: int) -> Sequence:
@@ -115,11 +124,15 @@ class DataProcessor(ABC):
         pass
 
     @abstractmethod
-    def convert_to_dicaugment(self, data: Sequence, rows: int, cols: int, slices: int) -> Sequence:
+    def convert_to_dicaugment(
+        self, data: Sequence, rows: int, cols: int, slices: int
+    ) -> Sequence:
         pass
 
     @abstractmethod
-    def convert_from_dicaugment(self, data: Sequence, rows: int, cols: int, slices: int) -> Sequence:
+    def convert_from_dicaugment(
+        self, data: Sequence, rows: int, cols: int, slices: int
+    ) -> Sequence:
         pass
 
     def add_label_fields_to_data(self, data: Dict[str, Any]) -> Dict[str, Any]:

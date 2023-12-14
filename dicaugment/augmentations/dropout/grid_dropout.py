@@ -81,10 +81,20 @@ class GridDropout(DualTransform):
         if not 0 < self.ratio <= 1:
             raise ValueError("ratio must be between 0 and 1.")
 
-    def apply(self, img: np.ndarray, holes: Iterable[Tuple[int, int, int, int, int, int]] = (), **params) -> np.ndarray:
+    def apply(
+        self,
+        img: np.ndarray,
+        holes: Iterable[Tuple[int, int, int, int, int, int]] = (),
+        **params
+    ) -> np.ndarray:
         return F.cutout(img, holes, self.fill_value)
 
-    def apply_to_mask(self, img: np.ndarray, holes: Iterable[Tuple[int, int, int, int, int, int]] = (), **params) -> np.ndarray:
+    def apply_to_mask(
+        self,
+        img: np.ndarray,
+        holes: Iterable[Tuple[int, int, int, int, int, int]] = (),
+        **params
+    ) -> np.ndarray:
         if self.mask_fill_value is None:
             return img
 
@@ -96,9 +106,13 @@ class GridDropout(DualTransform):
         # set grid using unit size limits
         if self.unit_size_min and self.unit_size_max:
             if not 2 <= self.unit_size_min <= self.unit_size_max:
-                raise ValueError("Max unit size should be >= min size, both at least 2 pixels.")
+                raise ValueError(
+                    "Max unit size should be >= min size, both at least 2 pixels."
+                )
             if self.unit_size_max > min(height, width):
-                raise ValueError("Grid size limits must be within the shortest image edge.")
+                raise ValueError(
+                    "Grid size limits must be within the shortest image edge."
+                )
             unit_width = random.randint(self.unit_size_min, self.unit_size_max + 1)
             unit_height = unit_depth = unit_width
         else:
@@ -107,19 +121,25 @@ class GridDropout(DualTransform):
                 unit_width = max(2, width // 10)
             else:
                 if not 1 <= self.holes_number_x <= width // 2:
-                    raise ValueError("The hole_number_x must be between 1 and image width//2.")
+                    raise ValueError(
+                        "The hole_number_x must be between 1 and image width//2."
+                    )
                 unit_width = width // self.holes_number_x
             if self.holes_number_y is None:
                 unit_height = max(min(unit_width, height), 2)
             else:
                 if not 1 <= self.holes_number_y <= height // 2:
-                    raise ValueError("The hole_number_y must be between 1 and image height//2.")
+                    raise ValueError(
+                        "The hole_number_y must be between 1 and image height//2."
+                    )
                 unit_height = height // self.holes_number_y
             if self.holes_number_z is None:
                 unit_depth = max(min(unit_width, depth), 2)
             else:
                 if not 1 <= self.holes_number_z <= depth // 2:
-                    raise ValueError("The hole_number_z must be between 1 and image depth//2.")
+                    raise ValueError(
+                        "The hole_number_z must be between 1 and image depth//2."
+                    )
                 unit_depth = depth // self.holes_number_z
 
         hole_width = int(unit_width * self.ratio)

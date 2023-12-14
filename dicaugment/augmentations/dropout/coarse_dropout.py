@@ -74,7 +74,11 @@ class CoarseDropout(DualTransform):
         self.fill_value = fill_value
         self.mask_fill_value = mask_fill_value
         if not 0 < self.min_holes <= self.max_holes:
-            raise ValueError("Invalid combination of min_holes and max_holes. Got: {}".format([min_holes, max_holes]))
+            raise ValueError(
+                "Invalid combination of min_holes and max_holes. Got: {}".format(
+                    [min_holes, max_holes]
+                )
+            )
 
         self.check_range(self.max_height)
         self.check_range(self.min_height)
@@ -84,16 +88,30 @@ class CoarseDropout(DualTransform):
         self.check_range(self.min_depth)
 
         if not 0 < self.min_height <= self.max_height:
-            raise ValueError("Invalid combination of min_height and max_height. Got: {}".format([min_height, max_height]))
+            raise ValueError(
+                "Invalid combination of min_height and max_height. Got: {}".format(
+                    [min_height, max_height]
+                )
+            )
         if not 0 < self.min_width <= self.max_width:
-            raise ValueError("Invalid combination of min_width and max_width. Got: {}".format([min_width, max_width]))
+            raise ValueError(
+                "Invalid combination of min_width and max_width. Got: {}".format(
+                    [min_width, max_width]
+                )
+            )
         if not 0 < self.min_depth <= self.max_depth:
-            raise ValueError("Invalid combination of min_depth and max_depth. Got: {}".format([min_depth, max_depth]))
+            raise ValueError(
+                "Invalid combination of min_depth and max_depth. Got: {}".format(
+                    [min_depth, max_depth]
+                )
+            )
 
     def check_range(self, dimension):
         if isinstance(dimension, float) and not 0 <= dimension < 1.0:
             raise ValueError(
-                "Invalid value {}. If using floats, the value should be in the range [0.0, 1.0)".format(dimension)
+                "Invalid value {}. If using floats, the value should be in the range [0.0, 1.0)".format(
+                    dimension
+                )
             )
 
     def apply(
@@ -145,7 +163,9 @@ class CoarseDropout(DualTransform):
                     isinstance(self.max_depth, float),
                 ]
             ):
-                hole_height = int(height * random.uniform(self.min_height, self.max_height))
+                hole_height = int(
+                    height * random.uniform(self.min_height, self.max_height)
+                )
                 hole_width = int(width * random.uniform(self.min_width, self.max_width))
                 hole_depth = int(width * random.uniform(self.min_depth, self.max_depth))
             else:
@@ -179,13 +199,18 @@ class CoarseDropout(DualTransform):
     def targets_as_params(self) -> List[str]:
         return ["image"]
 
-    def _keypoint_in_hole(self, keypoint: KeypointType, hole: Tuple[int, int, int, int]) -> bool:
+    def _keypoint_in_hole(
+        self, keypoint: KeypointType, hole: Tuple[int, int, int, int]
+    ) -> bool:
         x1, y1, z1, x2, y2, z2 = hole
         x, y, z = keypoint[:3]
         return x1 <= x < x2 and y1 <= y < y2 and z1 <= z <= z2
 
     def apply_to_keypoints(
-        self, keypoints: Sequence[KeypointType], holes: Iterable[Tuple[int, int, int, int]] = (), **params
+        self,
+        keypoints: Sequence[KeypointType],
+        holes: Iterable[Tuple[int, int, int, int]] = (),
+        **params
     ) -> List[KeypointType]:
         result = set(keypoints)
         for hole in holes:

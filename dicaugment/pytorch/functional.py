@@ -8,6 +8,7 @@ __all__ = [
     "mask_to_tensor",
 ]
 
+
 def img_to_tensor(im, normalize=None):
     tensor = torch.from_numpy(im)
     if normalize is not None:
@@ -28,7 +29,11 @@ def mask_to_tensor(mask, num_classes, sigmoid):
                 long_mask[mask == 0] = 0
             mask = long_mask
         else:
-            mask = np.moveaxis(mask / (255.0 if mask.dtype == np.uint8 else 1), -1, 0).astype(np.float32)
+            mask = np.moveaxis(
+                mask / (255.0 if mask.dtype == np.uint8 else 1), -1, 0
+            ).astype(np.float32)
     else:
-        mask = np.expand_dims(mask / (255.0 if mask.dtype == np.uint8 else 1), 0).astype(np.float32)
+        mask = np.expand_dims(
+            mask / (255.0 if mask.dtype == np.uint8 else 1), 0
+        ).astype(np.float32)
     return torch.from_numpy(mask)

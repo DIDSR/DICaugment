@@ -8,17 +8,16 @@
 
 import os
 import sys
+
 # from sphinx.ext.autosummary.generate import AutosummaryRenderer
 
 sys.path.insert(0, os.path.abspath("../.."))
 
 
-
-
-project = 'DICaugment'
-copyright = '2023, Jacob McIntosh'
-author = 'Jacob McIntosh'
-release = '0.0.1'
+project = "DICaugment"
+copyright = "2023, Jacob McIntosh"
+author = "Jacob McIntosh"
+release = "0.0.1"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -28,9 +27,10 @@ extensions = [
     "sphinx.ext.todo",
     "sphinx.ext.viewcode",
     "sphinx.ext.autodoc",
-    "sphinx.ext.autosectionlabel"]
+    "sphinx.ext.autosectionlabel",
+]
 
-templates_path = ['_templates']
+templates_path = ["_templates"]
 exclude_patterns = []
 
 # autosummary_generate = True
@@ -39,14 +39,14 @@ add_module_names = False
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'sphinx_rtd_theme'
-html_static_path = ['_static']
+html_theme = "sphinx_rtd_theme"
+html_static_path = ["_static"]
 html_theme_options = {
-    'collapse_navigation': False,
-    'sticky_navigation': True,
-    'navigation_depth': 5,
-    'includehidden': True,
-    'titles_only': False
+    "collapse_navigation": False,
+    "sticky_navigation": True,
+    "navigation_depth": 5,
+    "includehidden": True,
+    "titles_only": False,
 }
 
 

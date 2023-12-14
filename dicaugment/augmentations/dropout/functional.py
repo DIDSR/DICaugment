@@ -6,8 +6,8 @@ from dicaugment.augmentations.utils import preserve_shape
 
 __all__ = [
     "cutout",
-    #"channel_dropout"
-    ]
+    # "channel_dropout"
+]
 
 
 # @preserve_shape
@@ -23,7 +23,9 @@ __all__ = [
 
 
 def cutout(
-    img: np.ndarray, holes: Iterable[Tuple[int, int, int, int, int, int]], fill_value: Union[int, float] = 0
+    img: np.ndarray,
+    holes: Iterable[Tuple[int, int, int, int, int, int]],
+    fill_value: Union[int, float] = 0,
 ) -> np.ndarray:
     # Make a copy of the input image since we don't want to modify it directly
     img = img.copy()
