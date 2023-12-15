@@ -45,6 +45,7 @@ class RandomCrop(DualTransform):
         height (int): height of the crop.
         width (int): width of the crop.
         depth (int): depth of the crop.
+        always_apply (bool): whether to always apply the transformation. Default: False
         p (float): probability of applying the transform. Default: 1.
 
     Targets:
@@ -100,6 +101,7 @@ class CenterCrop(DualTransform):
         height (int): height of the crop.
         width (int): width of the crop.
         depth (int): depth of the crop.
+        always_apply (bool): whether to always apply the transformation. Default: False
         p (float): probability of applying the transform. Default: 1.
 
     Targets:
@@ -142,6 +144,7 @@ class Crop(DualTransform):
         x_max (int): Maximum furthest lower right x coordinate.
         y_max (int): Maximum furthest lower right y coordinate.
         z_max (int): Maximum furthest lower right y coordinate.
+        always_apply (bool): whether to always apply the transformation. Default: False
         p (float): probability of applying the transform. Default: 1.
 
     Targets:
@@ -421,6 +424,7 @@ class RandomSizedCrop(_BaseRandomSizedCrop):
         d2h_ratio (float): depth aspect ratio of crop.
         interpolation (int) : scipy interpolation method (e.g. dicaugment.INTER_NEAREST)
             Default: dicaugment.INTER_LINEAR.
+        always_apply (bool): whether to always apply the transformation. Default: False
         p (float): probability of applying the transform. Default: 1.
 
     Targets:
@@ -574,6 +578,7 @@ class RandomCropNearBBox(DualTransform):
             If max_part_shift is a single float, the range will be (max_part_shift, max_part_shift, max_part_shift).
             Default (0.3, 0.3, 0.3).
         cropping_box_key (str): Additional target key for cropping box. Default `cropping_bbox`
+        always_apply (bool): whether to always apply the transformation. Default: False
         p (float): probability of applying the transform. Default: 1.
 
     Targets:
@@ -691,6 +696,7 @@ class BBoxSafeRandomCrop(DualTransform):
     """Crop a random part of the input without loss of bboxes.
     Args:
         erosion_rate (float): erosion rate applied on input image height before crop.
+        always_apply (bool): whether to always apply the transformation. Default: False
         p (float): probability of applying the transform. Default: 1.
     Targets:
         image, mask, bboxes
@@ -809,6 +815,7 @@ class RandomSizedBBoxSafeCrop(BBoxSafeRandomCrop):
         depth (int): depth after crop and resize.
         erosion_rate (float): erosion rate applied on input image height before crop.
         interpolation (int) : scipy interpolation method (e.g. dicaugment.INTER_NEAREST) Default: dicaugment.INTER_LINEAR.
+        always_apply (bool): whether to always apply the transformation. Default: False
         p (float): probability of applying the transform. Default: 1.
 
     Targets:
@@ -926,6 +933,8 @@ class CropAndPad(DualTransform):
             If ``True``, four values will be sampled independently, one per side.
         interpolation (int) : scipy interpolation method (e.g. dicaugment.INTER_NEAREST)
             Default: dicaugment.INTER_LINEAR.
+        always_apply (bool): whether to always apply the transformation. Default: False
+        p (float): probability of applying the transform. Default: 1.0.
 
     Targets:
         image, mask, bboxes, keypoints
@@ -1250,6 +1259,7 @@ class RandomCropFromBorders(DualTransform):
             from close side in range [0, crop_close * depth)
         crop_far (float): single float value in (0.0, 1.0) range. Default 0.1. Image will be randomly cut
             from far side in range [(1 - crop_far) * depth, depth)
+        always_apply (bool): whether to always apply the transformation. Default: False
         p (float): probability of applying the transform. Default: 1.
 
     Targets:

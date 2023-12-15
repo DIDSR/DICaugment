@@ -47,6 +47,7 @@ class Blur(ImageOnlyTransform):
 
             Default: `constant`
         cval (int,float): The fill value when mode = `constant`. Default: 0
+        always_apply (bool): whether to always apply the transformation. Default: False
         p (float): probability of applying the transform. Default: 0.5.
 
     Targets:
@@ -191,6 +192,7 @@ class MedianBlur(Blur):
 
             Default: `constant`
         cval (int,float): The fill value when mode = `constant`. Default: 0
+        always_apply (bool): whether to always apply the transformation. Default: False
         p (float): probability of applying the transform. Default: 0.5.
 
     Targets:
@@ -246,6 +248,7 @@ class GaussianBlur(ImageOnlyTransform):
 
             Default: `constant`
         cval (int,float): The fill value when mode = `constant`. Default: 0
+        always_apply (bool): whether to always apply the transformation. Default: False
         p (float): probability of applying the transform. Default: 0.5.
 
     Targets:

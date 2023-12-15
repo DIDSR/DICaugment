@@ -36,6 +36,8 @@ class GridDropout(DualTransform):
         fill_value (int): value for the dropped pixels. Default = 0
         mask_fill_value (int): value for the dropped pixels in mask.
             If `None`, transformation is not applied to the mask. Default: `None`.
+        always_apply (bool): whether to always apply the transformation. Default: False
+        p (float): probability of applying the transform. Default: 0.5.
 
     Targets:
         image, mask

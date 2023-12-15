@@ -86,6 +86,7 @@ class ShiftScaleRotate(DualTransform):
             in the range [0, 1]. Default: None.
         rotate_method (str): rotation method used for the bounding boxes. Should be one of "largest_box" or "ellipse".
             Default: "largest_box"
+        always_apply (bool): whether to always apply the transformation. Default: False
         p (float): probability of applying the transform. Default: 0.5.
 
     Targets:
@@ -1119,6 +1120,7 @@ class PadIfNeeded(DualTransform):
         border_mode (OpenCV flag): OpenCV border mode.
         value (int, float, list of int, list of float): padding value if border_mode is "constant".
         mask_value (int, float, list of int, list of float): padding value for mask if border_mode is "constant".
+        always_apply (bool): whether to always apply the transformation. Default: False
         p (float): probability of applying the transform. Default: 1.0.
 
     Targets:
