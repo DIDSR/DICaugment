@@ -1,15 +1,11 @@
-import math
 import random
 from enum import Enum
 from typing import Dict, Optional, Sequence, Tuple, Union, Any
 
 import cv2
 import numpy as np
-# import skimage.transform
 
-from dicaugment.core.bbox_utils import denormalize_bbox, normalize_bbox
-from dicaugment.core.transforms_interface import DicomType
-
+from ...core.bbox_utils import denormalize_bbox, normalize_bbox
 from ... import random_utils
 from ...core.transforms_interface import (
     BoxInternalType,
@@ -20,7 +16,7 @@ from ...core.transforms_interface import (
     DicomType,
     to_tuple,
     INTER_LINEAR,
-    INTER_NEAREST
+    INTER_NEAREST,
 )
 from ..functional import bbox_from_mask
 from . import functional as F
@@ -28,17 +24,17 @@ from ..dicom import functional as Fdicom
 
 __all__ = [
     "ShiftScaleRotate",
-    #"ElasticTransform",
-    #"Perspective",
-    #"Affine",
-    #"PiecewiseAffine",
+    # "ElasticTransform",
+    # "Perspective",
+    # "Affine",
+    # "PiecewiseAffine",
     "VerticalFlip",
     "HorizontalFlip",
     "SliceFlip",
     "Flip",
     "Transpose",
-    #"OpticalDistortion",
-    #"GridDistortion",
+    # "OpticalDistortion",
+    # "GridDistortion",
     "PadIfNeeded",
 ]
 
@@ -62,13 +58,13 @@ class ShiftScaleRotate(DualTransform):
             Default: "xy"
         interpolation: scipy interpolation method (e.g. dicaugment.INTER_NEAREST). default: dicaugment.INTER_LINEAR
         border_mode (str): Scipy parameter to determine how the input image is extended during convolution to maintain image shape. Must be one of the following:
-            
+
             * `reflect` (d c b a | a b c d | d c b a): The input is extended by reflecting about the edge of the last pixel. This mode is also sometimes referred to as half-sample symmetric.
             * `constant` (k k k k | a b c d | k k k k): The input is extended by filling all values beyond the edge with the same constant value, defined by the cval parameter.
             * `nearest` (a a a a | a b c d | d d d d): The input is extended by replicating the last pixel.
             * `mirror` (d c b | a b c d | c b a): The input is extended by reflecting about the center of the last pixel. This mode is also sometimes referred to as whole-sample symmetric.
             * `wrap` (a b c d | a b c d | a b c d): The input is extended by wrapping around to the opposite edge.
-            
+
             See https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.median_filter.html
             Default: `constant`.
         value (int or float): padding value if border_mode is "constant".
@@ -103,24 +99,30 @@ class ShiftScaleRotate(DualTransform):
         self,
         shift_limit: float = 0.0625,
         scale_limit: float = 0.1,
-        rotate_limit: Union[int,float] = 45,
+        rotate_limit: Union[int, float] = 45,
         axes: str = "xy",
         interpolation: int = INTER_LINEAR,
         border_mode: str = "constant",
         crop_to_border: bool = False,
-        value: Union[int,float] = 0,
-        mask_value: Union[int,float] = 0,
-        shift_limit_x: Optional[Union[Tuple[float,float], float]] = None,
-        shift_limit_y: Optional[Union[Tuple[float,float], float]] = None,
-        shift_limit_z: Optional[Union[Tuple[float,float], float]] = None,
+        value: Union[int, float] = 0,
+        mask_value: Union[int, float] = 0,
+        shift_limit_x: Optional[Union[Tuple[float, float], float]] = None,
+        shift_limit_y: Optional[Union[Tuple[float, float], float]] = None,
+        shift_limit_z: Optional[Union[Tuple[float, float], float]] = None,
         rotate_method: str = "largest_box",
         always_apply=False,
         p=0.5,
     ):
         super(ShiftScaleRotate, self).__init__(always_apply, p)
-        self.shift_limit_x = to_tuple(shift_limit_x if shift_limit_x is not None else shift_limit)
-        self.shift_limit_y = to_tuple(shift_limit_y if shift_limit_y is not None else shift_limit)
-        self.shift_limit_z = to_tuple(shift_limit_z if shift_limit_z is not None else shift_limit)
+        self.shift_limit_x = to_tuple(
+            shift_limit_x if shift_limit_x is not None else shift_limit
+        )
+        self.shift_limit_y = to_tuple(
+            shift_limit_y if shift_limit_y is not None else shift_limit
+        )
+        self.shift_limit_z = to_tuple(
+            shift_limit_z if shift_limit_z is not None else shift_limit
+        )
         self.scale_limit = to_tuple(scale_limit, bias=1.0)
         self.rotate_limit = to_tuple(rotate_limit)
         self.interpolation = interpolation
@@ -134,45 +136,91 @@ class ShiftScaleRotate(DualTransform):
         if self.rotate_method not in ["largest_box", "ellipse"]:
             raise ValueError(f"Rotation method {self.rotate_method} is not valid.")
         if len(set(self.axes).difference({"xy", "yz", "xz"})) != 0:
-            raise ValueError("Parameter axes contains one or more elements that are not allowed. Got {}".format(set(self.axes).difference({"xy", "yz", "xz"})))
+            raise ValueError(
+                "Parameter axes contains one or more elements that are not allowed. Got {}".format(
+                    set(self.axes).difference({"xy", "yz", "xz"})
+                )
+            )
 
-    def apply(self,
-            img: np.ndarray,
-            angle: float = 0,
-            axes: str = "xy",
-            scale: float = 0,
-            dx: float = 0,
-            dy: float = 0,
-            dz: float = 0,
-            interpolation: int = INTER_LINEAR,
-            **params) -> np.ndarray:
-        return F.shift_scale_rotate(img, angle, scale, dx, dy, dz, axes, self.crop_to_border, interpolation, self.border_mode, self.value)
+    def apply(
+        self,
+        img: np.ndarray,
+        angle: float = 0,
+        axes: str = "xy",
+        scale: float = 0,
+        dx: float = 0,
+        dy: float = 0,
+        dz: float = 0,
+        interpolation: int = INTER_LINEAR,
+        **params,
+    ) -> np.ndarray:
+        return F.shift_scale_rotate(
+            img,
+            angle,
+            scale,
+            dx,
+            dy,
+            dz,
+            axes,
+            self.crop_to_border,
+            interpolation,
+            self.border_mode,
+            self.value,
+        )
 
-    def apply_to_mask(self, 
-            img: np.ndarray,
-            angle: float = 0,
-            axes: str = "xy",
-            scale: float = 0,
-            dx: float = 0,
-            dy: float = 0,
-            dz: float = 0,
-            **params) -> np.ndarray:
-        return F.shift_scale_rotate(img, angle, scale, dx, dy, dz, axes, self.crop_to_border, INTER_NEAREST, self.border_mode, self.mask_value)
+    def apply_to_mask(
+        self,
+        img: np.ndarray,
+        angle: float = 0,
+        axes: str = "xy",
+        scale: float = 0,
+        dx: float = 0,
+        dy: float = 0,
+        dz: float = 0,
+        **params,
+    ) -> np.ndarray:
+        return F.shift_scale_rotate(
+            img,
+            angle,
+            scale,
+            dx,
+            dy,
+            dz,
+            axes,
+            self.crop_to_border,
+            INTER_NEAREST,
+            self.border_mode,
+            self.mask_value,
+        )
 
-    def apply_to_keypoint(self,
-            keypoint: KeypointInternalType,
-            angle: float = 0,
-            axes: str = "xy",
-            scale: float = 0,
-            dx: float = 0,
-            dy: float = 0,
-            dz: float = 0,
-            rows: int = 0,
-            cols: int = 0,
-            slices: int = 0,
-            **params) -> KeypointInternalType:
-        return F.keypoint_shift_scale_rotate(keypoint, angle, scale, dx, dy, dz, axes, self.crop_to_border, rows, cols, slices)
-    
+    def apply_to_keypoint(
+        self,
+        keypoint: KeypointInternalType,
+        angle: float = 0,
+        axes: str = "xy",
+        scale: float = 0,
+        dx: float = 0,
+        dy: float = 0,
+        dz: float = 0,
+        rows: int = 0,
+        cols: int = 0,
+        slices: int = 0,
+        **params,
+    ) -> KeypointInternalType:
+        return F.keypoint_shift_scale_rotate(
+            keypoint,
+            angle,
+            scale,
+            dx,
+            dy,
+            dz,
+            axes,
+            self.crop_to_border,
+            rows,
+            cols,
+            slices,
+        )
+
     def apply_to_dicom(self, dicom: DicomType, scale: float = 1, **params) -> DicomType:
         return Fdicom.dicom_scale(dicom, scale, scale)
 
@@ -183,20 +231,33 @@ class ShiftScaleRotate(DualTransform):
             "dx": random.uniform(self.shift_limit_x[0], self.shift_limit_x[1]),
             "dy": random.uniform(self.shift_limit_y[0], self.shift_limit_y[1]),
             "dz": random.uniform(self.shift_limit_z[0], self.shift_limit_z[1]),
-            "axes": random.choice(self.axes)
+            "axes": random.choice(self.axes),
         }
 
-    def apply_to_bbox(self,
-            bbox: BoxInternalType,
-            angle: float = 0,
-            axes: str = "xy",
-            scale: float = 0,
-            dx: float = 0,
-            dy: float = 0,
-            dz: float = 0,
-            **params) -> BoxInternalType:
-        return F.bbox_shift_scale_rotate(bbox, angle, scale, dx, dy, dz, axes, self.crop_to_border, self.rotate_method, **params)
-    
+    def apply_to_bbox(
+        self,
+        bbox: BoxInternalType,
+        angle: float = 0,
+        axes: str = "xy",
+        scale: float = 0,
+        dx: float = 0,
+        dy: float = 0,
+        dz: float = 0,
+        **params,
+    ) -> BoxInternalType:
+        return F.bbox_shift_scale_rotate(
+            bbox,
+            angle,
+            scale,
+            dx,
+            dy,
+            dz,
+            axes,
+            self.crop_to_border,
+            self.rotate_method,
+            **params,
+        )
+
     def get_transform_init_args(self) -> Dict[str, Any]:
         return {
             "shift_limit_x": self.shift_limit_x,
@@ -1089,19 +1150,25 @@ class PadIfNeeded(DualTransform):
         pad_depth_divisor: Optional[int] = None,
         position: Union[PositionType, str] = PositionType.CENTER,
         border_mode: int = "constant",
-        value: Union[float, int ] = 0,
-        mask_value: Union[float, int ] = 0,
+        value: Union[float, int] = 0,
+        mask_value: Union[float, int] = 0,
         always_apply: bool = False,
         p: float = 1.0,
     ):
         if (min_height is None) == (pad_height_divisor is None):
-            raise ValueError("Only one of 'min_height' and 'pad_height_divisor' parameters must be set")
+            raise ValueError(
+                "Only one of 'min_height' and 'pad_height_divisor' parameters must be set"
+            )
 
         if (min_width is None) == (pad_width_divisor is None):
-            raise ValueError("Only one of 'min_width' and 'pad_width_divisor' parameters must be set")
-        
+            raise ValueError(
+                "Only one of 'min_width' and 'pad_width_divisor' parameters must be set"
+            )
+
         if (min_depth is None) == (pad_depth_divisor is None):
-            raise ValueError("Only one of 'min_depth' and 'pad_depth_divisor' parameters must be set")
+            raise ValueError(
+                "Only one of 'min_depth' and 'pad_depth_divisor' parameters must be set"
+            )
 
         super(PadIfNeeded, self).__init__(always_apply, p)
         self.min_height = min_height
@@ -1144,7 +1211,9 @@ class PadIfNeeded(DualTransform):
                 w_pad_right = 0
         else:
             pad_remainder = cols % self.pad_width_divisor
-            pad_cols = self.pad_width_divisor - pad_remainder if pad_remainder > 0 else 0
+            pad_cols = (
+                self.pad_width_divisor - pad_remainder if pad_remainder > 0 else 0
+            )
 
             w_pad_left = pad_cols // 2
             w_pad_right = pad_cols - w_pad_left
@@ -1158,18 +1227,27 @@ class PadIfNeeded(DualTransform):
                 d_pad_back = 0
         else:
             pad_remained = slices % self.pad_depth_divisor
-            pad_slices = self.pad_depth_divisor - pad_remained if pad_remained > 0 else 0
+            pad_slices = (
+                self.pad_depth_divisor - pad_remained if pad_remained > 0 else 0
+            )
 
             d_pad_front = pad_slices // 2
             d_pad_back = pad_slices - d_pad_front
 
-        h_pad_top, h_pad_bottom, w_pad_left, w_pad_right, d_pad_front, d_pad_back = self.__update_position_params(
+        (
+            h_pad_top,
+            h_pad_bottom,
+            w_pad_left,
+            w_pad_right,
+            d_pad_front,
+            d_pad_back,
+        ) = self.__update_position_params(
             h_top=h_pad_top,
             h_bottom=h_pad_bottom,
             w_left=w_pad_left,
             w_right=w_pad_right,
             d_front=d_pad_front,
-            d_back=d_pad_back
+            d_back=d_pad_back,
         )
 
         params.update(
@@ -1178,14 +1256,22 @@ class PadIfNeeded(DualTransform):
                 "pad_bottom": h_pad_bottom,
                 "pad_left": w_pad_left,
                 "pad_right": w_pad_right,
-                "pad_front" : d_pad_front,
+                "pad_front": d_pad_front,
                 "pad_back": d_pad_back,
             }
         )
         return params
 
     def apply(
-        self, img: np.ndarray, pad_top: int = 0, pad_bottom: int = 0, pad_left: int = 0, pad_right: int = 0, pad_front: int = 0, pad_back: int = 0, **params
+        self,
+        img: np.ndarray,
+        pad_top: int = 0,
+        pad_bottom: int = 0,
+        pad_left: int = 0,
+        pad_right: int = 0,
+        pad_front: int = 0,
+        pad_back: int = 0,
+        **params,
     ) -> np.ndarray:
         return F.pad_with_params(
             img,
@@ -1200,7 +1286,15 @@ class PadIfNeeded(DualTransform):
         )
 
     def apply_to_mask(
-        self, img: np.ndarray, pad_top: int = 0, pad_bottom: int = 0, pad_left: int = 0, pad_right: int = 0, pad_front: int = 0, pad_back: int = 0, **params
+        self,
+        img: np.ndarray,
+        pad_top: int = 0,
+        pad_bottom: int = 0,
+        pad_left: int = 0,
+        pad_right: int = 0,
+        pad_front: int = 0,
+        pad_back: int = 0,
+        **params,
     ) -> np.ndarray:
         return F.pad_with_params(
             img,
@@ -1226,11 +1320,25 @@ class PadIfNeeded(DualTransform):
         rows: int = 0,
         cols: int = 0,
         slices: int = 0,
-        **params
+        **params,
     ) -> BoxInternalType:
-        x_min, y_min, z_min, x_max, y_max, z_max = denormalize_bbox(bbox, rows, cols, slices)[:6]
-        bbox = x_min + pad_left, y_min + pad_top, z_min + pad_front, x_max + pad_left, y_max + pad_top, z_max + pad_front
-        return normalize_bbox(bbox, rows + pad_top + pad_bottom, cols + pad_left + pad_right, slices + pad_front + pad_back)
+        x_min, y_min, z_min, x_max, y_max, z_max = denormalize_bbox(
+            bbox, rows, cols, slices
+        )[:6]
+        bbox = (
+            x_min + pad_left,
+            y_min + pad_top,
+            z_min + pad_front,
+            x_max + pad_left,
+            y_max + pad_top,
+            z_max + pad_front,
+        )
+        return normalize_bbox(
+            bbox,
+            rows + pad_top + pad_bottom,
+            cols + pad_left + pad_right,
+            slices + pad_front + pad_back,
+        )
 
     def apply_to_keypoint(
         self,
@@ -1241,10 +1349,10 @@ class PadIfNeeded(DualTransform):
         pad_right: int = 0,
         pad_front: int = 0,
         pad_back: int = 0,
-        **params
+        **params,
     ) -> KeypointInternalType:
         x, y, z, angle, scale = keypoint[:5]
-        return x + pad_left, y + pad_top, z+ pad_front, angle, scale
+        return x + pad_left, y + pad_top, z + pad_front, angle, scale
 
     def get_transform_init_args_names(self):
         return (
@@ -1260,22 +1368,28 @@ class PadIfNeeded(DualTransform):
         )
 
     def __update_position_params(
-        self, h_top: int, h_bottom: int, w_left: int, w_right: int, d_front: int, d_back: int
+        self,
+        h_top: int,
+        h_bottom: int,
+        w_left: int,
+        w_right: int,
+        d_front: int,
+        d_back: int,
     ) -> Tuple[int, int, int, int]:
         if self.position == PadIfNeeded.PositionType.FRONT_TOP_LEFT:
             h_bottom += h_top
             w_right += w_left
             d_back += d_front
-            
+
             h_top = 0
             w_left = 0
             d_front = 0
-        
+
         elif self.position == PadIfNeeded.PositionType.BACK_TOP_LEFT:
             h_bottom += h_top
             w_right += w_left
             d_front += d_back
-            
+
             h_top = 0
             w_left = 0
             d_back = 0
@@ -1284,16 +1398,16 @@ class PadIfNeeded(DualTransform):
             h_bottom += h_top
             w_left += w_right
             d_back += d_front
-            
+
             h_top = 0
             w_right = 0
             d_front = 0
 
         elif self.position == PadIfNeeded.PositionType.BACK_TOP_RIGHT:
             h_bottom += h_top
-            w_left += w_right 
+            w_left += w_right
             d_front += d_back
-            
+
             h_top = 0
             w_right = 0
             d_back = 0
@@ -1302,7 +1416,7 @@ class PadIfNeeded(DualTransform):
             h_top += h_bottom
             w_right += w_left
             d_back += d_front
-            
+
             h_bottom = 0
             w_left = 0
             d_front = 0
@@ -1311,25 +1425,25 @@ class PadIfNeeded(DualTransform):
             h_top += h_bottom
             w_right += w_left
             d_front += d_back
-            
+
             h_bottom = 0
             w_left = 0
             d_back = 0
 
         elif self.position == PadIfNeeded.PositionType.FRONT_BOTTOM_RIGHT:
             h_top += h_bottom
-            w_left += w_right 
+            w_left += w_right
             d_back += d_front
-            
+
             h_bottom = 0
             w_right = 0
             d_front = 0
 
         elif self.position == PadIfNeeded.PositionType.BACK_BOTTOM_RIGHT:
             h_top += h_bottom
-            w_left += w_right 
+            w_left += w_right
             d_front += d_back
-            
+
             h_bottom = 0
             w_right = 0
             d_back = 0
@@ -1366,7 +1480,9 @@ class VerticalFlip(DualTransform):
     def apply_to_bbox(self, bbox: BoxInternalType, **params) -> BoxInternalType:
         return F.bbox_vflip(bbox, **params)
 
-    def apply_to_keypoint(self, keypoint: KeypointInternalType, **params) -> KeypointInternalType:
+    def apply_to_keypoint(
+        self, keypoint: KeypointInternalType, **params
+    ) -> KeypointInternalType:
         return F.keypoint_vflip(keypoint, **params)
 
     def get_transform_init_args_names(self):
@@ -1392,12 +1508,15 @@ class HorizontalFlip(DualTransform):
     def apply_to_bbox(self, bbox: BoxInternalType, **params) -> BoxInternalType:
         return F.bbox_hflip(bbox, **params)
 
-    def apply_to_keypoint(self, keypoint: KeypointInternalType, **params) -> KeypointInternalType:
+    def apply_to_keypoint(
+        self, keypoint: KeypointInternalType, **params
+    ) -> KeypointInternalType:
         return F.keypoint_hflip(keypoint, **params)
 
     def get_transform_init_args_names(self):
         return ()
-    
+
+
 class SliceFlip(DualTransform):
     """Flip the input along the slice dimension.
 
@@ -1417,7 +1536,9 @@ class SliceFlip(DualTransform):
     def apply_to_bbox(self, bbox: BoxInternalType, **params) -> BoxInternalType:
         return F.bbox_zflip(bbox, **params)
 
-    def apply_to_keypoint(self, keypoint: KeypointInternalType, **params) -> KeypointInternalType:
+    def apply_to_keypoint(
+        self, keypoint: KeypointInternalType, **params
+    ) -> KeypointInternalType:
         return F.keypoint_zflip(keypoint, **params)
 
     def get_transform_init_args_names(self):
@@ -1439,7 +1560,7 @@ class Flip(DualTransform):
 
     def apply(self, img: np.ndarray, d: int = 0, **params) -> np.ndarray:
         """
-        
+
         Args:
             d (int): code that specifies how to flip the input. 0 for vertical flipping, 1 for horizontal flipping,
                     2 for z-axis flip, or -1 for vertical, horizontal, and z-axis flipping
@@ -1453,7 +1574,9 @@ class Flip(DualTransform):
     def apply_to_bbox(self, bbox: BoxInternalType, **params) -> BoxInternalType:
         return F.bbox_flip(bbox, **params)
 
-    def apply_to_keypoint(self, keypoint: KeypointInternalType, **params) -> KeypointInternalType:
+    def apply_to_keypoint(
+        self, keypoint: KeypointInternalType, **params
+    ) -> KeypointInternalType:
         return F.keypoint_flip(keypoint, **params)
 
     def get_transform_init_args_names(self):
@@ -1479,9 +1602,11 @@ class Transpose(DualTransform):
     def apply_to_bbox(self, bbox: BoxInternalType, **params) -> BoxInternalType:
         return F.bbox_transpose(bbox, 0, **params)
 
-    def apply_to_keypoint(self, keypoint: KeypointInternalType, **params) -> KeypointInternalType:
+    def apply_to_keypoint(
+        self, keypoint: KeypointInternalType, **params
+    ) -> KeypointInternalType:
         return F.keypoint_transpose(keypoint)
-    
+
     def apply_to_dicom(self, dicom: DicomType, **params) -> DicomType:
         return Fdicom.transpose_dicom(dicom)
 

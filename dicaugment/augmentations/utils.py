@@ -31,7 +31,7 @@ __all__ = [
     "get_num_channels",
     "non_rgb_warning",
     "_maybe_process_in_chunks",
-    "_maybe_process_by_channel"
+    "_maybe_process_by_channel",
 ]
 
 P = ParamSpec("P")
@@ -43,7 +43,7 @@ MAX_VALUES_BY_DTYPE = {
     np.dtype("float32"): 1.0,
     np.dtype("int16"): 32767,
     np.dtype("int32"): 2147483647,
-    np.dtype("float64"): np.finfo(np.float64).max
+    np.dtype("float64"): np.finfo(np.float64).max,
 }
 
 MIN_VALUES_BY_DTYPE = {
@@ -53,7 +53,7 @@ MIN_VALUES_BY_DTYPE = {
     np.dtype("float32"): 0.0,
     np.dtype("int16"): -32768,
     np.dtype("int32"): -2147483648,
-    np.dtype("float64"): np.finfo(np.float64).min
+    np.dtype("float64"): np.finfo(np.float64).min,
 }
 
 
@@ -71,13 +71,11 @@ NPDTYPE_TO_OPENCV_DTYPE = {
 }
 
 SCIPY_MODE_TO_NUMPY_MODE = {
-      "reflect" : "symmetric",
-      "constant" : "constant",
-      "nearest" : "edge",
-      "mirror" : "reflect",
-      "wrap" : "wrap"
-
-
+    "reflect": "symmetric",
+    "constant": "constant",
+    "nearest": "edge",
+    "mirror": "reflect",
+    "wrap": "wrap",
 }
 
 
@@ -88,6 +86,7 @@ SCIPY_MODE_TO_NUMPY_MODE = {
 # def read_rgb_image(path):
 #     image = cv2.imread(path, cv2.IMREAD_COLOR)
 #     return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
 
 def read_dcm_image(path: str, include_header: bool = True, ends_with: str = ""):
     """
@@ -112,10 +111,10 @@ def read_dcm_image(path: str, include_header: bool = True, ends_with: str = ""):
                 A label describing the convolution kernel or algorithm used to reconstruct the data
             `XRayTubeCurrent` (int)
                 X-Ray Tube Current in mA.
-        
+
         See example below:
 
-    
+
     .. code-block:: python
 
         dicom = {
@@ -127,7 +126,7 @@ def read_dcm_image(path: str, include_header: bool = True, ends_with: str = ""):
         }
     """
 
-    if not os.path.isdir(path):                        
+    if not os.path.isdir(path):
         raise OSError("{} is not a valid directory".format(path))
 
     img = None
@@ -138,29 +137,33 @@ def read_dcm_image(path: str, include_header: bool = True, ends_with: str = ""):
 
         fp = os.path.join(path, file)
         obj = pdm.dcmread(fp)
-        dcm = np.expand_dims(obj.pixel_array, axis= 2).astype(np.int16)
+        dcm = np.expand_dims(obj.pixel_array, axis=2).astype(np.int16)
 
         if img is None:
             img = dcm
             dicom = {
-                "PixelSpacing" : tuple(map(float, obj.PixelSpacing)),
-                "RescaleIntercept" : float(obj.RescaleIntercept),
-                "RescaleSlope" : float(obj.RescaleSlope),
-                "ConvolutionKernel" : obj.ConvolutionKernel,
-                "XRayTubeCurrent" : int(obj.XRayTubeCurrent)
+                "PixelSpacing": tuple(map(float, obj.PixelSpacing)),
+                "RescaleIntercept": float(obj.RescaleIntercept),
+                "RescaleSlope": float(obj.RescaleSlope),
+                "ConvolutionKernel": obj.ConvolutionKernel,
+                "XRayTubeCurrent": int(obj.XRayTubeCurrent),
             }
         else:
-            img = np.concatenate([img,dcm], axis = 2)
+            img = np.concatenate([img, dcm], axis=2)
 
     if include_header:
         return img, dicom
-    
+
     return img
 
 
-def clipped(func: Callable[Concatenate[np.ndarray, P], np.ndarray]) -> Callable[Concatenate[np.ndarray, P], np.ndarray]:
+def clipped(
+    func: Callable[Concatenate[np.ndarray, P], np.ndarray]
+) -> Callable[Concatenate[np.ndarray, P], np.ndarray]:
     @wraps(func)
-    def wrapped_function(img: np.ndarray, *args: P.args, **kwargs: P.kwargs) -> np.ndarray:
+    def wrapped_function(
+        img: np.ndarray, *args: P.args, **kwargs: P.kwargs
+    ) -> np.ndarray:
         dtype = img.dtype
         maxval = MAX_VALUES_BY_DTYPE.get(dtype, 1.0)
         minval = MIN_VALUES_BY_DTYPE.get(dtype, 0.0)
@@ -188,7 +191,9 @@ def angle_2pi_range(
     func: Callable[Concatenate[KeypointInternalType, P], KeypointInternalType]
 ) -> Callable[Concatenate[KeypointInternalType, P], KeypointInternalType]:
     @wraps(func)
-    def wrapped_function(keypoint: KeypointInternalType, *args: P.args, **kwargs: P.kwargs) -> KeypointInternalType:
+    def wrapped_function(
+        keypoint: KeypointInternalType, *args: P.args, **kwargs: P.kwargs
+    ) -> KeypointInternalType:
         (x, y, z, a, s) = func(keypoint, *args, **kwargs)[:5]
         return (x, y, z, angle_to_2pi_range(a), s)
 
@@ -201,7 +206,9 @@ def preserve_shape(
     """Preserve shape of the image"""
 
     @wraps(func)
-    def wrapped_function(img: np.ndarray, *args: P.args, **kwargs: P.kwargs) -> np.ndarray:
+    def wrapped_function(
+        img: np.ndarray, *args: P.args, **kwargs: P.kwargs
+    ) -> np.ndarray:
         shape = img.shape
         result = func(img, *args, **kwargs)
         result = result.reshape(shape)
@@ -216,7 +223,9 @@ def preserve_channel_dim(
     """Preserve dummy channel dim."""
 
     @wraps(func)
-    def wrapped_function(img: np.ndarray, *args: P.args, **kwargs: P.kwargs) -> np.ndarray:
+    def wrapped_function(
+        img: np.ndarray, *args: P.args, **kwargs: P.kwargs
+    ) -> np.ndarray:
         shape = img.shape
         result = func(img, *args, **kwargs)
         if len(shape) == 4 and shape[-1] == 1 and len(result.shape) == 3:
@@ -232,7 +241,9 @@ def ensure_contiguous(
     """Ensure that input img is contiguous."""
 
     @wraps(func)
-    def wrapped_function(img: np.ndarray, *args: P.args, **kwargs: P.kwargs) -> np.ndarray:
+    def wrapped_function(
+        img: np.ndarray, *args: P.args, **kwargs: P.kwargs
+    ) -> np.ndarray:
         img = np.require(img, requirements=["C_CONTIGUOUS"])
         result = func(img, *args, **kwargs)
         return result
@@ -241,14 +252,19 @@ def ensure_contiguous(
 
 
 def is_rgb_image(image: np.ndarray) -> bool:
-    return len(image.shape) == 4 and image.shape[-1] == 3 and image.dtype in {np.dtype('uint8'), np.dtype('float32')}
+    return (
+        len(image.shape) == 4
+        and image.shape[-1] == 3
+        and image.dtype in {np.dtype("uint8"), np.dtype("float32")}
+    )
 
 
 def is_grayscale_image(image: np.ndarray) -> bool:
     return (len(image.shape) == 3) or (len(image.shape) == 4 and image.shape[-1] == 1)
 
+
 def is_uint8_or_float32(image: np.ndarray) -> bool:
-    return image.dtype in {np.dtype('uint8'), np.dtype('float32')}
+    return image.dtype in {np.dtype("uint8"), np.dtype("float32")}
 
 
 def is_multispectral_image(image: np.ndarray) -> bool:
@@ -264,8 +280,12 @@ def non_rgb_warning(image: np.ndarray) -> None:
         message = "This transformation expects 3-channel images"
         if is_grayscale_image(image):
             message += "\nYou can convert your grayscale image to RGB using cv2.cvtColor(image, cv2.COLOR_GRAY2RGB))"
-        if is_multispectral_image(image):  # Any image with a number of channels other than 1 and 3
-            message += "\nThis transformation cannot be applied to multi-spectral images"
+        if is_multispectral_image(
+            image
+        ):  # Any image with a number of channels other than 1 and 3
+            message += (
+                "\nThis transformation cannot be applied to multi-spectral images"
+            )
 
         raise ValueError(message)
 
@@ -313,7 +333,6 @@ def _maybe_process_in_chunks(
     return __process_fn
 
 
-
 def _maybe_process_by_channel(
     process_fn: Callable[Concatenate[np.ndarray, P], np.ndarray], **kwargs
 ) -> Callable[[np.ndarray], np.ndarray]:
@@ -338,9 +357,9 @@ def _maybe_process_by_channel(
         if num_channels > 1 or len(img.shape) > 3:
             chunks = []
             for i in range(num_channels):
-                chunks.append(process_fn(img[...,i], **kwargs))
-            
-            img = np.stack(chunks, axis = 3)
+                chunks.append(process_fn(img[..., i], **kwargs))
+
+            img = np.stack(chunks, axis=3)
         else:
             img = process_fn(img, **kwargs)
         return img

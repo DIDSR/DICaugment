@@ -11,7 +11,12 @@ def test_torch_to_tensor_augmentations(image, mask):
     aug = A.ToPytorch()
     data = aug(image=image, mask=mask, force_apply=True)
     height, width, num_channels = image.shape
-    assert isinstance(data["image"], torch.Tensor) and data["image"].shape == (1, num_channels, height, width)
+    assert isinstance(data["image"], torch.Tensor) and data["image"].shape == (
+        1,
+        num_channels,
+        height,
+        width,
+    )
     assert isinstance(data["mask"], torch.Tensor) and data["mask"].shape == mask.shape
     assert data["image"].dtype == torch.uint8
     assert data["mask"].dtype == torch.uint8
@@ -28,7 +33,11 @@ def test_torch_to_tensor_v2_augmentations_with_transpose_2d_mask(image, mask):
         image_height,
         image_width,
     )
-    assert isinstance(data["mask"], torch.Tensor) and data["mask"].shape == (mask_height, mask_width, mask_depth)
+    assert isinstance(data["mask"], torch.Tensor) and data["mask"].shape == (
+        mask_height,
+        mask_width,
+        mask_depth,
+    )
     assert data["image"].dtype == torch.uint8
     assert data["mask"].dtype == torch.uint8
 
@@ -56,7 +65,10 @@ def test_torch_to_tensor_v2_augmentations_with_transpose_3d_mask(image):
 
 
 def test_additional_targets_for_ToPytorch():
-    aug = A.Compose([A.ToPytorch(transpose_mask=False)], additional_targets={"image2": "image", "mask2": "mask"})
+    aug = A.Compose(
+        [A.ToPytorch(transpose_mask=False)],
+        additional_targets={"image2": "image", "mask2": "mask"},
+    )
     for _i in range(10):
         image1 = np.random.randint(low=0, high=256, size=(50, 50, 50), dtype=np.uint8)
         image2 = image1.copy()
@@ -78,15 +90,21 @@ def test_additional_targets_for_ToPytorch():
             image2_height,
             image2_width,
         )
-        assert isinstance(res["mask"], torch.Tensor) and res["mask"].shape == mask1.shape
-        assert isinstance(res["mask2"], torch.Tensor) and res["mask2"].shape == mask2.shape
+        assert (
+            isinstance(res["mask"], torch.Tensor) and res["mask"].shape == mask1.shape
+        )
+        assert (
+            isinstance(res["mask2"], torch.Tensor) and res["mask2"].shape == mask2.shape
+        )
         assert np.array_equal(res["image"], res["image2"])
         assert np.array_equal(res["mask"], res["mask2"])
 
 
 def test_torch_to_tensor_v2_on_gray_scale_images():
     aug = A.ToPytorch()
-    grayscale_image = np.random.randint(low=0, high=256, size=(100, 100, 50), dtype=np.uint8)
+    grayscale_image = np.random.randint(
+        low=0, high=256, size=(100, 100, 50), dtype=np.uint8
+    )
     data = aug(image=grayscale_image)
     assert isinstance(data["image"], torch.Tensor)
     assert len(data["image"].shape) == 4
@@ -109,8 +127,12 @@ def test_torch_to_tensor_v2_on_gray_scale_images():
 def test_with_replaycompose():
     aug = A.ReplayCompose([A.ToPytorch()])
     kwargs = {
-        "image": np.random.randint(low=0, high=256, size=(100, 100, 100), dtype=np.uint8),
-        "mask": np.random.randint(low=0, high=256, size=(100, 100, 100), dtype=np.uint8),
+        "image": np.random.randint(
+            low=0, high=256, size=(100, 100, 100), dtype=np.uint8
+        ),
+        "mask": np.random.randint(
+            low=0, high=256, size=(100, 100, 100), dtype=np.uint8
+        ),
     }
     res = aug(**kwargs)
     res2 = A.ReplayCompose.replay(res["replay"], **kwargs)
@@ -175,7 +197,6 @@ def test_post_data_check():
         [50, 50, 50],
     ]
 
-
     transform = A.Compose(
         [
             A.Resize(50, 50, 50),
@@ -190,4 +211,3 @@ def test_post_data_check():
     assert res["keypoints"] == [(45, 45, 45), (25, 25, 25)]
     assert res["bboxes"] == [(0, 0, 0, 45, 45, 45, 0)]
     assert len(res["keypoints"]) != 0 and len(res["bboxes"]) != 0
-

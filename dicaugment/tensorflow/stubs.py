@@ -1,6 +1,7 @@
 __all__ = ["ToTensorflow"]
 
-class ToTensorflow():
+
+class ToTensorflow:
     """
     Raises Error because tensorflow is not installed
     """
@@ -14,4 +15,4 @@ class ToTensorflow():
             "`pip install tensorflow`\n"
             "or by installing a version of DICaugment that contains tensorflow by running "
             "`pip install dicaugment[tensorflow]`"
-            )
+        )

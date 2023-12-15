@@ -71,28 +71,40 @@ class ToPytorch(BasicTransform):
         p (float): Probability of applying the transform. Default: 1.0.
     """
 
-    def __init__(self, transpose_mask: bool = True, always_apply: bool = True, normalize: Union[None, Sequence[float]] = None, p=1.0):
+    def __init__(
+        self,
+        transpose_mask: bool = True,
+        always_apply: bool = True,
+        normalize: Union[None, Sequence[float]] = None,
+        p=1.0,
+    ):
         super(ToPytorch, self).__init__(always_apply=always_apply, p=p)
         self.transpose_mask = transpose_mask
         self.normalize = normalize
 
     @property
     def targets(self) -> Dict[str, Callable]:
-        return {"image": self.apply,
-                "mask": self.apply_to_mask,
-                "masks": self.apply_to_masks}
+        return {
+            "image": self.apply,
+            "mask": self.apply_to_mask,
+            "masks": self.apply_to_masks,
+        }
 
     def apply(self, img: np.ndarray, **params) -> torch.tensor:  # skipcq: PYL-W0613
-        if len(img.shape) not in [3,4]:
+        if len(img.shape) not in [3, 4]:
             raise ValueError("DICaugment only supports images in HWD or HWDC format")
 
         if len(img.shape) == 3:
-            return Ftorch.img_to_tensor(np.expand_dims(img, 3).transpose(3, 2, 0, 1), self.normalize)
-        
+            return Ftorch.img_to_tensor(
+                np.expand_dims(img, 3).transpose(3, 2, 0, 1), self.normalize
+            )
+
         else:
             return Ftorch.img_to_tensor(img.transpose(3, 2, 0, 1), self.normalize)
 
-    def apply_to_mask(self, mask: np.ndarray, **params) -> torch.tensor:  # skipcq: PYL-W0613
+    def apply_to_mask(
+        self, mask: np.ndarray, **params
+    ) -> torch.tensor:  # skipcq: PYL-W0613
         if self.transpose_mask and mask.ndim == 3:
             mask = mask.transpose(2, 0, 1)
         if self.transpose_mask and mask.ndim == 4:

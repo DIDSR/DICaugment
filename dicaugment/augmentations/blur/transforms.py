@@ -17,14 +17,14 @@ from dicaugment.core.transforms_interface import (
 
 __all__ = [
     "Blur",
-    #"MotionBlur",
+    # "MotionBlur",
     "GaussianBlur",
-    #"GlassBlur",
-    #"AdvancedBlur",
+    # "GlassBlur",
+    # "AdvancedBlur",
     "MedianBlur",
-    #"Defocus",
-    #"ZoomBlur"
-    ]
+    # "Defocus",
+    # "ZoomBlur"
+]
 
 
 class Blur(ImageOnlyTransform):
@@ -44,7 +44,7 @@ class Blur(ImageOnlyTransform):
             - `wrap` (a b c d | a b c d | a b c d): The input is extended by wrapping around to the opposite edge.
 
             Reference: https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.median_filter.html
-            
+
             Default: `constant`
         cval (int,float): The fill value when mode = `constant`. Default: 0
         p (float): probability of applying the transform. Default: 0.5.
@@ -56,21 +56,41 @@ class Blur(ImageOnlyTransform):
         uint8, uint16, float32
     """
 
-    def __init__(self, blur_limit: ScaleIntType = 7, by_slice: bool = False, mode: str = 'constant', cval: Union[float,int] = 0, always_apply: bool = False, p: float = 0.5):
+    def __init__(
+        self,
+        blur_limit: ScaleIntType = 7,
+        by_slice: bool = False,
+        mode: str = "constant",
+        cval: Union[float, int] = 0,
+        always_apply: bool = False,
+        p: float = 0.5,
+    ):
         super().__init__(always_apply, p)
         self.blur_limit = to_tuple(blur_limit, 3)
         self.mode = mode
         self.by_slice = by_slice
         self.cval = cval
 
-        if self.mode not in {'reflect', 'constant', 'nearest', 'mirror', 'wrap'}:
-            raise ValueError("Expected mode to be one of ('reflect', 'constant', 'nearest', 'mirror', 'wrap'), got {}".format(self.mode))
+        if self.mode not in {"reflect", "constant", "nearest", "mirror", "wrap"}:
+            raise ValueError(
+                "Expected mode to be one of ('reflect', 'constant', 'nearest', 'mirror', 'wrap'), got {}".format(
+                    self.mode
+                )
+            )
 
     def apply(self, img: np.ndarray, ksize: int = 3, **params) -> np.ndarray:
-        return F.blur(img, ksize, by_slice = self.by_slice, mode = self.mode, cval = self.cval)
+        return F.blur(
+            img, ksize, by_slice=self.by_slice, mode=self.mode, cval=self.cval
+        )
 
     def get_params(self) -> Dict[str, Any]:
-        return {"ksize": int(random.choice(list(range(self.blur_limit[0], self.blur_limit[1] + 1, 2))))}
+        return {
+            "ksize": int(
+                random.choice(
+                    list(range(self.blur_limit[0], self.blur_limit[1] + 1, 2))
+                )
+            )
+        }
 
     def get_transform_init_args_names(self) -> Tuple[str, ...]:
         return ("blur_limit", "by_slice", "mode", "cval")
@@ -168,7 +188,7 @@ class MedianBlur(Blur):
             - `wrap` (a b c d | a b c d | a b c d): The input is extended by wrapping around to the opposite edge.
 
             Reference: https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.median_filter.html
-            
+
             Default: `constant`
         cval (int,float): The fill value when mode = `constant`. Default: 0
         p (float): probability of applying the transform. Default: 0.5.
@@ -180,14 +200,24 @@ class MedianBlur(Blur):
         uint8, uint16, float32
     """
 
-    def __init__(self, blur_limit: ScaleIntType = 7, by_slice: bool = False, mode: str = 'constant', cval: Union[float,int] = 0, always_apply: bool = False, p: float = 0.5, ):
+    def __init__(
+        self,
+        blur_limit: ScaleIntType = 7,
+        by_slice: bool = False,
+        mode: str = "constant",
+        cval: Union[float, int] = 0,
+        always_apply: bool = False,
+        p: float = 0.5,
+    ):
         super().__init__(blur_limit, by_slice, mode, cval, always_apply, p)
 
         if self.blur_limit[0] % 2 != 1 or self.blur_limit[1] % 2 != 1:
             raise ValueError("MedianBlur supports only odd blur limits.")
 
     def apply(self, img: np.ndarray, ksize: int = 3, **params) -> np.ndarray:
-        return F.median_blur(img, ksize, by_slice = self.by_slice, mode = self.mode, cval = self.cval)
+        return F.median_blur(
+            img, ksize, by_slice=self.by_slice, mode=self.mode, cval=self.cval
+        )
 
 
 class GaussianBlur(ImageOnlyTransform):
@@ -213,9 +243,9 @@ class GaussianBlur(ImageOnlyTransform):
             - `wrap` (a b c d | a b c d | a b c d): The input is extended by wrapping around to the opposite edge.
 
             Reference: https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.median_filter.html
-            
+
             Default: `constant`
-        cval (int,float): The fill value when mode = `constant`. Default: 0        
+        cval (int,float): The fill value when mode = `constant`. Default: 0
         p (float): probability of applying the transform. Default: 0.5.
 
     Targets:
@@ -232,8 +262,8 @@ class GaussianBlur(ImageOnlyTransform):
         by_slice: bool = False,
         always_apply: bool = False,
         p: float = 0.5,
-        mode: str = 'constant',
-        cval: Union[float,int] = 0
+        mode: str = "constant",
+        cval: Union[float, int] = 0,
     ):
         super().__init__(always_apply, p)
         self.blur_limit = to_tuple(blur_limit, 0)
@@ -242,10 +272,13 @@ class GaussianBlur(ImageOnlyTransform):
         self.mode = mode
         self.cval = cval
 
+        if self.mode not in {"reflect", "constant", "nearest", "mirror", "wrap"}:
+            raise ValueError(
+                "Expected mode to be one of ('reflect', 'constant', 'nearest', 'mirror', 'wrap'), got {}".format(
+                    self.mode
+                )
+            )
 
-        if self.mode not in {'reflect', 'constant', 'nearest', 'mirror', 'wrap'}:
-            raise ValueError("Expected mode to be one of ('reflect', 'constant', 'nearest', 'mirror', 'wrap'), got {}".format(self.mode))
-        
         if self.blur_limit[0] == 0 and self.sigma_limit[0] == 0:
             self.blur_limit = 3, max(3, self.blur_limit[1])
             warnings.warn(
@@ -258,8 +291,17 @@ class GaussianBlur(ImageOnlyTransform):
         ):
             raise ValueError("GaussianBlur supports only odd blur limits.")
 
-    def apply(self, img: np.ndarray, ksize: int = 3, sigma: float = 0, **params) -> np.ndarray:
-        return F.gaussian_blur(img, ksize, sigma=sigma, by_slice=self.by_slice, mode = self.mode, cval = self.cval)
+    def apply(
+        self, img: np.ndarray, ksize: int = 3, sigma: float = 0, **params
+    ) -> np.ndarray:
+        return F.gaussian_blur(
+            img,
+            ksize,
+            sigma=sigma,
+            by_slice=self.by_slice,
+            mode=self.mode,
+            cval=self.cval,
+        )
 
     def get_params(self) -> Dict[str, Any]:
         ksize = random.randrange(self.blur_limit[0], self.blur_limit[1] + 1)

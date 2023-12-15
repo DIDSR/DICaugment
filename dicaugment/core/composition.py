@@ -37,7 +37,9 @@ TransformType = typing.Union[BasicTransform, "BaseCompose"]
 TransformsSeqType = typing.Sequence[TransformType]
 
 
-def get_always_apply(transforms: typing.Union["BaseCompose", TransformsSeqType]) -> TransformsSeqType:
+def get_always_apply(
+    transforms: typing.Union["BaseCompose", TransformsSeqType]
+) -> TransformsSeqType:
     new_transforms: typing.List[TransformType] = []
     for transform in transforms:  # type: ignore
         if isinstance(transform, BaseCompose):
@@ -74,7 +76,11 @@ class BaseCompose(Serializable):
         return self.indented_repr()
 
     def indented_repr(self, indent: int = REPR_INDENT_STEP) -> str:
-        args = {k: v for k, v in self._to_dict().items() if not (k.startswith("__") or k == "transforms")}
+        args = {
+            k: v
+            for k, v in self._to_dict().items()
+            if not (k.startswith("__") or k == "transforms")
+        }
         repr_string = self.__class__.__name__ + "(["
         for t in self.transforms:
             repr_string += "\n"
@@ -83,7 +89,11 @@ class BaseCompose(Serializable):
             else:
                 t_repr = repr(t)
             repr_string += " " * indent + t_repr + ","
-        repr_string += "\n" + " " * (indent - REPR_INDENT_STEP) + "], {args})".format(args=format_args(args))
+        repr_string += (
+            "\n"
+            + " " * (indent - REPR_INDENT_STEP)
+            + "], {args})".format(args=format_args(args))
+        )
         return repr_string
 
     @classmethod
@@ -109,7 +119,9 @@ class BaseCompose(Serializable):
             "transforms": [t.get_dict_with_id() for t in self.transforms],
         }
 
-    def add_targets(self, additional_targets: typing.Optional[typing.Dict[str, str]]) -> None:
+    def add_targets(
+        self, additional_targets: typing.Optional[typing.Dict[str, str]]
+    ) -> None:
         if additional_targets:
             for t in self.transforms:
                 t.add_targets(additional_targets)
@@ -143,14 +155,18 @@ class Compose(BaseCompose):
     ):
         super(Compose, self).__init__(transforms, p)
 
-        self.processors: typing.Dict[str, typing.Union[BboxProcessor, KeypointsProcessor]] = {}
+        self.processors: typing.Dict[
+            str, typing.Union[BboxProcessor, KeypointsProcessor]
+        ] = {}
         if bbox_params:
             if isinstance(bbox_params, dict):
                 b_params = BboxParams(**bbox_params)
             elif isinstance(bbox_params, BboxParams):
                 b_params = bbox_params
             else:
-                raise ValueError("unknown format of bbox_params, please use `dict` or `BboxParams`")
+                raise ValueError(
+                    "unknown format of bbox_params, please use `dict` or `BboxParams`"
+                )
             self.processors["bboxes"] = BboxProcessor(b_params, additional_targets)
 
         if keypoint_params:
@@ -159,8 +175,12 @@ class Compose(BaseCompose):
             elif isinstance(keypoint_params, KeypointParams):
                 k_params = keypoint_params
             else:
-                raise ValueError("unknown format of keypoint_params, please use `dict` or `KeypointParams`")
-            self.processors["keypoints"] = KeypointsProcessor(k_params, additional_targets)
+                raise ValueError(
+                    "unknown format of keypoint_params, please use `dict` or `KeypointParams`"
+                )
+            self.processors["keypoints"] = KeypointsProcessor(
+                k_params, additional_targets
+            )
 
         if additional_targets is None:
             additional_targets = {}
@@ -188,19 +208,28 @@ class Compose(BaseCompose):
     def _disable_check_args(self) -> None:
         self.is_check_args = False
 
-    def __call__(self, *args, force_apply: bool = False, **data) -> typing.Dict[str, typing.Any]:
+    def __call__(
+        self, *args, force_apply: bool = False, **data
+    ) -> typing.Dict[str, typing.Any]:
         if args:
-            raise KeyError("You have to pass data to augmentations as named arguments, for example: aug(image=image)")
+            raise KeyError(
+                "You have to pass data to augmentations as named arguments, for example: aug(image=image)"
+            )
         if self.is_check_args:
             self._check_args(**data)
-        assert isinstance(force_apply, (bool, int)), "force_apply must have bool or int type"
+        assert isinstance(
+            force_apply, (bool, int)
+        ), "force_apply must have bool or int type"
         need_to_run = force_apply or random.random() < self.p
         for p in self.processors.values():
             p.ensure_data_valid(data)
-        transforms = self.transforms if need_to_run else get_always_apply(self.transforms)
+        transforms = (
+            self.transforms if need_to_run else get_always_apply(self.transforms)
+        )
 
         check_each_transform = any(
-            getattr(item.params, "check_each_transform", False) for item in self.processors.values()
+            getattr(item.params, "check_each_transform", False)
+            for item in self.processors.values()
         )
 
         for p in self.processors.values():
@@ -211,14 +240,18 @@ class Compose(BaseCompose):
 
             if check_each_transform:
                 data = self._check_data_post_transform(data)
-        data = Compose._make_targets_contiguous(data)  # ensure output targets are contiguous
+        data = Compose._make_targets_contiguous(
+            data
+        )  # ensure output targets are contiguous
 
         for p in self.processors.values():
             p.postprocess(data)
 
         return data
 
-    def _check_data_post_transform(self, data: typing.Dict[str, typing.Any]) -> typing.Dict[str, typing.Any]:
+    def _check_data_post_transform(
+        self, data: typing.Dict[str, typing.Any]
+    ) -> typing.Dict[str, typing.Any]:
         rows, cols, slices = get_shape(data["image"])
 
         for p in self.processors.values():
@@ -235,7 +268,9 @@ class Compose(BaseCompose):
         keypoints_processor = self.processors.get("keypoints")
         dictionary.update(
             {
-                "bbox_params": bbox_processor.params._to_dict() if bbox_processor else None,  # skipcq: PYL-W0212
+                "bbox_params": bbox_processor.params._to_dict()
+                if bbox_processor
+                else None,  # skipcq: PYL-W0212
                 "keypoint_params": keypoints_processor.params._to_dict()  # skipcq: PYL-W0212
                 if keypoints_processor
                 else None,
@@ -251,7 +286,9 @@ class Compose(BaseCompose):
         keypoints_processor = self.processors.get("keypoints")
         dictionary.update(
             {
-                "bbox_params": bbox_processor.params._to_dict() if bbox_processor else None,  # skipcq: PYL-W0212
+                "bbox_params": bbox_processor.params._to_dict()
+                if bbox_processor
+                else None,  # skipcq: PYL-W0212
                 "keypoint_params": keypoints_processor.params._to_dict()  # skipcq: PYL-W0212
                 if keypoints_processor
                 else None,
@@ -273,18 +310,28 @@ class Compose(BaseCompose):
             if internal_data_name in checked_single:
                 if not isinstance(data, np.ndarray):
                     raise TypeError("{} must be numpy array type".format(data_name))
-                if data.dtype.name == 'float32' and (np.max(data) > 1.0 or np.min(data) < 0.0):
+                if data.dtype.name == "float32" and (
+                    np.max(data) > 1.0 or np.min(data) < 0.0
+                ):
                     raise ValueError(
-                        "Input array has data type np.float32 but has values outside of the range of [0,1].\n" + 
-                        "If you wish to use floating point values outside of this range, please convert the input array to np.float64")
+                        "Input array has data type np.float32 but has values outside of the range of [0,1].\n"
+                        + "If you wish to use floating point values outside of this range, please convert the input array to np.float64"
+                    )
                 shapes.append(data.shape[:3])
             if internal_data_name in checked_multi:
                 if data is not None:
                     if not isinstance(data[0], np.ndarray):
-                        raise TypeError("{} must be list of numpy arrays".format(data_name))
+                        raise TypeError(
+                            "{} must be list of numpy arrays".format(data_name)
+                        )
                     shapes.append(data[0].shape[:3])
-            if internal_data_name in check_bbox_param and self.processors.get("bboxes") is None:
-                raise ValueError("bbox_params must be specified for bbox transformations")
+            if (
+                internal_data_name in check_bbox_param
+                and self.processors.get("bboxes") is None
+            ):
+                raise ValueError(
+                    "bbox_params must be specified for bbox transformations"
+                )
 
         if self.is_check_shapes and shapes and shapes.count(shapes[0]) != len(shapes):
             raise ValueError(
@@ -294,7 +341,9 @@ class Compose(BaseCompose):
             )
 
     @staticmethod
-    def _make_targets_contiguous(data: typing.Dict[str, typing.Any]) -> typing.Dict[str, typing.Any]:
+    def _make_targets_contiguous(
+        data: typing.Dict[str, typing.Any]
+    ) -> typing.Dict[str, typing.Any]:
         result = {}
         for key, value in data.items():
             if isinstance(value, np.ndarray):
@@ -318,7 +367,9 @@ class OneOf(BaseCompose):
         s = sum(transforms_ps)
         self.transforms_ps = [t / s for t in transforms_ps]
 
-    def __call__(self, *args, force_apply: bool = False, **data) -> typing.Dict[str, typing.Any]:
+    def __call__(
+        self, *args, force_apply: bool = False, **data
+    ) -> typing.Dict[str, typing.Any]:
         if self.replay_mode:
             for t in self.transforms:
                 data = t(**data)
@@ -342,7 +393,9 @@ class SomeOf(BaseCompose):
         p (float): probability of applying selected transform. Default: 1.
     """
 
-    def __init__(self, transforms: TransformsSeqType, n: int, replace: bool = True, p: float = 1):
+    def __init__(
+        self, transforms: TransformsSeqType, n: int, replace: bool = True, p: float = 1
+    ):
         super(SomeOf, self).__init__(transforms, p)
         self.n = n
         self.replace = replace
@@ -350,14 +403,21 @@ class SomeOf(BaseCompose):
         s = sum(transforms_ps)
         self.transforms_ps = [t / s for t in transforms_ps]
 
-    def __call__(self, *args, force_apply: bool = False, **data) -> typing.Dict[str, typing.Any]:
+    def __call__(
+        self, *args, force_apply: bool = False, **data
+    ) -> typing.Dict[str, typing.Any]:
         if self.replay_mode:
             for t in self.transforms:
                 data = t(**data)
             return data
 
         if self.transforms_ps and (force_apply or random.random() < self.p):
-            idx = random_utils.choice(len(self.transforms), size=self.n, replace=self.replace, p=self.transforms_ps)
+            idx = random_utils.choice(
+                len(self.transforms),
+                size=self.n,
+                replace=self.replace,
+                p=self.transforms_ps,
+            )
             for i in idx:  # type: ignore
                 t = self.transforms[i]
                 data = t(force_apply=True, **data)
@@ -381,13 +441,17 @@ class OneOrOther(BaseCompose):
     ):
         if transforms is None:
             if first is None or second is None:
-                raise ValueError("You must set both first and second or set transforms argument.")
+                raise ValueError(
+                    "You must set both first and second or set transforms argument."
+                )
             transforms = [first, second]
         super(OneOrOther, self).__init__(transforms, p)
         if len(self.transforms) != 2:
             warnings.warn("Length of transforms is not equal to 2.")
 
-    def __call__(self, *args, force_apply: bool = False, **data) -> typing.Dict[str, typing.Any]:
+    def __call__(
+        self, *args, force_apply: bool = False, **data
+    ) -> typing.Dict[str, typing.Any]:
         if self.replay_mode:
             for t in self.transforms:
                 data = t(**data)
@@ -448,12 +512,19 @@ class ReplayCompose(Compose):
         save_key: str = "replay",
     ):
         super(ReplayCompose, self).__init__(
-            transforms, bbox_params, keypoint_params, additional_targets, p, is_check_shapes
+            transforms,
+            bbox_params,
+            keypoint_params,
+            additional_targets,
+            p,
+            is_check_shapes,
         )
         self.set_deterministic(True, save_key=save_key)
         self.save_key = save_key
 
-    def __call__(self, *args, force_apply: bool = False, **kwargs) -> typing.Dict[str, typing.Any]:
+    def __call__(
+        self, *args, force_apply: bool = False, **kwargs
+    ) -> typing.Dict[str, typing.Any]:
         kwargs[self.save_key] = defaultdict(dict)
         result = super(ReplayCompose, self).__call__(force_apply=force_apply, **kwargs)
         serialized = self.get_dict_with_id()
@@ -463,13 +534,16 @@ class ReplayCompose(Compose):
         return result
 
     @staticmethod
-    def replay(saved_augmentations: typing.Dict[str, typing.Any], **kwargs) -> typing.Dict[str, typing.Any]:
+    def replay(
+        saved_augmentations: typing.Dict[str, typing.Any], **kwargs
+    ) -> typing.Dict[str, typing.Any]:
         augs = ReplayCompose._restore_for_replay(saved_augmentations)
         return augs(force_apply=True, **kwargs)
 
     @staticmethod
     def _restore_for_replay(
-        transform_dict: typing.Dict[str, typing.Any], lambda_transforms: typing.Optional[dict] = None
+        transform_dict: typing.Dict[str, typing.Any],
+        lambda_transforms: typing.Optional[dict] = None,
     ) -> TransformType:
         """
         Args:
@@ -486,11 +560,17 @@ class ReplayCompose(Compose):
             transform = lmbd
         else:
             name = transform_dict["__class_fullname__"]
-            args = {k: v for k, v in transform_dict.items() if k not in ["__class_fullname__", "applied", "params"]}
+            args = {
+                k: v
+                for k, v in transform_dict.items()
+                if k not in ["__class_fullname__", "applied", "params"]
+            }
             cls = SERIALIZABLE_REGISTRY[name]
             if "transforms" in args:
                 args["transforms"] = [
-                    ReplayCompose._restore_for_replay(t, lambda_transforms=lambda_transforms)
+                    ReplayCompose._restore_for_replay(
+                        t, lambda_transforms=lambda_transforms
+                    )
                     for t in args["transforms"]
                 ]
             transform = cls(**args)

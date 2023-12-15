@@ -29,15 +29,27 @@ TEST_SEEDS = (0, 1, 42, 111, 9999)
     ["augmentation_cls", "params"],
     get_transforms(
         custom_arguments={
-            A.Crop: {"y_min": 0, "y_max": 10, "x_min": 0, "x_max": 10, "z_min": 0, "z_max": 10},
+            A.Crop: {
+                "y_min": 0,
+                "y_max": 10,
+                "x_min": 0,
+                "x_max": 10,
+                "z_min": 0,
+                "z_max": 10,
+            },
             A.CenterCrop: {"height": 10, "width": 10, "depth": 10},
             A.RandomCrop: {"height": 10, "width": 10, "depth": 10},
-            A.RandomSizedCrop: {"min_max_height": (4, 8), "height": 10, "width": 10, "depth": 10},
+            A.RandomSizedCrop: {
+                "min_max_height": (4, 8),
+                "height": 10,
+                "width": 10,
+                "depth": 10,
+            },
             A.CropAndPad: {"px": 10},
-            A.Resize: {"height": 10, "width": 10, "depth":10},
-            A.PadIfNeeded : {"min_height": 100, "min_width": 100, "min_depth": 100},
-            A.LongestMaxSize : {"max_size" : 50},
-            A.SmallestMaxSize : {"max_size" : 50},
+            A.Resize: {"height": 10, "width": 10, "depth": 10},
+            A.PadIfNeeded: {"min_height": 100, "min_width": 100, "min_depth": 100},
+            A.LongestMaxSize: {"max_size": 50},
+            A.SmallestMaxSize: {"max_size": 50},
         },
         except_augmentations={
             A.RandomCropNearBBox,
@@ -54,7 +66,9 @@ TEST_SEEDS = (0, 1, 42, 111, 9999)
 @pytest.mark.parametrize("p", [0.5, 1])
 @pytest.mark.parametrize("seed", TEST_SEEDS)
 @pytest.mark.parametrize("always_apply", (False, True))
-def test_augmentations_serialization(augmentation_cls, params, p, seed, image, mask, always_apply):
+def test_augmentations_serialization(
+    augmentation_cls, params, p, seed, image, mask, always_apply
+):
     aug = augmentation_cls(p=p, always_apply=always_apply, **params)
     serialized_aug = A.to_dict(aug)
     deserialized_aug = A.from_dict(serialized_aug)
@@ -214,10 +228,13 @@ AUGMENTATION_CLS_PARAMS = [
     [A.CenterCrop, {"height": 10, "width": 10, "depth": 10}],
     [A.RandomCrop, {"height": 10, "width": 10, "depth": 10}],
     # [A.CropNonEmptyMaskIfExists, {"height": 10, "width": 10, "depth": 10}],
-    [A.RandomSizedCrop, {"min_max_height": (4, 8), "height": 10, "width": 10, "depth": 10}],
+    [
+        A.RandomSizedCrop,
+        {"min_max_height": (4, 8), "height": 10, "width": 10, "depth": 10},
+    ],
     [A.Crop, {"x_max": 64, "y_max": 64, "z_max": 64}],
     [A.ToFloat, {"max_value": 16536}],
-    [A.Normalize, {"mean": (0.385), "std": (0.129)} ],
+    [A.Normalize, {"mean": (0.385), "std": (0.129)}],
     # [A.RandomBrightness, {"limit": 0.4}],
     # [A.RandomContrast, {"limit": 0.4}],
     [A.RandomScale, {"scale_limit": 0.2, "interpolation": 2}],
@@ -227,7 +244,7 @@ AUGMENTATION_CLS_PARAMS = [
     # [A.RandomGridShuffle, {"grid": (5, 5)}],
     # [A.Solarize, {"threshold": 32}],
     [A.Posterize, {"num_bits": 8}],
-    [A.Equalize, {}], #"mode": "pil", "by_channels": False}],
+    [A.Equalize, {}],  # "mode": "pil", "by_channels": False}],
     # [
     #     A.MultiplicativeNoise,
     #     {"multiplier": (0.7, 2.3), "per_channel": True, "elementwise": True},
@@ -265,7 +282,7 @@ AUGMENTATION_CLS_PARAMS = [
             "interpolation": 2,
             "pad_cval_mask": 10,
             "pad_cval": 10,
-            "pad_mode": 'constant',
+            "pad_mode": "constant",
         },
     ],
     # [
@@ -362,7 +379,14 @@ AUGMENTATION_CLS_PARAMS = [
     ],
     [
         A.RandomCropFromBorders,
-        dict(crop_left=0.2, crop_right=0.3, crop_top=0.05, crop_bottom=0.5, crop_close=0.1, crop_far=0.8),
+        dict(
+            crop_left=0.2,
+            crop_right=0.3,
+            crop_top=0.05,
+            crop_bottom=0.5,
+            crop_close=0.1,
+            crop_far=0.8,
+        ),
     ],
     # [
     #     A.Spatter,
@@ -445,17 +469,29 @@ def test_augmentations_serialization_to_file_with_custom_parameters(
     ["augmentation_cls", "params"],
     get_transforms(
         custom_arguments={
-            A.Crop: {"y_min": 0, "y_max": 10, "x_min": 0, "x_max": 10, "z_min": 0, "z_max": 10},
+            A.Crop: {
+                "y_min": 0,
+                "y_max": 10,
+                "x_min": 0,
+                "x_max": 10,
+                "z_min": 0,
+                "z_max": 10,
+            },
             A.CenterCrop: {"height": 10, "width": 10, "depth": 10},
             A.RandomCrop: {"height": 10, "width": 10, "depth": 10},
-            A.RandomSizedCrop: {"min_max_height": (4, 8), "height": 10, "width": 10, "depth": 10},
+            A.RandomSizedCrop: {
+                "min_max_height": (4, 8),
+                "height": 10,
+                "width": 10,
+                "depth": 10,
+            },
             A.CropAndPad: {"px": 10},
-            A.Resize: {"height": 10, "width": 10, "depth":10},
+            A.Resize: {"height": 10, "width": 10, "depth": 10},
             A.RandomSizedBBoxSafeCrop: {"height": 10, "width": 10, "depth": 10},
             A.BBoxSafeRandomCrop: {"erosion_rate": 0.6},
-            A.PadIfNeeded : {"min_height": 100, "min_width": 100, "min_depth": 100},
-            A.LongestMaxSize : {"max_size" : 50},
-            A.SmallestMaxSize : {"max_size" : 50},
+            A.PadIfNeeded: {"min_height": 100, "min_width": 100, "min_depth": 100},
+            A.LongestMaxSize: {"max_size": 50},
+            A.SmallestMaxSize: {"max_size": 50},
         },
         except_augmentations={
             A.RandomCropNearBBox,
@@ -488,14 +524,26 @@ def test_augmentations_for_bboxes_serialization(
     ["augmentation_cls", "params"],
     get_transforms(
         custom_arguments={
-            A.Crop: {"y_min": 0, "y_max": 10, "x_min": 0, "x_max": 10, "z_min": 0, "z_max": 10},
+            A.Crop: {
+                "y_min": 0,
+                "y_max": 10,
+                "x_min": 0,
+                "x_max": 10,
+                "z_min": 0,
+                "z_max": 10,
+            },
             A.CenterCrop: {"height": 10, "width": 10, "depth": 10},
             A.RandomCrop: {"height": 10, "width": 10, "depth": 10},
-            A.RandomSizedCrop: {"min_max_height": (4, 8), "height": 10, "width": 10, "depth": 10},
+            A.RandomSizedCrop: {
+                "min_max_height": (4, 8),
+                "height": 10,
+                "width": 10,
+                "depth": 10,
+            },
             A.CropAndPad: {"px": 10},
-            A.Resize: {"height": 10, "width": 10, "depth":10},
-            A.LongestMaxSize : {"max_size" : 50},
-            A.SmallestMaxSize : {"max_size" : 50},
+            A.Resize: {"height": 10, "width": 10, "depth": 10},
+            A.LongestMaxSize: {"max_size": 50},
+            A.SmallestMaxSize: {"max_size": 50},
         },
         except_augmentations={
             A.RandomCropNearBBox,
@@ -526,7 +574,9 @@ def test_augmentations_for_bboxes_serialization(
 @pytest.mark.parametrize("p", [0.5, 1])
 @pytest.mark.parametrize("seed", TEST_SEEDS)
 @pytest.mark.parametrize("always_apply", (False, True))
-def test_augmentations_for_keypoints_serialization(augmentation_cls, params, p, seed, image, keypoints, always_apply):
+def test_augmentations_for_keypoints_serialization(
+    augmentation_cls, params, p, seed, image, keypoints, always_apply
+):
     aug = augmentation_cls(p=p, always_apply=always_apply, **params)
     serialized_aug = A.to_dict(aug)
     deserialized_aug = A.from_dict(serialized_aug)
@@ -582,7 +632,13 @@ def test_transform_pipeline_serialization(seed, image, mask):
                 A.Compose(
                     [
                         A.Resize(128, 128, 128),
-                        A.RandomSizedCrop(min_max_height=(32, 64), height=128, width=128, depth=128, p=1),
+                        A.RandomSizedCrop(
+                            min_max_height=(32, 64),
+                            height=128,
+                            width=128,
+                            depth=128,
+                            p=1,
+                        ),
                         A.OneOf(
                             [
                                 A.RandomSizedCrop(
@@ -605,8 +661,14 @@ def test_transform_pipeline_serialization(seed, image, mask):
                 ),
                 A.Compose(
                     [
-                        A.Resize(100,100,100),
-                        A.RandomSizedCrop(min_max_height=(32,64), height=100, width=100, depth=100, p=1),
+                        A.Resize(100, 100, 100),
+                        A.RandomSizedCrop(
+                            min_max_height=(32, 64),
+                            height=100,
+                            width=100,
+                            depth=100,
+                            p=1,
+                        ),
                     ]
                 ),
             ),
@@ -643,12 +705,13 @@ def test_transform_pipeline_serialization(seed, image, mask):
     ],
 )
 @pytest.mark.parametrize("seed", TEST_SEEDS)
-def test_transform_pipeline_serialization_with_bboxes(seed, image, bboxes, bbox_format, labels):
-
+def test_transform_pipeline_serialization_with_bboxes(
+    seed, image, bboxes, bbox_format, labels
+):
     if labels is None:
-        bbox_params={"format": bbox_format}
+        bbox_params = {"format": bbox_format}
     else:
-        bbox_params={"format": bbox_format, "label_fields": ["labels"]}
+        bbox_params = {"format": bbox_format, "label_fields": ["labels"]}
 
     aug = A.Compose(
         [
@@ -679,9 +742,17 @@ def test_transform_pipeline_serialization_with_bboxes(seed, image, bboxes, bbox_
     serialized_aug = A.to_dict(aug)
     deserialized_aug = A.from_dict(serialized_aug)
     set_seed(seed)
-    aug_data = aug(image=image, bboxes=bboxes) if labels is None else aug(image=image, bboxes=bboxes, labels=labels)
+    aug_data = (
+        aug(image=image, bboxes=bboxes)
+        if labels is None
+        else aug(image=image, bboxes=bboxes, labels=labels)
+    )
     set_seed(seed)
-    deserialized_aug_data = deserialized_aug(image=image, bboxes=bboxes) if labels is None else deserialized_aug(image=image, bboxes=bboxes, labels=labels)
+    deserialized_aug_data = (
+        deserialized_aug(image=image, bboxes=bboxes)
+        if labels is None
+        else deserialized_aug(image=image, bboxes=bboxes, labels=labels)
+    )
     assert np.array_equal(aug_data["image"], deserialized_aug_data["image"])
     assert np.array_equal(aug_data["bboxes"], deserialized_aug_data["bboxes"])
 
@@ -690,13 +761,15 @@ def test_transform_pipeline_serialization_with_bboxes(seed, image, bboxes, bbox_
     ["keypoints", "keypoint_format", "labels"],
     [
         ([(20, 30, 40, 50, 60)], "xyzas", [1]),
-        ([(20, 30, 40, 50, 99), (10, 40, 30, 20, 9)], "xyz", [1,2]),
+        ([(20, 30, 40, 50, 99), (10, 40, 30, 20, 9)], "xyz", [1, 2]),
         ([(20, 30, 60, 80)], "zyx", [2]),
         ([(20, 30, 60, 80, 99)], "xyzs", [2]),
     ],
 )
 @pytest.mark.parametrize("seed", TEST_SEEDS)
-def test_transform_pipeline_serialization_with_keypoints(seed, image, keypoints, keypoint_format, labels):
+def test_transform_pipeline_serialization_with_keypoints(
+    seed, image, keypoints, keypoint_format, labels
+):
     aug = A.Compose(
         [
             A.OneOrOther(
@@ -729,7 +802,9 @@ def test_transform_pipeline_serialization_with_keypoints(seed, image, keypoints,
     set_seed(seed)
     aug_data = aug(image=image, keypoints=keypoints, labels=labels)
     set_seed(seed)
-    deserialized_aug_data = deserialized_aug(image=image, keypoints=keypoints, labels=labels)
+    deserialized_aug_data = deserialized_aug(
+        image=image, keypoints=keypoints, labels=labels
+    )
     assert np.array_equal(aug_data["image"], deserialized_aug_data["image"])
     assert np.array_equal(aug_data["keypoints"], deserialized_aug_data["keypoints"])
 
@@ -743,12 +818,14 @@ def test_transform_pipeline_serialization_with_keypoints(seed, image, keypoints,
             # A.PixelDistributionAdaptation,
             # A.TemplateTransform,
             A.RescaleSlopeIntercept,
-            A.NPSNoise
+            A.NPSNoise,
         },
     ),
 )
 @pytest.mark.parametrize("seed", TEST_SEEDS)
-def test_additional_targets_for_image_only_serialization(augmentation_cls, params, image, seed):
+def test_additional_targets_for_image_only_serialization(
+    augmentation_cls, params, image, seed
+):
     aug = A.Compose(
         [augmentation_cls(always_apply=True, **params)],
         additional_targets={"image2": "image"},
@@ -860,7 +937,10 @@ def test_custom_transform_with_overlapping_name():
         pass
 
     assert SERIALIZABLE_REGISTRY["HorizontalFlip"] == A.HorizontalFlip
-    assert SERIALIZABLE_REGISTRY["tests.test_serialization.HorizontalFlip"] == HorizontalFlip
+    assert (
+        SERIALIZABLE_REGISTRY["tests.test_serialization.HorizontalFlip"]
+        == HorizontalFlip
+    )
 
 
 def test_serialization_v2_to_dict():
@@ -869,7 +949,9 @@ def test_serialization_v2_to_dict():
     assert transform_dict == {
         "__class_fullname__": "Compose",
         "p": 1.0,
-        "transforms": [{"__class_fullname__": "HorizontalFlip", "always_apply": False, "p": 0.5}],
+        "transforms": [
+            {"__class_fullname__": "HorizontalFlip", "always_apply": False, "p": 0.5}
+        ],
         "bbox_params": None,
         "keypoint_params": None,
         "additional_targets": {},

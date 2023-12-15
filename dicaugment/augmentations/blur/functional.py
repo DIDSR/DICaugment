@@ -19,53 +19,78 @@ __all__ = [
     "blur",
     "median_blur",
     "gaussian_blur",
-    #"glass_blur"
-    ]
+    # "glass_blur"
+]
 
 
 @preserve_shape
-def blur(img: np.ndarray, ksize: int, by_slice: bool = False, mode: str = 'constant', cval: Union[float,int] = 0) -> np.ndarray:
-
+def blur(
+    img: np.ndarray,
+    ksize: int,
+    by_slice: bool = False,
+    mode: str = "constant",
+    cval: Union[float, int] = 0,
+) -> np.ndarray:
     if by_slice:
-        kernel = np.ones((ksize,ksize,1), dtype = np.float32)
+        kernel = np.ones((ksize, ksize, 1), dtype=np.float32)
     else:
-        kernel = np.ones((ksize,)*3, dtype = np.float32)
+        kernel = np.ones((ksize,) * 3, dtype=np.float32)
     kernel /= np.sum(kernel)
-    
-    return convolve(img, kernel = kernel, mode = mode, cval = cval)
-    
+
+    return convolve(img, kernel=kernel, mode=mode, cval=cval)
 
 
 @preserve_shape
-def median_blur(img: np.ndarray, ksize: int, by_slice: bool = False, mode: str = 'constant', cval: Union[float,int] = 0) -> np.ndarray:
-
+def median_blur(
+    img: np.ndarray,
+    ksize: int,
+    by_slice: bool = False,
+    mode: str = "constant",
+    cval: Union[float, int] = 0,
+) -> np.ndarray:
     if by_slice:
-        ksize = (ksize,ksize,1)
+        ksize = (ksize, ksize, 1)
 
-    blur_fn = _maybe_process_by_channel(ndimage.median_filter, size = ksize, mode = mode, cval = cval)
+    blur_fn = _maybe_process_by_channel(
+        ndimage.median_filter, size=ksize, mode=mode, cval=cval
+    )
     return blur_fn(img)
 
 
 @preserve_shape
-def gaussian_blur(img: np.ndarray, ksize: int, sigma: float = 0, by_slice: bool = False, mode: str = 'constant', cval: Union[float,int] = 0) -> np.ndarray:
+def gaussian_blur(
+    img: np.ndarray,
+    ksize: int,
+    sigma: float = 0,
+    by_slice: bool = False,
+    mode: str = "constant",
+    cval: Union[float, int] = 0,
+) -> np.ndarray:
     if ksize == 0:
         ksize = round(sigma * 8) + 1
-    
+
     if sigma == 0:
-        sigma = 0.3*((ksize-1)*0.5 - 1) + 0.8
+        sigma = 0.3 * ((ksize - 1) * 0.5 - 1) + 0.8
 
     if by_slice:
-        radius = ((ksize - 1)//2, (ksize - 1)//2, 0)
+        radius = ((ksize - 1) // 2, (ksize - 1) // 2, 0)
     else:
-        radius = ((ksize - 1)//2,)*3
-    
-    blur_fn = _maybe_process_by_channel(ndimage.gaussian_filter, sigma=sigma, radius=radius, mode = mode, cval = cval)
+        radius = ((ksize - 1) // 2,) * 3
+
+    blur_fn = _maybe_process_by_channel(
+        ndimage.gaussian_filter, sigma=sigma, radius=radius, mode=mode, cval=cval
+    )
     return blur_fn(img)
 
 
 @preserve_shape
 def glass_blur(
-    img: np.ndarray, sigma: float, max_delta: int, iterations: int, dxy: np.ndarray, mode: str
+    img: np.ndarray,
+    sigma: float,
+    max_delta: int,
+    iterations: int,
+    dxy: np.ndarray,
+    mode: str,
 ) -> np.ndarray:
     x = cv2.GaussianBlur(np.array(img), sigmaX=sigma, ksize=(0, 0))
 
@@ -115,13 +140,17 @@ def central_zoom(img: np.ndarray, zoom_factor: int) -> np.ndarray:
     h_ch, w_ch = ceil(h / zoom_factor), ceil(w / zoom_factor)
     h_top, w_top = (h - h_ch) // 2, (w - w_ch) // 2
 
-    img = scale(img[h_top : h_top + h_ch, w_top : w_top + w_ch], zoom_factor, cv2.INTER_LINEAR)
+    img = scale(
+        img[h_top : h_top + h_ch, w_top : w_top + w_ch], zoom_factor, cv2.INTER_LINEAR
+    )
     h_trim_top, w_trim_top = (img.shape[0] - h) // 2, (img.shape[1] - w) // 2
     return img[h_trim_top : h_trim_top + h, w_trim_top : w_trim_top + w]
 
 
 @clipped
-def zoom_blur(img: np.ndarray, zoom_factors: Union[np.ndarray, Sequence[int]]) -> np.ndarray:
+def zoom_blur(
+    img: np.ndarray, zoom_factors: Union[np.ndarray, Sequence[int]]
+) -> np.ndarray:
     out = np.zeros_like(img, dtype=np.float32)
     for zoom_factor in zoom_factors:
         out += central_zoom(img, zoom_factor)

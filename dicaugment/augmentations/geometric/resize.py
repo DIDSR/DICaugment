@@ -11,7 +11,7 @@ from ...core.transforms_interface import (
     DualTransform,
     KeypointInternalType,
     to_tuple,
-    INTER_LINEAR
+    INTER_LINEAR,
 )
 from . import functional as F
 from ..dicom import functional as Fdicom
@@ -37,7 +37,13 @@ class RandomScale(DualTransform):
         uint8, uint16, int16, float32
     """
 
-    def __init__(self, scale_limit: float = 0.1, interpolation: int = INTER_LINEAR, always_apply=False, p=0.5):
+    def __init__(
+        self,
+        scale_limit: float = 0.1,
+        interpolation: int = INTER_LINEAR,
+        always_apply=False,
+        p=0.5,
+    ):
         super(RandomScale, self).__init__(always_apply, p)
         self.scale_limit = to_tuple(scale_limit, bias=1.0)
         self.interpolation = interpolation
@@ -54,12 +60,15 @@ class RandomScale(DualTransform):
 
     def apply_to_keypoint(self, keypoint, scale=1, **params):
         return F.keypoint_scale(keypoint, scale, scale, scale)
-    
-    def apply_to_dicom(self, dicom: DicomType, scale = 1, **params) -> DicomType:
+
+    def apply_to_dicom(self, dicom: DicomType, scale=1, **params) -> DicomType:
         return Fdicom.dicom_scale(dicom, scale, scale)
 
     def get_transform_init_args(self):
-        return {"interpolation": self.interpolation, "scale_limit": to_tuple(self.scale_limit, bias=-1.0)}
+        return {
+            "interpolation": self.interpolation,
+            "scale_limit": to_tuple(self.scale_limit, bias=-1.0),
+        }
 
 
 class LongestMaxSize(DualTransform):
@@ -90,7 +99,11 @@ class LongestMaxSize(DualTransform):
         self.max_size = max_size
 
     def apply(
-        self, img: np.ndarray, max_size: int = 1024, interpolation: int = INTER_LINEAR, **params
+        self,
+        img: np.ndarray,
+        max_size: int = 1024,
+        interpolation: int = INTER_LINEAR,
+        **params
     ) -> np.ndarray:
         return F.longest_max_size(img, max_size=max_size, interpolation=interpolation)
 
@@ -98,15 +111,19 @@ class LongestMaxSize(DualTransform):
         # Bounding box coordinates are scale invariant
         return bbox
 
-    def apply_to_keypoint(self, keypoint: KeypointInternalType, max_size: int = 1024, **params) -> KeypointInternalType:
+    def apply_to_keypoint(
+        self, keypoint: KeypointInternalType, max_size: int = 1024, **params
+    ) -> KeypointInternalType:
         height = params["rows"]
         width = params["cols"]
         depth = params["slices"]
 
         scale = max_size / max([height, width, depth])
         return F.keypoint_scale(keypoint, scale, scale, scale)
-    
-    def apply_to_dicom(self, dicom: DicomType, max_size: int = 1024, **params) -> DicomType:
+
+    def apply_to_dicom(
+        self, dicom: DicomType, max_size: int = 1024, **params
+    ) -> DicomType:
         height = params["rows"]
         width = params["cols"]
         depth = params["slices"]
@@ -114,7 +131,11 @@ class LongestMaxSize(DualTransform):
         return Fdicom.dicom_scale(dicom, scale, scale)
 
     def get_params(self) -> Dict[str, int]:
-        return {"max_size": self.max_size if isinstance(self.max_size, int) else random.choice(self.max_size)}
+        return {
+            "max_size": self.max_size
+            if isinstance(self.max_size, int)
+            else random.choice(self.max_size)
+        }
 
     def get_transform_init_args_names(self) -> Tuple[str, ...]:
         return ("max_size", "interpolation")
@@ -148,22 +169,30 @@ class SmallestMaxSize(DualTransform):
         self.max_size = max_size
 
     def apply(
-        self, img: np.ndarray, max_size: int = 1024, interpolation: int = cv2.INTER_LINEAR, **params
+        self,
+        img: np.ndarray,
+        max_size: int = 1024,
+        interpolation: int = cv2.INTER_LINEAR,
+        **params
     ) -> np.ndarray:
         return F.smallest_max_size(img, max_size=max_size, interpolation=interpolation)
 
     def apply_to_bbox(self, bbox: BoxInternalType, **params) -> BoxInternalType:
         return bbox
 
-    def apply_to_keypoint(self, keypoint: KeypointInternalType, max_size: int = 1024, **params) -> KeypointInternalType:
+    def apply_to_keypoint(
+        self, keypoint: KeypointInternalType, max_size: int = 1024, **params
+    ) -> KeypointInternalType:
         height = params["rows"]
         width = params["cols"]
         depth = params["slices"]
 
         scale = max_size / min([height, width, depth])
         return F.keypoint_scale(keypoint, scale, scale, scale)
-    
-    def apply_to_dicom(self, dicom: DicomType, max_size: int = 1024, **params) -> DicomType:
+
+    def apply_to_dicom(
+        self, dicom: DicomType, max_size: int = 1024, **params
+    ) -> DicomType:
         height = params["rows"]
         width = params["cols"]
         depth = params["slices"]
@@ -171,7 +200,11 @@ class SmallestMaxSize(DualTransform):
         return Fdicom.dicom_scale(dicom, scale, scale)
 
     def get_params(self) -> Dict[str, Any]:
-        return {"max_size": self.max_size if isinstance(self.max_size, int) else random.choice(self.max_size)}
+        return {
+            "max_size": self.max_size
+            if isinstance(self.max_size, int)
+            else random.choice(self.max_size)
+        }
 
     def get_transform_init_args_names(self) -> Tuple[str, ...]:
         return ("max_size", "interpolation")
@@ -194,20 +227,36 @@ class Resize(DualTransform):
         uint8, uint16, int16, float32
     """
 
-    def __init__(self, height: int, width: int, depth: int, interpolation: int = INTER_LINEAR, always_apply=False, p=1):
+    def __init__(
+        self,
+        height: int,
+        width: int,
+        depth: int,
+        interpolation: int = INTER_LINEAR,
+        always_apply=False,
+        p=1,
+    ):
         super(Resize, self).__init__(always_apply, p)
         self.height = height
         self.width = width
         self.depth = depth
         self.interpolation = interpolation
 
-    def apply(self, img: np.ndarray, interpolation: int = INTER_LINEAR, **params) -> np.ndarray:
-        return F.resize(img, height=self.height, width=self.width, depth=self.depth, interpolation=interpolation)
+    def apply(
+        self, img: np.ndarray, interpolation: int = INTER_LINEAR, **params
+    ) -> np.ndarray:
+        return F.resize(
+            img,
+            height=self.height,
+            width=self.width,
+            depth=self.depth,
+            interpolation=interpolation,
+        )
 
     def apply_to_bbox(self, bbox: BoxInternalType, **params) -> BoxInternalType:
         # Bounding box coordinates are scale invariant
         return bbox
-    
+
     def apply_to_dicom(self, dicom: DicomType, **params) -> DicomType:
         height = params["rows"]
         width = params["cols"]
@@ -215,8 +264,9 @@ class Resize(DualTransform):
         scale_y = self.height / height
         return Fdicom.dicom_scale(dicom, scale_x, scale_y)
 
-
-    def apply_to_keypoint(self, keypoint: KeypointInternalType, **params) -> KeypointInternalType:
+    def apply_to_keypoint(
+        self, keypoint: KeypointInternalType, **params
+    ) -> KeypointInternalType:
         height = params["rows"]
         width = params["cols"]
         depth = params["slices"]

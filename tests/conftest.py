@@ -27,7 +27,8 @@ except ImportError:
 #     not imgaug_available, reason="The test was skipped because imgaug is not installed"
 # )
 skipif_no_torch = pytest.mark.skipif(
-    not torch_available, reason="The test was skipped because PyTorch and torchvision are not installed"
+    not torch_available,
+    reason="The test was skipped because PyTorch and torchvision are not installed",
 )
 
 
@@ -35,6 +36,7 @@ skipif_no_torch = pytest.mark.skipif(
 #     for item in items:
 #         if item.get_marker('timeout') is None:
 #             item.add_marker(pytest.mark.timeout(3))
+
 
 def pytest_ignore_collect(path):
     if not torch_available and path.fnmatch("test_pytorch.py"):
@@ -69,7 +71,10 @@ def bboxes():
 
 @pytest.fixture
 def dicaugment_bboxes():
-    return [[0.15, 0.12, .20, 0.75, 0.30, 0.40, 1], [0.55, 0.25, 0.50, 0.90, 0.90, 0.8, 2]]
+    return [
+        [0.15, 0.12, 0.20, 0.75, 0.30, 0.40, 1],
+        [0.55, 0.25, 0.50, 0.90, 0.90, 0.8, 2],
+    ]
 
 
 @pytest.fixture

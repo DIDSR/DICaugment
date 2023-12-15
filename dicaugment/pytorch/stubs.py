@@ -1,10 +1,7 @@
-
-__all__ = [
-    "ToPytorch"
-]
+__all__ = ["ToPytorch"]
 
 
-class ToPytorch():
+class ToPytorch:
     """
     Raises Error because torch is not installed
     """
@@ -18,4 +15,4 @@ class ToPytorch():
             "`pip install torch torchvision torchaudio`\n"
             "or by installing a version of DICaugment that contains torch by running "
             "`pip install dicaugment[torch]`"
-            )
+        )

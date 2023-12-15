@@ -12,7 +12,10 @@ import dicaugment
 def convert_3d_to_4d(arrays, num_channels=3):
     # Converts a 2D numpy array with shape (H, W) into a 3D array with shape (H, W, num_channels)
     # by repeating the existing values along the new axis.
-    arrays = tuple(np.repeat(array[..., np.newaxis], repeats=num_channels, axis=3) for array in arrays)
+    arrays = tuple(
+        np.repeat(array[..., np.newaxis], repeats=num_channels, axis=3)
+        for array in arrays
+    )
     if len(arrays) == 1:
         return arrays[0]
     return arrays
@@ -74,13 +77,21 @@ def get_filtered_transforms(
     result = []
 
     for name, cls in inspect.getmembers(dicaugment):
-        if not inspect.isclass(cls) or not issubclass(cls, (dicaugment.BasicTransform, dicaugment.BaseCompose)):
+        if not inspect.isclass(cls) or not issubclass(
+            cls, (dicaugment.BasicTransform, dicaugment.BaseCompose)
+        ):
             continue
 
-        if "DeprecationWarning" in inspect.getsource(cls) or "FutureWarning" in inspect.getsource(cls):
+        if "DeprecationWarning" in inspect.getsource(
+            cls
+        ) or "FutureWarning" in inspect.getsource(cls):
             continue
 
-        if not issubclass(cls, base_classes) or any(cls == i for i in base_classes) or cls in except_augmentations:
+        if (
+            not issubclass(cls, base_classes)
+            or any(cls == i for i in base_classes)
+            or cls in except_augmentations
+        ):
             continue
 
         # try:
@@ -95,25 +106,43 @@ def get_filtered_transforms(
 
 
 def get_image_only_transforms(
-    custom_arguments: typing.Optional[typing.Dict[typing.Type[dicaugment.ImageOnlyTransform], dict]] = None,
-    except_augmentations: typing.Optional[typing.Set[typing.Type[dicaugment.ImageOnlyTransform]]] = None,
+    custom_arguments: typing.Optional[
+        typing.Dict[typing.Type[dicaugment.ImageOnlyTransform], dict]
+    ] = None,
+    except_augmentations: typing.Optional[
+        typing.Set[typing.Type[dicaugment.ImageOnlyTransform]]
+    ] = None,
 ) -> typing.List[typing.Tuple[typing.Type, dict]]:
-    return get_filtered_transforms((dicaugment.ImageOnlyTransform,), custom_arguments, except_augmentations)
+    return get_filtered_transforms(
+        (dicaugment.ImageOnlyTransform,), custom_arguments, except_augmentations
+    )
 
 
 def get_dual_transforms(
-    custom_arguments: typing.Optional[typing.Dict[typing.Type[dicaugment.DualTransform], dict]] = None,
-    except_augmentations: typing.Optional[typing.Set[typing.Type[dicaugment.DualTransform]]] = None,
+    custom_arguments: typing.Optional[
+        typing.Dict[typing.Type[dicaugment.DualTransform], dict]
+    ] = None,
+    except_augmentations: typing.Optional[
+        typing.Set[typing.Type[dicaugment.DualTransform]]
+    ] = None,
 ) -> typing.List[typing.Tuple[typing.Type, dict]]:
-    return get_filtered_transforms((dicaugment.DualTransform,), custom_arguments, except_augmentations)
+    return get_filtered_transforms(
+        (dicaugment.DualTransform,), custom_arguments, except_augmentations
+    )
 
 
 def get_transforms(
-    custom_arguments: typing.Optional[typing.Dict[typing.Type[dicaugment.BasicTransform], dict]] = None,
-    except_augmentations: typing.Optional[typing.Set[typing.Type[dicaugment.BasicTransform]]] = None,
+    custom_arguments: typing.Optional[
+        typing.Dict[typing.Type[dicaugment.BasicTransform], dict]
+    ] = None,
+    except_augmentations: typing.Optional[
+        typing.Set[typing.Type[dicaugment.BasicTransform]]
+    ] = None,
 ) -> typing.List[typing.Tuple[typing.Type, dict]]:
     return get_filtered_transforms(
-        (dicaugment.ImageOnlyTransform, dicaugment.DualTransform), custom_arguments, except_augmentations
+        (dicaugment.ImageOnlyTransform, dicaugment.DualTransform),
+        custom_arguments,
+        except_augmentations,
     )
 
 
@@ -131,6 +160,8 @@ def check_all_augs_exists(
             not_existed.append(cls.__name__)
 
     if not_existed:
-        raise ValueError(f"These augmentations do not exist in augmentations and except_augmentations: {not_existed}")
+        raise ValueError(
+            f"These augmentations do not exist in augmentations and except_augmentations: {not_existed}"
+        )
 
     return augmentations

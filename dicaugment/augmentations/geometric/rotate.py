@@ -12,7 +12,7 @@ from ...core.transforms_interface import (
     KeypointInternalType,
     to_tuple,
     INTER_LINEAR,
-    INTER_NEAREST
+    INTER_NEAREST,
 )
 from ..crops import functional as FCrops
 from . import functional as F
@@ -20,8 +20,8 @@ from . import functional as F
 __all__ = [
     "Rotate",
     "RandomRotate90",
-    #"SafeRotate"
-    ]
+    # "SafeRotate"
+]
 
 
 class RandomRotate90(DualTransform):
@@ -39,6 +39,7 @@ class RandomRotate90(DualTransform):
     Image types:
         uint8, uint16, int16, float32
     """
+
     def __init__(
         self,
         axes: str = "xy",
@@ -48,40 +49,59 @@ class RandomRotate90(DualTransform):
         super(RandomRotate90, self).__init__(always_apply, p)
         if isinstance(axes, str):
             if axes not in {"xy", "yz", "xz"}:
-                raise ValueError("Parameter axes must be one of {'xy','yz','xz'} or a list of these elements")
-        elif isinstance(axes, Sequence) and len(set(axes).difference({"xy", "yz", "xz"})) != 0:
-            raise ValueError("Parameter axes contains one or more elements that are not allowed. Got {}".format(set(axes).difference({"xy", "yz", "xz"})))
-        
+                raise ValueError(
+                    "Parameter axes must be one of {'xy','yz','xz'} or a list of these elements"
+                )
+        elif (
+            isinstance(axes, Sequence)
+            and len(set(axes).difference({"xy", "yz", "xz"})) != 0
+        ):
+            raise ValueError(
+                "Parameter axes contains one or more elements that are not allowed. Got {}".format(
+                    set(axes).difference({"xy", "yz", "xz"})
+                )
+            )
+
         self.axes = axes
 
-    def apply(self, img: np.ndarray, factor: int = 0, axes: str = "xy", **params) -> np.ndarray:
+    def apply(
+        self, img: np.ndarray, factor: int = 0, axes: str = "xy", **params
+    ) -> np.ndarray:
         """
         Args:
             factor (int): number of times the input will be rotated by 90 degrees.
         """
 
-        return np.ascontiguousarray(np.rot90(img, factor, self.__str_axes_to_tuple[axes]))
+        return np.ascontiguousarray(
+            np.rot90(img, factor, self.__str_axes_to_tuple[axes])
+        )
 
     def get_params(self) -> Dict:
         # Random int in the range [0, 3]
         return {
             "factor": random.randint(0, 3),
-            "axes" : self.axes if isinstance(self.axes, str) else random.choice(self.axes)
-            }
+            "axes": self.axes
+            if isinstance(self.axes, str)
+            else random.choice(self.axes),
+        }
 
-    def apply_to_bbox(self, bbox: BoxInternalType, factor: int = 0, axes: str = "xy", **params) -> BoxInternalType:
+    def apply_to_bbox(
+        self, bbox: BoxInternalType, factor: int = 0, axes: str = "xy", **params
+    ) -> BoxInternalType:
         return F.bbox_rot90(bbox, factor, axes, **params)
 
-    def apply_to_keypoint(self, keypoint: KeypointInternalType, factor: int = 0, axes: str = "xy", **params) -> KeypointInternalType:
+    def apply_to_keypoint(
+        self,
+        keypoint: KeypointInternalType,
+        factor: int = 0,
+        axes: str = "xy",
+        **params,
+    ) -> KeypointInternalType:
         return F.keypoint_rot90(keypoint, factor, axes, **params)
-    
+
     @property
     def __str_axes_to_tuple(self) -> Dict:
-        return {
-            "xy" : (0,1),
-            "yz" : (0,2),
-            "xz" : (1,2)
-        }
+        return {"xy": (0, 1), "yz": (0, 2), "xz": (1, 2)}
 
     def get_transform_init_args_names(self) -> Tuple[str, ...]:
         return ("axes",)
@@ -106,7 +126,7 @@ class Rotate(DualTransform):
             * `wrap` (a b c d | a b c d | a b c d): The input is extended by wrapping around to the opposite edge.
 
             Reference: https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.median_filter.html
-            
+
             Default: `constant`
         value (int or float): The fill value when border_mode = `constant`. Default: 0.
         mask_value (int, float, list of ints, list of float): The fill value when border_mode = `constant` applied for masks. Default: 0.
@@ -115,7 +135,7 @@ class Rotate(DualTransform):
         crop_to_border (bool): If True, then the image is cropped to fit the entire rotation. If False, then original image shape is
             maintained and some portions of the image may be cropped away. Default: False
         p (float): probability of applying the transform. Default: 0.5.
-        
+
     Targets:
         image, mask, bboxes, keypoints
 
@@ -129,12 +149,12 @@ class Rotate(DualTransform):
         axes: str = "xy",
         interpolation: int = INTER_LINEAR,
         border_mode: str = "constant",
-        value: Union[int,float] = 0,
-        mask_value: Union[int,float] = 0,
+        value: Union[int, float] = 0,
+        mask_value: Union[int, float] = 0,
         rotate_method: str = "largest_box",
         crop_to_border: bool = False,
-        always_apply = False,
-        p = 0.5,
+        always_apply=False,
+        p=0.5,
     ):
         super(Rotate, self).__init__(always_apply, p)
         self.limit = to_tuple(limit)
@@ -148,13 +168,24 @@ class Rotate(DualTransform):
 
         if isinstance(axes, str):
             if axes not in {"xy", "yz", "xz"}:
-                raise ValueError("Parameter axes must be one of {'xy','yz','xz'} or a list of these elements")
-        elif isinstance(axes, Sequence) and len(set(axes).difference({"xy", "yz", "xz"})) != 0:
-            raise ValueError("Parameter axes contains one or more elements that are not allowed. Got {}".format(set(axes).difference({"xy", "yz", "xz"})))
+                raise ValueError(
+                    "Parameter axes must be one of {'xy','yz','xz'} or a list of these elements"
+                )
+        elif (
+            isinstance(axes, Sequence)
+            and len(set(axes).difference({"xy", "yz", "xz"})) != 0
+        ):
+            raise ValueError(
+                "Parameter axes contains one or more elements that are not allowed. Got {}".format(
+                    set(axes).difference({"xy", "yz", "xz"})
+                )
+            )
         if rotate_method not in ["largest_box", "ellipse"]:
             raise ValueError(f"Rotation method {self.rotate_method} is not valid.")
 
-    def apply(self, img: np.ndarray, angle: float = 0, axes: str = "xy", **params) -> np.ndarray:
+    def apply(
+        self, img: np.ndarray, angle: float = 0, axes: str = "xy", **params
+    ) -> np.ndarray:
         return F.rotate(
             img,
             angle=angle,
@@ -162,10 +193,12 @@ class Rotate(DualTransform):
             crop_to_border=self.crop_to_border,
             interpolation=self.interpolation,
             border_mode=self.border_mode,
-            value=self.value
-            )
-    
-    def apply_to_mask(self, img: np.ndarray, angle: float = 0, axes: str = "xy", **params) -> np.ndarray:
+            value=self.value,
+        )
+
+    def apply_to_mask(
+        self, img: np.ndarray, angle: float = 0, axes: str = "xy", **params
+    ) -> np.ndarray:
         return F.rotate(
             img,
             angle=angle,
@@ -173,11 +206,19 @@ class Rotate(DualTransform):
             crop_to_border=self.crop_to_border,
             interpolation=INTER_NEAREST,
             border_mode=self.border_mode,
-            value=self.mask_value
-            )
-        
+            value=self.mask_value,
+        )
 
-    def apply_to_bbox(self, bbox: BoxInternalType, angle: float = 0, axes: str = "xy", cols: int = 0, rows: int = 0, slices: int = 0, **params) -> BoxInternalType:
+    def apply_to_bbox(
+        self,
+        bbox: BoxInternalType,
+        angle: float = 0,
+        axes: str = "xy",
+        cols: int = 0,
+        rows: int = 0,
+        slices: int = 0,
+        **params,
+    ) -> BoxInternalType:
         return F.bbox_rotate(
             bbox=bbox,
             angle=angle,
@@ -186,7 +227,7 @@ class Rotate(DualTransform):
             crop_to_border=self.crop_to_border,
             rows=rows,
             cols=cols,
-            slices=slices
+            slices=slices,
         )
 
         # bbox_rotate(bbox: BoxInternalType, angle: float, method: str, axes: str, crop_to_border: bool, rows: int, cols: int, slices: int
@@ -195,16 +236,24 @@ class Rotate(DualTransform):
         #     bbox_out = FCrops.bbox_crop(bbox_out, x_min, y_min, x_max, y_max, rows, cols)
         # return bbox_out
 
-    def apply_to_keypoint(self, keypoint: KeypointInternalType, angle: float = 0,  axes: str = "xy", cols: int = 0, rows: int = 0, slices: int = 0, **params) -> KeypointInternalType:
-        
+    def apply_to_keypoint(
+        self,
+        keypoint: KeypointInternalType,
+        angle: float = 0,
+        axes: str = "xy",
+        cols: int = 0,
+        rows: int = 0,
+        slices: int = 0,
+        **params,
+    ) -> KeypointInternalType:
         return F.keypoint_rotate(
-            keypoint = keypoint,
+            keypoint=keypoint,
             angle=angle,
             axes=axes,
             crop_to_border=self.crop_to_border,
             rows=rows,
             cols=cols,
-            slices=slices
+            slices=slices,
         )
         # raise NotImplementedError()
         # keypoint_out = F.keypoint_rotate(keypoint, angle, rows, cols, **params)
@@ -253,15 +302,26 @@ class Rotate(DualTransform):
     def get_params_dependent_on_targets(self, params: Dict[str, Any]) -> Dict[str, Any]:
         return {
             "angle": random.uniform(self.limit[0], self.limit[1]),
-            "axes" : self.axes if isinstance(self.axes, str) else random.choice(self.axes)
-            }
+            "axes": self.axes
+            if isinstance(self.axes, str)
+            else random.choice(self.axes),
+        }
         # if self.crop_border:
         #     h, w = params["image"].shape[:2]
         #     out_params.update(self._rotated_rect_with_max_area(h, w, out_params["angle"]))
         # return out_params
 
     def get_transform_init_args_names(self) -> Tuple[str, ...]:
-        return ("limit", "interpolation", "axes", "border_mode", "value", "mask_value", "rotate_method", "crop_to_border")
+        return (
+            "limit",
+            "interpolation",
+            "axes",
+            "border_mode",
+            "value",
+            "mask_value",
+            "rotate_method",
+            "crop_to_border",
+        )
 
 
 # class SafeRotate(DualTransform):

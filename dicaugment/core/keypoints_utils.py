@@ -41,7 +41,7 @@ class KeypointParams(Params):
             s - Keypoint scale
 
             a - Keypoint planar orientation in radians or degrees (depending on KeypointParams.angle_in_degrees)
-        
+
         label_fields (list): list of fields that are joined with keypoints, e.g labels.
             Should be same type as keypoints.
         remove_invisible (bool): to remove invisible points after transform or not
@@ -84,7 +84,11 @@ class KeypointParams(Params):
 
 
 class KeypointsProcessor(DataProcessor):
-    def __init__(self, params: KeypointParams, additional_targets: Optional[Dict[str, str]] = None):
+    def __init__(
+        self,
+        params: KeypointParams,
+        additional_targets: Optional[Dict[str, str]] = None,
+    ):
         super().__init__(params, additional_targets)
 
     @property
@@ -120,14 +124,22 @@ class KeypointsProcessor(DataProcessor):
     #                 )
     #                 break
 
-    def filter(self, data: Sequence[Sequence], rows: int, cols: int, slices: int) -> Sequence[Sequence]:
+    def filter(
+        self, data: Sequence[Sequence], rows: int, cols: int, slices: int
+    ) -> Sequence[Sequence]:
         self.params: KeypointParams
-        return filter_keypoints(data, rows, cols, slices, remove_invisible=self.params.remove_invisible)
+        return filter_keypoints(
+            data, rows, cols, slices, remove_invisible=self.params.remove_invisible
+        )
 
-    def check(self, data: Sequence[Sequence], rows: int, cols: int, slices: int) -> None:
+    def check(
+        self, data: Sequence[Sequence], rows: int, cols: int, slices: int
+    ) -> None:
         check_keypoints(data, rows, cols, slices)
 
-    def convert_from_dicaugment(self, data: Sequence[Sequence], rows: int, cols: int, slices: int) -> List[Tuple]:
+    def convert_from_dicaugment(
+        self, data: Sequence[Sequence], rows: int, cols: int, slices: int
+    ) -> List[Tuple]:
         params = self.params
         return convert_keypoints_from_dicaugment(
             data,
@@ -139,7 +151,9 @@ class KeypointsProcessor(DataProcessor):
             angle_in_degrees=params.angle_in_degrees,
         )
 
-    def convert_to_dicaugment(self, data: Sequence[Sequence], rows: int, cols: int, slices:int) -> List[Tuple]:
+    def convert_to_dicaugment(
+        self, data: Sequence[Sequence], rows: int, cols: int, slices: int
+    ) -> List[Tuple]:
         params = self.params
         return convert_keypoints_to_dicaugment(
             data,
@@ -158,21 +172,35 @@ def check_keypoint(kp: Sequence, rows: int, cols: int, slices: int) -> None:
         if not 0 <= value < size:
             raise ValueError(
                 "Expected {name} for keypoint {kp} "
-                "to be in the range [0.0, {size}], got {value}.".format(kp=kp, name=name, value=value, size=size)
+                "to be in the range [0.0, {size}], got {value}.".format(
+                    kp=kp, name=name, value=value, size=size
+                )
             )
 
     angle = kp[3]
     if not (0 <= angle < 2 * math.pi):
-        raise ValueError("Keypoint angle must be in range [0, 2 * PI). Got: {angle}".format(angle=angle))
+        raise ValueError(
+            "Keypoint angle must be in range [0, 2 * PI). Got: {angle}".format(
+                angle=angle
+            )
+        )
 
 
-def check_keypoints(keypoints: Sequence[Sequence], rows: int, cols: int, slices: int) -> None:
+def check_keypoints(
+    keypoints: Sequence[Sequence], rows: int, cols: int, slices: int
+) -> None:
     """Check if keypoints boundaries are less than image shapes"""
     for kp in keypoints:
         check_keypoint(kp, rows, cols, slices)
 
 
-def filter_keypoints(keypoints: Sequence[Sequence], rows: int, cols: int, slices: int, remove_invisible: bool) -> Sequence[Sequence]:
+def filter_keypoints(
+    keypoints: Sequence[Sequence],
+    rows: int,
+    cols: int,
+    slices: int,
+    remove_invisible: bool,
+) -> Sequence[Sequence]:
     if not remove_invisible:
         return keypoints
 
@@ -199,7 +227,11 @@ def convert_keypoint_to_dicaugment(
     angle_in_degrees: bool = True,
 ) -> Tuple:
     if source_format not in keypoint_formats:
-        raise ValueError("Unknown target_format {}. Supported formats are: {}".format(source_format, keypoint_formats))
+        raise ValueError(
+            "Unknown target_format {}. Supported formats are: {}".format(
+                source_format, keypoint_formats
+            )
+        )
 
     if source_format == "xyz":
         (x, y, z), tail = keypoint[:3], tuple(keypoint[3:])
@@ -239,7 +271,11 @@ def convert_keypoint_from_dicaugment(
     angle_in_degrees: bool = True,
 ) -> Tuple:
     if target_format not in keypoint_formats:
-        raise ValueError("Unknown target_format {}. Supported formats are: {}".format(target_format, keypoint_formats))
+        raise ValueError(
+            "Unknown target_format {}. Supported formats are: {}".format(
+                target_format, keypoint_formats
+            )
+        )
 
     (x, y, z, angle, scale), tail = keypoint[:5], tuple(keypoint[5:])
     angle = angle_to_2pi_range(angle)
@@ -277,7 +313,9 @@ def convert_keypoints_to_dicaugment(
     angle_in_degrees: bool = True,
 ) -> List[Tuple]:
     return [
-        convert_keypoint_to_dicaugment(kp, source_format, rows, cols, slices, check_validity, angle_in_degrees)
+        convert_keypoint_to_dicaugment(
+            kp, source_format, rows, cols, slices, check_validity, angle_in_degrees
+        )
         for kp in keypoints
     ]
 
@@ -292,6 +330,8 @@ def convert_keypoints_from_dicaugment(
     angle_in_degrees: bool = True,
 ) -> List[Tuple]:
     return [
-        convert_keypoint_from_dicaugment(kp, target_format, rows, cols, slices, check_validity, angle_in_degrees)
+        convert_keypoint_from_dicaugment(
+            kp, target_format, rows, cols, slices, check_validity, angle_in_degrees
+        )
         for kp in keypoints
     ]
