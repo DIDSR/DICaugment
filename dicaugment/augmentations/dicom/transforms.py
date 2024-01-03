@@ -28,7 +28,8 @@ class RescaleSlopeIntercept(ImageOnlyTransform):
     This will return the image with data type `np.int16`.
 
     Args:
-        None
+        always_apply (bool): whether to always apply the transformation. Default: False
+        p (float): probability of applying the transform. Default: 1.
 
     Targets:
         image, dicom
@@ -82,6 +83,7 @@ class SetPixelSpacing(DualTransform):
         space_x (float): desired pixel spacing in the width dimension.  Default: 1.0
         space_y (float): desired pixel spacing in the height dimension. Default: 1.0
         interpolation (int): scipy interpolation method (e.g. dicaugment.INTER_NEAREST). Default: dicaugment.INTER_LINEAR
+        always_apply (bool): whether to always apply the transformation. Default: False
         p (float): probability of applying the transform. Default: 1.
 
     Targets:
@@ -184,6 +186,7 @@ class NPSNoise(ImageOnlyTransform):
         magnitude ((int, int) or int): scaling magnitude range of noise. If magnitude is a single integer value, the
             range will be (1, magnitude). Default: (50, 150).
         sample_tube_current (bool): If True, then magnitude is ignored and the magnitude is sampled from the range (0, 500 - `(0018,1151) X-Ray Tube Current`)
+        always_apply (bool): whether to always apply the transformation. Default: False
         p (float): probability of applying the transform. Default: 1.
 
     Targets:

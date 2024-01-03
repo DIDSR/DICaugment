@@ -28,6 +28,7 @@ class RandomScale(DualTransform):
             If scale_limit is a tuple, like (low, high), sampling will be done from the range (1 + low, 1 + high).
             Default: (-0.1, 0.1).
         interpolation (int): scipy interpolation method (e.g. dicaugment.INTER_NEAREST). Default: dicaugment.INTER_LINEAR
+        always_apply (bool): whether to always apply the transformation. Default: False
         p (float): probability of applying the transform. Default: 0.5.
 
     Targets:
@@ -78,6 +79,7 @@ class LongestMaxSize(DualTransform):
         max_size (int, list of int): maximum size of the image after the transformation. When using a list, max size
             will be randomly selected from the values in the list.
         interpolation (int): scipy interpolation method (e.g. dicaugment.INTER_NEAREST). Default: dicaugment.INTER_LINEAR
+        always_apply (bool): whether to always apply the transformation. Default: False
         p (float): probability of applying the transform. Default: 1.
 
     Targets:
@@ -148,6 +150,7 @@ class SmallestMaxSize(DualTransform):
         max_size (int, list of int): maximum size of smallest side of the image after the transformation. When using a
             list, max size will be randomly selected from the values in the list.
         interpolation (int): scipy interpolation method (e.g. dicaugment.INTER_NEAREST). Default: dicaugment.INTER_LINEAR
+        always_apply (bool): whether to always apply the transformation. Default: False
         p (float): probability of applying the transform. Default: 1.
 
     Targets:
@@ -218,6 +221,7 @@ class Resize(DualTransform):
         width (int): desired width of the output.
         depth (int): desired depth of the output.
         interpolation (int): scipy interpolation method (e.g. dicaugment.INTER_NEAREST). Default: dicaugment.INTER_LINEAR
+        always_apply (bool): whether to always apply the transformation. Default: False
         p (float): probability of applying the transform. Default: 1.
 
     Targets:

@@ -34,6 +34,8 @@ class CoarseDropout(DualTransform):
         fill_value (int, float, list of int, list of float): value for dropped pixels.
         mask_fill_value (int, float, list of int, list of float): fill value for dropped pixels
             in mask. If `None` - mask is not affected. Default: `None`.
+        always_apply (bool): whether to always apply the transformation. Default: False
+        p (float): probability of applying the transform. Default: 0.5.
 
     Targets:
         image, mask, keypoints

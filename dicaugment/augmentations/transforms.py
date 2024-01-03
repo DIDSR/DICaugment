@@ -1064,6 +1064,7 @@ class Posterize(ImageOnlyTransform):
         num_bits ((int, int) or int, or list of ints [r, g, b], or list of ints [[r1, r2], [g1, g2], [b1, b2]]): number of high bits.
             If num_bits is a single value, the range will be [num_bits, num_bits].
             Must be in range [0, n] where n is the number of bits in the image dtype . Default: 8.
+        always_apply (bool): whether to always apply the transformation. Default: False
         p (float): probability of applying the transform. Default: 0.5.
 
     Targets:
@@ -1108,6 +1109,8 @@ class Equalize(ImageOnlyTransform):
             the mask are included in the analysis.
             Function signature must include `image` argument.
         mask_params (list of str): Params for mask function.
+        always_apply (bool): whether to always apply the transformation. Default: False
+        p (float): probability of applying the transform. Default: 0.5.
 
     Targets:
         image
@@ -1206,7 +1209,7 @@ class RandomBrightnessContrast(ImageOnlyTransform):
             If limit is a single float, the range will be (-limit, limit). Default: (-0.2, 0.2).
         contrast_limit ((float, float) or float): factor range for changing contrast.
             If limit is a single float, the range will be (-limit, limit). Default: (-0.2, 0.2).
-
+        always_apply (bool): whether to always apply the transformation. Default: False
         p (float): probability of applying the transform. Default: 0.5.
 
     Targets:
@@ -1256,7 +1259,7 @@ class GaussNoise(ImageOnlyTransform):
         apply_to_channel_idx (int, None): If not None, then only only noise is applied on the specified channel index. Default: None
         per_channel (bool): if set to True, noise will be sampled for each channel independently.
             Otherwise, the noise will be sampled once for all channels. Ignored if apply_to_channel_idx is not None. Default: True
-
+        always_apply (bool): whether to always apply the transformation. Default: False
         p (float): probability of applying the transform. Default: 0.5.
 
     Targets:
@@ -1480,6 +1483,8 @@ class RandomGamma(ImageOnlyTransform):
     Args:
         gamma_limit (float or (float, float)): If gamma_limit is a single float value,
             the range will be (-gamma_limit, gamma_limit). Default: (80, 120).
+        always_apply (bool): whether to always apply the transformation. Default: False
+        p (float): probability of applying the transform. Default: 0.5.
 
     Targets:
         image
@@ -1599,6 +1604,7 @@ class ToFloat(ImageOnlyTransform):
     Args:
         min_value (float): minimum possible input value. Default: None.
         max_value (float): maximum possible input value. Default: None.
+        always_apply (bool): whether to always apply the transformation. Default: False
         p (float): probability of applying the transform. Default: 1.0.
 
     Targets:
@@ -1639,6 +1645,7 @@ class FromFloat(ImageOnlyTransform):
         max_value (float): maximum possible input value. Default: None.
         dtype (string or numpy data type): data type of the output. See the `'Data types' page from the NumPy docs`_.
             Default: 'int16'.
+        always_apply (bool): whether to always apply the transformation. Default: False
         p (float): probability of applying the transform. Default: 1.0.
 
     Targets:
@@ -1690,6 +1697,8 @@ class Downscale(ImageOnlyTransform):
             - `Interpolation` object: Downscale.Interpolation object with flags for both downscale and upscale.
 
             Default: `Interpolation(downscale=dicaugment.INTER_NEAREST, upscale=dicaugment.INTER_NEAREST)`
+        always_apply (bool): whether to always apply the transformation. Default: False
+        p (float): probability of applying the transform. Default: 0.5.
 
     Targets:
         image
@@ -2065,6 +2074,7 @@ class Sharpen(ImageOnlyTransform):
 
             Default: `constant`
         cval (int,float): The fill value when mode = `constant`. Default: 0
+        always_apply (bool): whether to always apply the transformation. Default: False
         p (float): probability of applying the transform. Default: 0.5.
 
     Targets:
@@ -2459,6 +2469,7 @@ class UnsharpMask(ImageOnlyTransform):
 
             Default: `constant`
         cval (int,float): The fill value when mode = `constant`. Default: 0
+        always_apply (bool): whether to always apply the transformation. Default: False
         p (float): probability of applying the transform. Default: 0.5.
 
     Reference:
@@ -2555,6 +2566,7 @@ class PixelDropout(DualTransform):
             Default: 0
         mask_drop_value (number or sequence of numbers or None): Value that will be set in dropped place in masks.
             If set to None masks will be unchanged. Default: 0
+        always_apply (bool): whether to always apply the transformation. Default: False
         p (float): probability of applying the transform. Default: 0.5.
 
     Targets:

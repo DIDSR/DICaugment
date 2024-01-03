@@ -50,7 +50,7 @@ import dicaugment as dca
 # Define the augmentation pipeline
 transform = dca.Compose([
     dca.Rotate(p=0.5, limit=20, interpolation=1),
-    dca.RandomCrop(p=0.5, size=(64, 64, 64))
+    dca.RandomCrop(p=0.5, height=64, width=64, depth=64)
 ])
 
 # Apply the augmentation pipeline to a CT scan

@@ -31,6 +31,7 @@ class RandomRotate90(DualTransform):
         axes (str, list of str): Defines the axis of rotation. Must be one of {'xy','yz','xz'} or a list of them.
             If a single str is passed, then all rotations will occur on that axis
             If a list is passed, then one axis of rotation will be chosen at random for each call of the transformation
+        always_apply (bool): whether to always apply the transformation. Default: False
         p (float): probability of applying the transform. Default: 0.5.
 
     Targets:
@@ -134,6 +135,7 @@ class Rotate(DualTransform):
             Default: "largest_box"
         crop_to_border (bool): If True, then the image is cropped to fit the entire rotation. If False, then original image shape is
             maintained and some portions of the image may be cropped away. Default: False
+        always_apply (bool): whether to always apply the transformation. Default: False
         p (float): probability of applying the transform. Default: 0.5.
 
     Targets:
