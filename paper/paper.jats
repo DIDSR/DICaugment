@@ -134,17 +134,36 @@ a Creative Commons Attribution 4.0 International License (CC BY
   are consistent with preexisting imaging data annotations available in
   the form of masks, bounding boxes, and keypoints.</p>
   <p>Considering the distinct geometric and operational factors inherent
-  to 3D images, DICaugment extends 2D transformations into 3 spatial
-  dimensions, allowing for a variety of transformations designed to
-  enhance the diversity of 3D image data. A subset of these
-  transformations includes blurring techniques, such as median blur and
-  Gaussian blur, that must utilize local spatial operations such as
-  convolution to achieve the desired output. Notably, DICaugment offers
-  a unique capability by allowing users to choose between a 2D by-slice
-  operation or a full 3D operation when applying different blurring
-  augmentations in a pipeline. This flexibility caters to a variety of
-  use cases and ensures that the blurring effects can be consistent
-  across an entire 3D volume.</p>
+  to 3D images, several toolkits have been developed to perform
+  transformations in the 3D space domain; SimpleITK
+  (<xref alt="Yaniv et al., 2017" rid="ref-Yaniv2017" ref-type="bibr">Yaniv
+  et al., 2017</xref>) provides a collection of spatial transformations,
+  including linear and deformable geometric transformations, as well as
+  intensity-based transformations such as linear, non-linear, and
+  histogram-based intensity adjustments. In addition to supporting
+  various medical imaging tasks, augmentation methods in packages such
+  as TorchIO
+  (<xref alt="Pérez-García et al., 2021" rid="ref-Pérez-García2021" ref-type="bibr">Pérez-García
+  et al., 2021</xref>) and MONAI
+  (<xref alt="Cardoso et al., 2022" rid="ref-cardoso2022monai" ref-type="bibr">Cardoso
+  et al., 2022</xref>) were designed to seamlessly integrate into
+  popular deep learning frameworks such as PyTorch, providing a
+  convenient interface for integration within deep learning pipelines.
+  Packages such as Volumentations were uniquely developed for the
+  purpose of augmenting 3D volumetric images, offering specialized
+  transformations for enriching 3D imaging datasets during the training
+  of deep neural networks.</p>
+  <p>DICaugment offers a variety of transformations including geometric
+  and intensity transformations, spatial distortions, and physics-based
+  augmentations designed to enhance the diversity of 3D image data. A
+  subset of these transformations includes blurring techniques, such as
+  median blur and Gaussian blur, that must utilize local spatial
+  operations such as convolution to achieve the desired output. Notably,
+  DICaugment offers a unique capability by allowing users to choose
+  between a 2D by-slice operation or a full 3D operation when applying
+  different blurring augmentations in a pipeline. This flexibility
+  caters to a variety of use cases and ensures that the blurring effects
+  can be consistent across an entire 3D volume.</p>
   <p>Additionally, DICaugment enables users to construct custom
   augmentation pipelines with control over each individual
   transformation. Mimicking the Albumentations
@@ -160,13 +179,13 @@ a Creative Commons Attribution 4.0 International License (CC BY
   transformations, are applied with user-defined frequencies, therefore
   tailoring the augmentation process to the characteristics and use case
   of the dataset.</p>
-  <p>Besides standard augmentations for volumetric images, DICaugment
-  offers a unique advantage through the addition of physics-based
-  augmentations that leverage metadata from DICOM files in CT imaging.
-  During the reconstruction process of CT images, different
-  manufacturers employ different reconstruction kernels, leading to
-  distinct noise textures in the resulting images often characterized by
-  the Noise Power Spectrum (NPS)
+  <p>Compared to other augmentation packages, DICaugment offers a unique
+  advantage through the addition of physics-based augmentations that
+  leverage metadata from DICOM files in CT imaging. During the
+  reconstruction process of CT images, different manufacturers employ
+  different reconstruction kernels, leading to distinct noise textures
+  in the resulting images often characterized by the Noise Power
+  Spectrum (NPS)
   (<xref alt="Solomon et al., 2012" rid="ref-Solomon2012-lj" ref-type="bibr">Solomon
   et al., 2012</xref>). DICaugment utilizes the NPS profiles from the
   specific reconstruction kernel to generate noisy images that are
@@ -276,7 +295,7 @@ a Creative Commons Attribution 4.0 International License (CC BY
     augmentations consistent with the imaging parameters, demonstrated
     in terms of the Noise Power Spectrum (NPS) of the augmented image
     (i.e., inserting Gaussian noise produces a high-frequency tail in
-    the NPS that is inconsistent with that of the Seimens scanner while
+    the NPS that is inconsistent with that of the Siemens scanner while
     our noise insertion method yields a shape in the NPS that is
     consistent with that of the Siemens
     scanner).<styled-content id="figU003Aexample"></styled-content></p></caption>
@@ -410,6 +429,40 @@ a Creative Commons Attribution 4.0 International License (CC BY
       <issue>12</issue>
       <fpage>5510</fpage>
       <lpage>5529</lpage>
+    </element-citation>
+  </ref>
+  <ref id="ref-Yaniv2017">
+    <element-citation publication-type="article-journal">
+      <person-group person-group-type="author">
+        <name><surname>Yaniv</surname><given-names>Ziv</given-names></name>
+        <name><surname>Lowekamp</surname><given-names>Bradley C.</given-names></name>
+        <name><surname>Johnson</surname><given-names>Hans J.</given-names></name>
+        <name><surname>Beare</surname><given-names>Richard</given-names></name>
+      </person-group>
+      <article-title>SIMPLEITK image-analysis notebooks: A collaborative environment for education and reproducible research</article-title>
+      <source>Journal of Digital Imaging</source>
+      <year iso-8601-date="2017">2017</year>
+      <volume>31</volume>
+      <issue>3</issue>
+      <pub-id pub-id-type="doi">10.1007/s10278-017-0037-8</pub-id>
+      <fpage>290</fpage>
+      <lpage>303</lpage>
+    </element-citation>
+  </ref>
+  <ref id="ref-Pérez-García2021">
+    <element-citation publication-type="article-journal">
+      <person-group person-group-type="author">
+        <name><surname>Pérez-García</surname><given-names>Fernando</given-names></name>
+        <name><surname>Sparks</surname><given-names>Rachel</given-names></name>
+        <name><surname>Ourselin</surname><given-names>Sébastien</given-names></name>
+      </person-group>
+      <article-title>Torchio: A python library for efficient loading, preprocessing, augmentation and patch-based sampling of medical images in deep learning</article-title>
+      <source>Computer Methods and Programs in Biomedicine</source>
+      <year iso-8601-date="2021">2021</year>
+      <volume>208</volume>
+      <pub-id pub-id-type="doi">10.1016/j.cmpb.2021.106236</pub-id>
+      <fpage>106236</fpage>
+      <lpage></lpage>
     </element-citation>
   </ref>
 </ref-list>
