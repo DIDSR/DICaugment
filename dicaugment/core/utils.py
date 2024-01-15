@@ -8,7 +8,7 @@ import numpy as np
 from .serialization import Serializable
 
 
-def get_shape(img: Union[np.ndarray, 'torch.tensor']) -> Tuple[int, int, int]:
+def get_shape(img: Union[np.ndarray, 'torch.tensor']) -> Tuple[int, int, int]: # noqa: F821
     """
     Returns the shape of an image depending on if it is a numpy array or torch tensor
     
