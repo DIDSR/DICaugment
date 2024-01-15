@@ -149,10 +149,12 @@ a Creative Commons Attribution 4.0 International License (CC BY
   et al., 2022</xref>) were designed to seamlessly integrate into
   popular deep learning frameworks such as PyTorch, providing a
   convenient interface for integration within deep learning pipelines.
-  Packages such as Volumentations were uniquely developed for the
-  purpose of augmenting 3D volumetric images, offering specialized
-  transformations for enriching 3D imaging datasets during the training
-  of deep neural networks.</p>
+  Packages such as Volumentations
+  (<xref alt="Solovyev et al., 2022" rid="ref-solovyev20223d" ref-type="bibr">Solovyev
+  et al., 2022</xref>) were uniquely developed for the purpose of
+  augmenting 3D volumetric images, offering specialized transformations
+  for enriching 3D imaging datasets during the training of deep neural
+  networks.</p>
   <p>DICaugment offers a variety of transformations including geometric
   and intensity transformations, spatial distortions, and physics-based
   augmentations designed to enhance the diversity of 3D image data. A
