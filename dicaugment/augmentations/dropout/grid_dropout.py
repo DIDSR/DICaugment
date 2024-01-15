@@ -89,6 +89,7 @@ class GridDropout(DualTransform):
         holes: Iterable[Tuple[int, int, int, int, int, int]] = (),
         **params
     ) -> np.ndarray:
+        """Applies the transformation to the image"""
         return F.cutout(img, holes, self.fill_value)
 
     def apply_to_mask(
@@ -97,12 +98,16 @@ class GridDropout(DualTransform):
         holes: Iterable[Tuple[int, int, int, int, int, int]] = (),
         **params
     ) -> np.ndarray:
+        """Applies the transformation to a mask and"""
         if self.mask_fill_value is None:
             return img
 
         return F.cutout(img, holes, self.mask_fill_value)
 
     def get_params_dependent_on_targets(self, params) -> Dict[str, Any]:
+        """Returns additional parameters needed for the `apply` methods that depend on a target
+        (e.g. `apply_to_bboxes` method expects image size)
+        """
         img = params["image"]
         height, width, depth = img.shape[:3]
         # set grid using unit size limits
@@ -187,6 +192,7 @@ class GridDropout(DualTransform):
         return ["image"]
 
     def get_transform_init_args_names(self) -> Tuple[str, ...]:
+        """Returns initialization argument names. (e.g. Transform(arg1 = 1, arg2 = 2) -> ('arg1', 'arg2'))"""
         return (
             "ratio",
             "unit_size_min",

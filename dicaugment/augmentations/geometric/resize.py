@@ -50,22 +50,27 @@ class RandomScale(DualTransform):
         self.interpolation = interpolation
 
     def get_params(self):
+        """Returns parameters needed for the `apply` methods"""
         return {"scale": random.uniform(self.scale_limit[0], self.scale_limit[1])}
 
     def apply(self, img, scale=0, interpolation=INTER_LINEAR, **params):
+        """Applies the transformation to the image"""
         return F.scale(img, scale, interpolation)
 
     def apply_to_bbox(self, bbox, **params):
-        # Bounding box coordinates are scale invariant
+        """Applies the transformation to a bbox. Bounding box coordinates are scale invariant"""
         return bbox
 
     def apply_to_keypoint(self, keypoint, scale=1, **params):
+        """Applies the transformation to a keypoint"""
         return F.keypoint_scale(keypoint, scale, scale, scale)
 
     def apply_to_dicom(self, dicom: DicomType, scale=1, **params) -> DicomType:
+        """Applies the augmentation to a dicom type"""
         return Fdicom.dicom_scale(dicom, scale, scale)
 
     def get_transform_init_args(self):
+        """Returns initialization arguments (e.g. Transform(arg1 = 1, arg2 = 2) -> ('arg1' : 1, 'arg2': 2))"""
         return {
             "interpolation": self.interpolation,
             "scale_limit": to_tuple(self.scale_limit, bias=-1.0),
@@ -107,15 +112,17 @@ class LongestMaxSize(DualTransform):
         interpolation: int = INTER_LINEAR,
         **params
     ) -> np.ndarray:
+        """Applies the transformation to the image"""
         return F.longest_max_size(img, max_size=max_size, interpolation=interpolation)
 
     def apply_to_bbox(self, bbox: BoxInternalType, **params) -> BoxInternalType:
-        # Bounding box coordinates are scale invariant
+        """Applies the transformation to a bbox. Bounding box coordinates are scale invariant"""
         return bbox
 
     def apply_to_keypoint(
         self, keypoint: KeypointInternalType, max_size: int = 1024, **params
     ) -> KeypointInternalType:
+        """Applies the transformation to a keypoint"""
         height = params["rows"]
         width = params["cols"]
         depth = params["slices"]
@@ -126,6 +133,7 @@ class LongestMaxSize(DualTransform):
     def apply_to_dicom(
         self, dicom: DicomType, max_size: int = 1024, **params
     ) -> DicomType:
+        """Applies the augmentation to a dicom type"""
         height = params["rows"]
         width = params["cols"]
         depth = params["slices"]
@@ -133,6 +141,7 @@ class LongestMaxSize(DualTransform):
         return Fdicom.dicom_scale(dicom, scale, scale)
 
     def get_params(self) -> Dict[str, int]:
+        """Returns parameters needed for the `apply` methods"""
         return {
             "max_size": self.max_size
             if isinstance(self.max_size, int)
@@ -140,6 +149,7 @@ class LongestMaxSize(DualTransform):
         }
 
     def get_transform_init_args_names(self) -> Tuple[str, ...]:
+        """Returns initialization argument names. (e.g. Transform(arg1 = 1, arg2 = 2) -> ('arg1', 'arg2'))"""
         return ("max_size", "interpolation")
 
 
@@ -178,14 +188,17 @@ class SmallestMaxSize(DualTransform):
         interpolation: int = cv2.INTER_LINEAR,
         **params
     ) -> np.ndarray:
+        """Applies the transformation to the image"""
         return F.smallest_max_size(img, max_size=max_size, interpolation=interpolation)
 
     def apply_to_bbox(self, bbox: BoxInternalType, **params) -> BoxInternalType:
+        """Applies the transformation to a bbox. Bounding box coordinates are scale invariant"""
         return bbox
 
     def apply_to_keypoint(
         self, keypoint: KeypointInternalType, max_size: int = 1024, **params
     ) -> KeypointInternalType:
+        """Applies the transformation to a keypoint"""
         height = params["rows"]
         width = params["cols"]
         depth = params["slices"]
@@ -196,6 +209,7 @@ class SmallestMaxSize(DualTransform):
     def apply_to_dicom(
         self, dicom: DicomType, max_size: int = 1024, **params
     ) -> DicomType:
+        """Applies the augmentation to a dicom type"""
         height = params["rows"]
         width = params["cols"]
         depth = params["slices"]
@@ -203,6 +217,7 @@ class SmallestMaxSize(DualTransform):
         return Fdicom.dicom_scale(dicom, scale, scale)
 
     def get_params(self) -> Dict[str, Any]:
+        """Returns parameters needed for the `apply` methods"""
         return {
             "max_size": self.max_size
             if isinstance(self.max_size, int)
@@ -210,6 +225,7 @@ class SmallestMaxSize(DualTransform):
         }
 
     def get_transform_init_args_names(self) -> Tuple[str, ...]:
+        """Returns initialization argument names. (e.g. Transform(arg1 = 1, arg2 = 2) -> ('arg1', 'arg2'))"""
         return ("max_size", "interpolation")
 
 
@@ -249,6 +265,7 @@ class Resize(DualTransform):
     def apply(
         self, img: np.ndarray, interpolation: int = INTER_LINEAR, **params
     ) -> np.ndarray:
+        """Applies the transformation to the image"""
         return F.resize(
             img,
             height=self.height,
@@ -258,10 +275,11 @@ class Resize(DualTransform):
         )
 
     def apply_to_bbox(self, bbox: BoxInternalType, **params) -> BoxInternalType:
-        # Bounding box coordinates are scale invariant
+        """Applies the transformation to a bbox. Bounding box coordinates are scale invariant"""
         return bbox
 
     def apply_to_dicom(self, dicom: DicomType, **params) -> DicomType:
+        """Applies the augmentation to a dicom type"""
         height = params["rows"]
         width = params["cols"]
         scale_x = self.width / width
@@ -271,6 +289,7 @@ class Resize(DualTransform):
     def apply_to_keypoint(
         self, keypoint: KeypointInternalType, **params
     ) -> KeypointInternalType:
+        """Applies the transformation to a keypoint"""
         height = params["rows"]
         width = params["cols"]
         depth = params["slices"]
@@ -280,4 +299,5 @@ class Resize(DualTransform):
         return F.keypoint_scale(keypoint, scale_x, scale_y, scale_z)
 
     def get_transform_init_args_names(self) -> Tuple[str, ...]:
+        """Returns initialization argument names. (e.g. Transform(arg1 = 1, arg2 = 2) -> ('arg1', 'arg2'))"""
         return ("height", "width", "depth", "interpolation")

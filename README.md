@@ -149,7 +149,7 @@ result = aug(image=scan, dicom=dicom)
 
 ## Contributing
 
-Contributions to DICaugment are welcome! If you have any bug reports, feature requests, or would like to contribute code, please check out the [repository](https://github.com/DIDSR/dicaugment) on GitHub.
+Contributions to DICaugment are welcome! If you have any bug reports, feature requests, or would like to contribute code, please check out our [CONTRIBUTING](https://github.com/jjmcintosh/dicaugment/blob/main/CONTRIBUTING.md) guidelines.
 
 ## License
 
@@ -159,7 +159,9 @@ DICaugment is distributed under the MIT license. See [LICENSE](https://github.co
 
 We would like to express our gratitude to the developers of Albumentations [[1]](#1) for their excellent work on the original library, which served as the foundation for DICaugment. We also thank the open-source community for their contributions and feedback.
 
+# Author Contributions
 
+Jacob McIntosh authored the package, developed the pipeline and its functions, wrote the documentation, and drafted the article.  Qian Cao assisted in noise insertion augmentation and contributed to the drafting of the article. Berkman Sahiner and Nicholas Petrick assisted in designing the validation study, noise simulation, and contributed to the drafting of the article. Mehdi Farhangi supervised the project, implemented the noise insertion augmentation, conducted the validation study, and contributed to the article drafting.
 
 
 ## Referecences

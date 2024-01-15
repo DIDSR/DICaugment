@@ -7,7 +7,7 @@ from setuptools import find_packages, setup
 
 INSTALL_REQUIRES = [
     "numpy>=1.11.1",
-    "scipy>=1.1.0",
+    "scipy>=1.10.0",
     "scikit-image>=0.16.1",
     "PyYAML",
     "qudida>=0.0.4",
@@ -76,7 +76,7 @@ setup(
     license="MIT",
     url="https://github.com/DIDSR/dicaugment",
     packages=find_packages(exclude=["tests"]),
-    python_requires=">=3.7",
+    python_requires=">=3.8",
     package_data={"": ["data/kernels/*.npy"]},
     install_requires=get_install_requirements(
         INSTALL_REQUIRES, CHOOSE_INSTALL_REQUIRES
@@ -96,9 +96,9 @@ setup(
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
         "Topic :: Software Development :: Libraries",
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],

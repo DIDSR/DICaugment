@@ -27,9 +27,7 @@ __all__ = [
     "RandomCrop",
     "CenterCrop",
     "Crop",
-    # "CropNonEmptyMaskIfExists",
     "RandomSizedCrop",
-    # "RandomResizedCrop",
     "RandomCropNearBBox",
     "RandomSizedBBoxSafeCrop",
     "CropAndPad",
@@ -69,11 +67,13 @@ class RandomCrop(DualTransform):
         d_start: int = 0,
         **params
     ) -> np.ndarray:
+        """Applies the transformation to the image"""
         return F.random_crop(
             img, self.height, self.width, self.depth, h_start, w_start, d_start
         )
 
     def get_params(self) -> Dict[str, Any]:
+        """Returns parameters needed for the `apply` methods"""
         return {
             "h_start": random.random(),
             "w_start": random.random(),
@@ -81,16 +81,19 @@ class RandomCrop(DualTransform):
         }
 
     def apply_to_bbox(self, bbox: BoxInternalType, **params) -> BoxInternalType:
+        """Applies the transformation to a bbox"""
         return F.bbox_random_crop(bbox, self.height, self.width, self.depth, **params)
 
     def apply_to_keypoint(
         self, keypoint: KeypointInternalType, **params
     ) -> KeypointInternalType:
+        """Applies the transformation to a keypoint"""
         return F.keypoint_random_crop(
             keypoint, self.height, self.width, self.depth, **params
         )
 
     def get_transform_init_args_names(self) -> Tuple[str, ...]:
+        """Returns initialization argument names. (e.g. Transform(arg1 = 1, arg2 = 2) -> ('arg1', 'arg2'))"""
         return ("height", "width", "depth")
 
 
@@ -118,19 +121,23 @@ class CenterCrop(DualTransform):
         self.depth = depth
 
     def apply(self, img: np.ndarray, **params) -> np.ndarray:
+        """Applies the transformation to the image"""
         return F.center_crop(img, self.height, self.width, self.depth)
 
     def apply_to_bbox(self, bbox: BoxInternalType, **params) -> BoxInternalType:
+        """Applies the transformation to a bbox"""
         return F.bbox_center_crop(bbox, self.height, self.width, self.depth, **params)
 
     def apply_to_keypoint(
         self, keypoint: KeypointInternalType, **params
     ) -> KeypointInternalType:
+        """Applies the transformation to a keypoint"""
         return F.keypoint_center_crop(
             keypoint, self.height, self.width, self.depth, **params
         )
 
     def get_transform_init_args_names(self) -> Tuple[str, ...]:
+        """Returns initialization argument names. (e.g. Transform(arg1 = 1, arg2 = 2) -> ('arg1', 'arg2'))"""
         return ("height", "width", "depth")
 
 
@@ -143,7 +150,7 @@ class Crop(DualTransform):
         z_min (int): Minimum closest upper left z coordinate.
         x_max (int): Maximum furthest lower right x coordinate.
         y_max (int): Maximum furthest lower right y coordinate.
-        z_max (int): Maximum furthest lower right y coordinate.
+        z_max (int): Maximum furthest lower right z coordinate.
         always_apply (bool): whether to always apply the transformation. Default: False
         p (float): probability of applying the transform. Default: 1.
 
@@ -174,6 +181,7 @@ class Crop(DualTransform):
         self.z_max = z_max
 
     def apply(self, img: np.ndarray, **params) -> np.ndarray:
+        """Applies the transformation to the image"""
         return F.crop(
             img,
             x_min=self.x_min,
@@ -185,6 +193,7 @@ class Crop(DualTransform):
         )
 
     def apply_to_bbox(self, bbox: BoxInternalType, **params) -> BoxInternalType:
+        """Applies the transformation to a bbox"""
         return F.bbox_crop(
             bbox,
             x_min=self.x_min,
@@ -199,6 +208,7 @@ class Crop(DualTransform):
     def apply_to_keypoint(
         self, keypoint: KeypointInternalType, **params
     ) -> KeypointInternalType:
+        """Applies the transformation to a keypoint"""
         return F.crop_keypoint_by_coords(
             keypoint,
             crop_coords=(
@@ -212,107 +222,8 @@ class Crop(DualTransform):
         )
 
     def get_transform_init_args_names(self) -> Tuple[str, ...]:
+        """Returns initialization argument names. (e.g. Transform(arg1 = 1, arg2 = 2) -> ('arg1', 'arg2'))"""
         return ("x_min", "y_min", "z_min", "x_max", "y_max", "z_max")
-
-
-# class CropNonEmptyMaskIfExists(DualTransform):
-#     """Crop area with mask if mask is non-empty, else make random crop.
-
-#     Args:
-#         height (int): vertical size of crop in pixels
-#         width (int): horizontal size of crop in pixels
-#         depth
-#         ignore_values (list of int): values to ignore in mask, `0` values are always ignored
-#             (e.g. if background value is 5 set `ignore_values=[5]` to ignore)
-#         ignore_channels (list of int): channels to ignore in mask
-#             (e.g. if background is a first channel set `ignore_channels=[0]` to ignore)
-#         p (float): probability of applying the transform. Default: 1.0.
-
-#     Targets:
-#         image, mask, bboxes, keypoints
-
-#     Image types:
-#         uint8, float32
-#     """
-
-#     def __init__(self, height, width, ignore_values=None, ignore_channels=None, always_apply=False, p=1.0):
-#         super(CropNonEmptyMaskIfExists, self).__init__(always_apply, p)
-
-#         if ignore_values is not None and not isinstance(ignore_values, list):
-#             raise ValueError("Expected `ignore_values` of type `list`, got `{}`".format(type(ignore_values)))
-#         if ignore_channels is not None and not isinstance(ignore_channels, list):
-#             raise ValueError("Expected `ignore_channels` of type `list`, got `{}`".format(type(ignore_channels)))
-
-#         self.height = height
-#         self.width = width
-#         self.ignore_values = ignore_values
-#         self.ignore_channels = ignore_channels
-
-#     def apply(self, img, x_min=0, x_max=0, y_min=0, y_max=0, **params):
-#         return F.crop(img, x_min, y_min, x_max, y_max)
-
-#     def apply_to_bbox(self, bbox, x_min=0, x_max=0, y_min=0, y_max=0, **params):
-#         return F.bbox_crop(
-#             bbox, x_min=x_min, x_max=x_max, y_min=y_min, y_max=y_max, rows=params["rows"], cols=params["cols"]
-#         )
-
-#     def apply_to_keypoint(self, keypoint, x_min=0, x_max=0, y_min=0, y_max=0, **params):
-#         return F.crop_keypoint_by_coords(keypoint, crop_coords=(x_min, y_min, x_max, y_max))
-
-#     def _preprocess_mask(self, mask):
-#         mask_height, mask_width = mask.shape[:2]
-
-#         if self.ignore_values is not None:
-#             ignore_values_np = np.array(self.ignore_values)
-#             mask = np.where(np.isin(mask, ignore_values_np), 0, mask)
-
-#         if mask.ndim == 3 and self.ignore_channels is not None:
-#             target_channels = np.array([ch for ch in range(mask.shape[-1]) if ch not in self.ignore_channels])
-#             mask = np.take(mask, target_channels, axis=-1)
-
-#         if self.height > mask_height or self.width > mask_width:
-#             raise ValueError(
-#                 "Crop size ({},{}) is larger than image ({},{})".format(
-#                     self.height, self.width, mask_height, mask_width
-#                 )
-#             )
-
-#         return mask
-
-#     def update_params(self, params, **kwargs):
-#         super().update_params(params, **kwargs)
-#         if "mask" in kwargs:
-#             mask = self._preprocess_mask(kwargs["mask"])
-#         elif "masks" in kwargs and len(kwargs["masks"]):
-#             masks = kwargs["masks"]
-#             mask = self._preprocess_mask(np.copy(masks[0]))  # need copy as we perform in-place mod afterwards
-#             for m in masks[1:]:
-#                 mask |= self._preprocess_mask(m)
-#         else:
-#             raise RuntimeError("Can not find mask for CropNonEmptyMaskIfExists")
-
-#         mask_height, mask_width = mask.shape[:2]
-
-#         if mask.any():
-#             mask = mask.sum(axis=-1) if mask.ndim == 3 else mask
-#             non_zero_yx = np.argwhere(mask)
-#             y, x = random.choice(non_zero_yx)
-#             x_min = x - random.randint(0, self.width - 1)
-#             y_min = y - random.randint(0, self.height - 1)
-#             x_min = np.clip(x_min, 0, mask_width - self.width)
-#             y_min = np.clip(y_min, 0, mask_height - self.height)
-#         else:
-#             x_min = random.randint(0, mask_width - self.width)
-#             y_min = random.randint(0, mask_height - self.height)
-
-#         x_max = x_min + self.width
-#         y_max = y_min + self.height
-
-#         params.update({"x_min": x_min, "x_max": x_max, "y_min": y_min, "y_max": y_max})
-#         return params
-
-#     def get_transform_init_args_names(self):
-#         return ("height", "width", "ignore_values", "ignore_channels")
 
 
 class _BaseRandomSizedCrop(DualTransform):
@@ -345,6 +256,7 @@ class _BaseRandomSizedCrop(DualTransform):
         interpolation: int = INTER_LINEAR,
         **params
     ) -> np.ndarray:
+        """Applies the transformation to the image"""
         crop = F.random_crop(
             img, crop_height, crop_width, crop_depth, h_start, w_start, d_start
         )
@@ -366,6 +278,7 @@ class _BaseRandomSizedCrop(DualTransform):
         slices: int = 0,
         **params
     ) -> BoxInternalType:
+        """Applies the transformation to a bbox"""
         return F.bbox_random_crop(
             bbox,
             crop_height,
@@ -393,6 +306,7 @@ class _BaseRandomSizedCrop(DualTransform):
         slices: int = 0,
         **params
     ) -> KeypointInternalType:
+        """Applies the transformation to a keypoint"""
         keypoint = F.keypoint_random_crop(
             keypoint,
             crop_height,
@@ -459,6 +373,7 @@ class RandomSizedCrop(_BaseRandomSizedCrop):
         self.d2h_ratio = d2h_ratio
 
     def get_params(self) -> Dict[str, Any]:
+        """Returns parameters needed for the `apply` methods"""
         crop_height = random.randint(self.min_max_height[0], self.min_max_height[1])
         return {
             "h_start": random.random(),
@@ -469,6 +384,7 @@ class RandomSizedCrop(_BaseRandomSizedCrop):
         }
 
     def get_transform_init_args_names(self) -> Tuple[str, ...]:
+        """Returns initialization argument names. (e.g. Transform(arg1 = 1, arg2 = 2) -> ('arg1', 'arg2'))"""
         return (
             "min_max_height",
             "height",
@@ -478,96 +394,6 @@ class RandomSizedCrop(_BaseRandomSizedCrop):
             "d2h_ratio",
             "interpolation",
         )
-
-
-# class RandomResizedCrop(_BaseRandomSizedCrop):
-#     """Torchvision's variant of crop a random part of the input and rescale it to some size.
-
-#     Args:
-#         height (int): height after crop and resize.
-#         width (int): width after crop and resize.
-#         scale ((float, float)): range of size of the origin size cropped
-#         w_ratio ((float, float)): range of aspect ratio of the origin aspect ratio cropped
-#         interpolation (int) : scipy interpolation method (e.g. dicaugment.INTER_NEAREST)
-#             Default: dicaugment.INTER_LINEAR.
-#         p (float): probability of applying the transform. Default: 1.
-
-#     Targets:
-#         image, mask, bboxes, keypoints
-
-#     Image types:
-#         uint8, uint16, int16, float32
-#     """
-
-#     def __init__(
-#         self,
-#         height,
-#         width,
-#         scale=(0.08, 1.0),
-#         ratio=(0.75, 1.3333333333333333),
-#         interpolation=cv2.INTER_LINEAR,
-#         always_apply=False,
-#         p=1.0,
-#     ):
-
-#         super(RandomResizedCrop, self).__init__(
-#             height=height, width=width, interpolation=interpolation, always_apply=always_apply, p=p
-#         )
-#         self.scale = scale
-#         self.ratio = ratio
-
-#     def get_params_dependent_on_targets(self, params):
-#         img = params["image"]
-#         area = img.shape[0] * img.shape[1]
-
-#         for _attempt in range(10):
-#             target_area = random.uniform(*self.scale) * area
-#             log_ratio = (math.log(self.ratio[0]), math.log(self.ratio[1]))
-#             aspect_ratio = math.exp(random.uniform(*log_ratio))
-
-#             w = int(round(math.sqrt(target_area * aspect_ratio)))  # skipcq: PTC-W0028
-#             h = int(round(math.sqrt(target_area / aspect_ratio)))  # skipcq: PTC-W0028
-
-#             if 0 < w <= img.shape[1] and 0 < h <= img.shape[0]:
-#                 i = random.randint(0, img.shape[0] - h)
-#                 j = random.randint(0, img.shape[1] - w)
-#                 return {
-#                     "crop_height": h,
-#                     "crop_width": w,
-#                     "h_start": i * 1.0 / (img.shape[0] - h + 1e-10),
-#                     "w_start": j * 1.0 / (img.shape[1] - w + 1e-10),
-#                 }
-
-#         # Fallback to central crop
-#         in_ratio = img.shape[1] / img.shape[0]
-#         if in_ratio < min(self.ratio):
-#             w = img.shape[1]
-#             h = int(round(w / min(self.ratio)))
-#         elif in_ratio > max(self.ratio):
-#             h = img.shape[0]
-#             w = int(round(h * max(self.ratio)))
-#         else:  # whole image
-#             w = img.shape[1]
-#             h = img.shape[0]
-#         i = (img.shape[0] - h) // 2
-#         j = (img.shape[1] - w) // 2
-#         return {
-#             "crop_height": h,
-#             "crop_width": w,
-#             "h_start": i * 1.0 / (img.shape[0] - h + 1e-10),
-#             "w_start": j * 1.0 / (img.shape[1] - w + 1e-10),
-#         }
-
-#     def get_params(self):
-#         return {}
-
-#     @property
-#     def targets_as_params(self):
-#         return ["image"]
-
-#     def get_transform_init_args_names(self):
-#         return "height", "width", "scale", "ratio", "interpolation"
-
 
 class RandomCropNearBBox(DualTransform):
     """Crop bbox from image with random shift by x,y,z coordinates
@@ -636,9 +462,13 @@ class RandomCropNearBBox(DualTransform):
         z_max: int = 0,
         **params
     ) -> np.ndarray:
+        """Applies the transformation to the image"""
         return F.clamping_crop(img, x_min, y_min, z_min, x_max, y_max, z_max)
 
     def get_params_dependent_on_targets(self, params: Dict[str, Any]) -> Dict[str, int]:
+        """Returns additional parameters needed for the `apply` methods that depend on a target
+        (e.g. `apply_to_bboxes` method expects image size)
+        """
         bbox = params[self.cropping_bbox_key]
         h_max_shift = round((bbox[4] - bbox[1]) * self.max_part_shift[0])
         w_max_shift = round((bbox[3] - bbox[0]) * self.max_part_shift[1])
@@ -667,6 +497,7 @@ class RandomCropNearBBox(DualTransform):
         }
 
     def apply_to_bbox(self, bbox: BoxInternalType, **params) -> BoxInternalType:
+        """Applies the transformation to a bbox"""
         return F.bbox_crop(bbox, **params)
 
     def apply_to_keypoint(
@@ -680,6 +511,7 @@ class RandomCropNearBBox(DualTransform):
         z_max: int = 0,
         **params
     ) -> KeypointInternalType:
+        """Applies the transformation to a keypoint"""
         return F.crop_keypoint_by_coords(
             keypoint, crop_coords=(x_min, y_min, z_min, x_max, y_max, z_max)
         )
@@ -689,17 +521,22 @@ class RandomCropNearBBox(DualTransform):
         return [self.cropping_bbox_key]
 
     def get_transform_init_args_names(self) -> Tuple[str, ...]:
+        """Returns initialization argument names. (e.g. Transform(arg1 = 1, arg2 = 2) -> ('arg1', 'arg2'))"""
         return ("max_part_shift",)
 
 
 class BBoxSafeRandomCrop(DualTransform):
-    """Crop a random part of the input without loss of bboxes.
+    """
+    Crop a random part of the input without loss of bboxes.
+
     Args:
         erosion_rate (float): erosion rate applied on input image height before crop.
-        always_apply (bool): whether to always apply the transformation. Default: False
+        always_apply (bool): whether to always apply the transformation. Default: False.
         p (float): probability of applying the transform. Default: 1.
+    
     Targets:
         image, mask, bboxes
+    
     Image types:
         uint8, float32
     """
@@ -719,11 +556,15 @@ class BBoxSafeRandomCrop(DualTransform):
         d_start: int = 0,
         **params
     ) -> np.ndarray:
+        """Applies the transformation to the image"""
         return F.random_crop(
             img, crop_height, crop_width, crop_depth, h_start, w_start, d_start
         )
 
     def get_params_dependent_on_targets(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Returns additional parameters needed for the `apply` methods that depend on a target
+        (e.g. `apply_to_bboxes` method expects image size)
+        """
         img_h, img_w, img_d = params["image"].shape[:3]
         if (
             len(params["bboxes"]) == 0
@@ -785,6 +626,7 @@ class BBoxSafeRandomCrop(DualTransform):
         slices: int = 0,
         **params
     ) -> BoxInternalType:
+        """Applies the transformation to a bbox"""
         return F.bbox_random_crop(
             bbox,
             crop_height,
@@ -803,6 +645,7 @@ class BBoxSafeRandomCrop(DualTransform):
         return ["image", "bboxes"]
 
     def get_transform_init_args_names(self) -> Tuple[str, ...]:
+        """Returns initialization argument names. (e.g. Transform(arg1 = 1, arg2 = 2) -> ('arg1', 'arg2'))"""
         return ("erosion_rate",)
 
 
@@ -853,6 +696,7 @@ class RandomSizedBBoxSafeCrop(BBoxSafeRandomCrop):
         interpolation: int = INTER_LINEAR,
         **params
     ) -> np.ndarray:
+        """Applies the transformation to the image"""
         crop = F.random_crop(
             img, crop_height, crop_width, crop_depth, h_start, w_start, d_start
         )
@@ -861,6 +705,7 @@ class RandomSizedBBoxSafeCrop(BBoxSafeRandomCrop):
         )
 
     def get_transform_init_args_names(self) -> Tuple[str, ...]:
+        """Returns initialization argument names. (e.g. Transform(arg1 = 1, arg2 = 2) -> ('arg1', 'arg2'))"""
         return super().get_transform_init_args_names() + (
             "height",
             "width",
@@ -987,6 +832,7 @@ class CropAndPad(DualTransform):
         interpolation: int = INTER_LINEAR,
         **params
     ) -> np.ndarray:
+        """Applies the transformation to the image"""
         return F.crop_and_pad(
             img,
             crop_params,
@@ -1012,6 +858,7 @@ class CropAndPad(DualTransform):
         interpolation: int = INTER_NEAREST,
         **params
     ) -> np.ndarray:
+        """Applies the transformation to a mask"""
         return F.crop_and_pad(
             img,
             crop_params,
@@ -1038,6 +885,7 @@ class CropAndPad(DualTransform):
         result_slices: int = 0,
         **params
     ) -> BoxInternalType:
+        """Applies the transformation to a bbox"""
         return F.crop_and_pad_bbox(
             bbox,
             crop_params,
@@ -1063,6 +911,7 @@ class CropAndPad(DualTransform):
         result_slices: int = 0,
         **params
     ) -> KeypointInternalType:
+        """Applies the transformation to a keypoint"""
         return F.crop_and_pad_keypoint(
             keypoint,
             crop_params,
@@ -1129,6 +978,9 @@ class CropAndPad(DualTransform):
         ]
 
     def get_params_dependent_on_targets(self, params) -> dict:
+        """Returns additional parameters needed for the `apply` methods that depend on a target
+        (e.g. `apply_to_bboxes` method expects image size)
+        """
         height, width, depth = params["image"].shape[:3]
 
         if self.px is not None:
@@ -1157,7 +1009,6 @@ class CropAndPad(DualTransform):
             crop_params = []
 
         top, bottom, left, right, close, far = pad_params
-        # pad_params = [top, bottom, left, right]
         if any(pad_params):
             result_rows += top + bottom
             result_cols += left + right
@@ -1231,6 +1082,7 @@ class CropAndPad(DualTransform):
         return random.choice(pad_value)
 
     def get_transform_init_args_names(self) -> Tuple[str, ...]:
+        """Returns initialization argument names. (e.g. Transform(arg1 = 1, arg2 = 2) -> ('arg1', 'arg2'))"""
         return (
             "px",
             "percent",
@@ -1289,6 +1141,9 @@ class RandomCropFromBorders(DualTransform):
         self.crop_far = crop_far
 
     def get_params_dependent_on_targets(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Returns additional parameters needed for the `apply` methods that depend on a target
+        (e.g. `apply_to_bboxes` method expects image size)
+        """
         img = params["image"]
         x_min = random.randint(0, int(self.crop_left * img.shape[1]))
         x_max = random.randint(
@@ -1323,6 +1178,7 @@ class RandomCropFromBorders(DualTransform):
         z_max: int = 0,
         **params
     ) -> np.ndarray:
+        """Applies the transformation to the image"""
         return F.clamping_crop(img, x_min, y_min, z_min, x_max, y_max, z_max)
 
     def apply_to_mask(
@@ -1336,6 +1192,7 @@ class RandomCropFromBorders(DualTransform):
         z_max: int = 0,
         **params
     ) -> np.ndarray:
+        """Applies the transformation to a mask"""
         return F.clamping_crop(mask, x_min, y_min, z_min, x_max, y_max, z_max)
 
     def apply_to_bbox(
@@ -1349,6 +1206,7 @@ class RandomCropFromBorders(DualTransform):
         z_max: int = 0,
         **params
     ) -> BoxInternalType:
+        """Applies the transformation to a bbox"""
         rows, cols, slices = params["rows"], params["cols"], params["slices"]
         return F.bbox_crop(
             bbox, x_min, y_min, z_min, x_max, y_max, z_max, rows, cols, slices
@@ -1365,6 +1223,7 @@ class RandomCropFromBorders(DualTransform):
         z_max: int = 0,
         **params
     ) -> KeypointInternalType:
+        """Applies the transformation to a keypoint"""
         return F.crop_keypoint_by_coords(
             keypoint, crop_coords=(x_min, y_min, z_min, x_max, y_max, z_max)
         )
@@ -1374,6 +1233,7 @@ class RandomCropFromBorders(DualTransform):
         return ["image"]
 
     def get_transform_init_args_names(self) -> Tuple[str, ...]:
+        """Returns initialization argument names. (e.g. Transform(arg1 = 1, arg2 = 2) -> ('arg1', 'arg2'))"""
         return (
             "crop_left",
             "crop_right",

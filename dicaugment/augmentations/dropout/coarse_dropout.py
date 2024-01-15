@@ -123,6 +123,7 @@ class CoarseDropout(DualTransform):
         holes: Iterable[Tuple[int, int, int, int, int, int]] = (),
         **params
     ) -> np.ndarray:
+        """Applies the transformation to the image"""
         return cutout(img, holes, fill_value)
 
     def apply_to_mask(
@@ -132,11 +133,15 @@ class CoarseDropout(DualTransform):
         holes: Iterable[Tuple[int, int, int, int, int, int]] = (),
         **params
     ) -> np.ndarray:
+        """Applies the transformation to a mask"""
         if mask_fill_value is None:
             return img
         return cutout(img, holes, mask_fill_value)
 
     def get_params_dependent_on_targets(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Returns additional parameters needed for the `apply` methods that depend on a target
+        (e.g. `apply_to_bboxes` method expects image size)
+        """
         img = params["image"]
         height, width, depth = img.shape[:3]
 
@@ -214,6 +219,7 @@ class CoarseDropout(DualTransform):
         holes: Iterable[Tuple[int, int, int, int]] = (),
         **params
     ) -> List[KeypointType]:
+        """Applies the transformation to a sequence of keypoints"""
         result = set(keypoints)
         for hole in holes:
             for kp in keypoints:
@@ -222,6 +228,7 @@ class CoarseDropout(DualTransform):
         return list(result)
 
     def get_transform_init_args_names(self) -> Tuple[str, ...]:
+        """Returns initialization argument names. (e.g. Transform(arg1 = 1, arg2 = 2) -> ('arg1', 'arg2'))"""
         return (
             "max_holes",
             "max_height",

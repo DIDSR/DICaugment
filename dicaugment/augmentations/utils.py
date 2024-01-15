@@ -12,14 +12,11 @@ from dicaugment.core.transforms_interface import KeypointInternalType
 
 __all__ = [
     "read_dcm_image",
-    # "read_bgr_image",
-    # "read_rgb_image",
     "MAX_VALUES_BY_DTYPE",
     "MIN_VALUES_BY_DTYPE",
     "NPDTYPE_TO_OPENCV_DTYPE",
     "NPDTYPE_TO_OPENCV_DTYPE",
     "clipped",
-    # "get_opencv_dtype_from_numpy",
     "angle_2pi_range",
     "clip",
     "preserve_shape",
@@ -77,15 +74,6 @@ SCIPY_MODE_TO_NUMPY_MODE = {
     "mirror": "reflect",
     "wrap": "wrap",
 }
-
-
-# def read_bgr_image(path):
-#     return cv2.imread(path, cv2.IMREAD_COLOR)
-
-
-# def read_rgb_image(path):
-#     image = cv2.imread(path, cv2.IMREAD_COLOR)
-#     return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
 
 def read_dcm_image(path: str, include_header: bool = True, ends_with: str = ""):
@@ -160,6 +148,7 @@ def read_dcm_image(path: str, include_header: bool = True, ends_with: str = ""):
 def clipped(
     func: Callable[Concatenate[np.ndarray, P], np.ndarray]
 ) -> Callable[Concatenate[np.ndarray, P], np.ndarray]:
+    """Decorator method that clips an image to it's specified dtype minimums and maximums"""
     @wraps(func)
     def wrapped_function(
         img: np.ndarray, *args: P.args, **kwargs: P.kwargs
@@ -173,23 +162,13 @@ def clipped(
 
 
 def clip(img: np.ndarray, dtype: np.dtype, minval: float, maxval: float) -> np.ndarray:
+    """Clips an image by a minimum and maximum value, then casts to dtype"""
     return np.clip(img, minval, maxval).astype(dtype)
-
-
-# def get_opencv_dtype_from_numpy(value: Union[np.ndarray, int, np.dtype, object]) -> int:
-#     """
-#     Return a corresponding OpenCV dtype for a numpy's dtype
-#     :param value: Input dtype of numpy array
-#     :return: Corresponding dtype for OpenCV
-#     """
-#     if isinstance(value, np.ndarray):
-#         value = value.dtype
-#     return NPDTYPE_TO_OPENCV_DTYPE[value]
-
 
 def angle_2pi_range(
     func: Callable[Concatenate[KeypointInternalType, P], KeypointInternalType]
 ) -> Callable[Concatenate[KeypointInternalType, P], KeypointInternalType]:
+    """Decorator method that keeps keypoints angles in the range of [0, 2pi]"""
     @wraps(func)
     def wrapped_function(
         keypoint: KeypointInternalType, *args: P.args, **kwargs: P.kwargs
@@ -199,11 +178,10 @@ def angle_2pi_range(
 
     return wrapped_function
 
-
 def preserve_shape(
     func: Callable[Concatenate[np.ndarray, P], np.ndarray]
 ) -> Callable[Concatenate[np.ndarray, P], np.ndarray]:
-    """Preserve shape of the image"""
+    """Decorators that preserves shape of the image"""
 
     @wraps(func)
     def wrapped_function(
@@ -216,11 +194,10 @@ def preserve_shape(
 
     return wrapped_function
 
-
 def preserve_channel_dim(
     func: Callable[Concatenate[np.ndarray, P], np.ndarray]
 ) -> Callable[Concatenate[np.ndarray, P], np.ndarray]:
-    """Preserve dummy channel dim."""
+    """Decorator that preserves a dummy channel dim."""
 
     @wraps(func)
     def wrapped_function(
@@ -238,7 +215,7 @@ def preserve_channel_dim(
 def ensure_contiguous(
     func: Callable[Concatenate[np.ndarray, P], np.ndarray]
 ) -> Callable[Concatenate[np.ndarray, P], np.ndarray]:
-    """Ensure that input img is contiguous."""
+    """Decorator that ensures input img is contiguous."""
 
     @wraps(func)
     def wrapped_function(
@@ -252,6 +229,7 @@ def ensure_contiguous(
 
 
 def is_rgb_image(image: np.ndarray) -> bool:
+    """Returns whether image fits the criteria for a volumetric rgb image"""
     return (
         len(image.shape) == 4
         and image.shape[-1] == 3
@@ -260,22 +238,27 @@ def is_rgb_image(image: np.ndarray) -> bool:
 
 
 def is_grayscale_image(image: np.ndarray) -> bool:
+    """Returns whether image fits the criteria for a volumetric grayscale image"""
     return (len(image.shape) == 3) or (len(image.shape) == 4 and image.shape[-1] == 1)
 
 
 def is_uint8_or_float32(image: np.ndarray) -> bool:
+    """Returns whether image is type `uint8` or `float32`"""
     return image.dtype in {np.dtype("uint8"), np.dtype("float32")}
 
 
 def is_multispectral_image(image: np.ndarray) -> bool:
+    """Returns whether image fits the criteria for a volumetric multispectral image"""
     return len(image.shape) == 4 and image.shape[-1] not in [1, 3]
 
 
 def get_num_channels(image: np.ndarray) -> int:
+    """Returns number of channels in image"""
     return image.shape[3] if len(image.shape) == 4 else 1
 
 
 def non_rgb_warning(image: np.ndarray) -> None:
+    """Warns user if image is not an RGB image"""
     if not is_rgb_image(image):
         message = "This transformation expects 3-channel images"
         if is_grayscale_image(image):

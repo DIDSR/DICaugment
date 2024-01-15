@@ -354,16 +354,6 @@ def test_random_sized_crop_size():
     assert transformed["image"].shape == (50, 50, 50)
     assert len(bboxes) == len(transformed["bboxes"])
 
-
-# def test_random_resized_crop_size():
-#     image = np.ones((100, 100, 3))
-#     bboxes = [(0.2, 0.3, 0.6, 0.8), (0.3, 0.4, 0.7, 0.9, 99)]
-#     aug = RandomResizedCrop(height=50, width=50, p=1.0)
-#     transformed = aug(image=image, bboxes=bboxes)
-#     assert transformed["image"].shape == (50, 50, 3)
-#     assert len(bboxes) == len(transformed["bboxes"])
-
-
 def test_random_rotate():
     image = np.ones((100, 100, 100))
     bboxes = [(0.2, 0.3, 0.4, 0.6, 0.8, 0.9)]
