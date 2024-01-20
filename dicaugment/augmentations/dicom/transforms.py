@@ -53,12 +53,17 @@ class RescaleSlopeIntercept(ImageOnlyTransform):
     def apply(
         self, img: np.ndarray, slope: float, intercept: float, **params
     ) -> np.ndarray:
+        """Applies the transformation to the image"""
         return F.rescale_slope_intercept(img, slope, intercept)
 
     def apply_to_dicom(self, dicom, **params):
+        """Applies the augmentation to a dicom type"""
         return F.reset_dicom_slope_intercept(dicom)
 
     def get_params_dependent_on_targets(self, params):
+        """Returns additional parameters needed for the `apply` methods that depend on a target
+        (e.g. `apply_to_bboxes` method expects image size)
+        """
         slope = params["dicom"]["RescaleSlope"]
         intercept = params["dicom"]["RescaleIntercept"]
         return {"slope": slope, "intercept": intercept}
@@ -72,6 +77,7 @@ class RescaleSlopeIntercept(ImageOnlyTransform):
         return {"image": self.apply, "dicom": self.apply_to_dicom}
 
     def get_transform_init_args_names(self) -> Tuple[str, ...]:
+        """Returns initialization argument names. (e.g. Transform(arg1 = 1, arg2 = 2) -> ('arg1', 'arg2'))"""
         return ()
 
 
@@ -136,6 +142,7 @@ class SetPixelSpacing(DualTransform):
         scale_y: float = 1.0,
         **params
     ) -> np.ndarray:
+        """Applies the transformation to the image"""
         height, width, depth = img.shape[:3]
         return FGeometric.resize(
             img,
@@ -146,7 +153,7 @@ class SetPixelSpacing(DualTransform):
         )
 
     def apply_to_bbox(self, bbox: BoxInternalType, **params) -> BoxInternalType:
-        # Bounding box coordinates are scale invariant
+        """Applies the transformation to a bbox. Bounding box coordinates are scale invariant"""
         return bbox
 
     def apply_to_keypoint(
@@ -157,14 +164,19 @@ class SetPixelSpacing(DualTransform):
         scale_z: float,
         **params
     ) -> KeypointInternalType:
+        """Applies the transformation to a keypoint"""
         return FGeometric.keypoint_scale(keypoint, scale_x, scale_y, 1)
 
     def apply_to_dicom(
         self, dicom: DicomType, scale_x: float, scale_y: float, **params
     ) -> DicomType:
+        """Applies the augmentation to a dicom type"""
         return F.dicom_scale(dicom, scale_x, scale_y)
 
     def get_params_dependent_on_targets(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Returns additional parameters needed for the `apply` methods that depend on a target
+        (e.g. `apply_to_bboxes` method expects image size)
+        """
         y, x = params["dicom"]["PixelSpacing"]
         scale_x = self.space_x / x
         scale_y = self.space_y / y
@@ -175,6 +187,7 @@ class SetPixelSpacing(DualTransform):
         return ["dicom"]
 
     def get_transform_init_args_names(self) -> Tuple[str]:
+        """Returns initialization argument names. (e.g. Transform(arg1 = 1, arg2 = 2) -> ('arg1', 'arg2'))"""
         return ("space_x", "space_y", "interpolation")
 
 
@@ -232,11 +245,15 @@ class NPSNoise(ImageOnlyTransform):
         magnitude: int = 1,
         **params
     ):
+        """Applies the transformation to the image"""
         return F.add_noise_nps(
             img, kernel=kernel, x_step=x_step, y_step=y_step, magnitude=magnitude
         )
 
     def get_params_dependent_on_targets(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Returns additional parameters needed for the `apply` methods that depend on a target
+        (e.g. `apply_to_bboxes` method expects image size)
+        """
         kernel = params["dicom"]["ConvolutionKernel"]
         y, x = params["dicom"]["PixelSpacing"]
         if self.sample_tube_current:
@@ -251,6 +268,7 @@ class NPSNoise(ImageOnlyTransform):
         return {"kernel": kernel, "x_step": x, "y_step": y}
 
     def get_params(self) -> Dict:
+        """Returns parameters needed for the `apply` methods"""
         return {"magnitude": random.uniform(self.magnitude[0], self.magnitude[1])}
 
     @property
@@ -258,4 +276,5 @@ class NPSNoise(ImageOnlyTransform):
         return ["dicom"]
 
     def get_transform_init_args_names(self) -> Tuple[str, ...]:
+        """Returns initialization argument names. (e.g. Transform(arg1 = 1, arg2 = 2) -> ('arg1', 'arg2'))"""
         return ("magnitude", "sample_tube_current")

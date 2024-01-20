@@ -119,14 +119,24 @@ class BboxParams(Params):
 
     @classmethod
     def is_serializable(cls) -> bool:
+        """Returns whether the class is serializable"""
         return True
 
     @classmethod
     def get_class_fullname(cls) -> str:
+        """Returns class name"""
         return "BboxParams"
 
 
 class BboxProcessor(DataProcessor):
+    """
+    Processor Class for Bounding Boxes
+
+    Args:
+        params (BboxParams): An instance of BboxParams
+        additional_targets (dict): keys - new target name, values - old target name. ex: {'bboxes2': 'bboxes'}
+    """
+
     def __init__(
         self, params: BboxParams, additional_targets: Optional[Dict[str, str]] = None
     ):
@@ -134,9 +144,12 @@ class BboxProcessor(DataProcessor):
 
     @property
     def default_data_name(self) -> str:
+        """Returns the default data name for class (e.g. 'image')"""
         return "bboxes"
 
     def ensure_data_valid(self, data: Dict[str, Any]) -> None:
+        """Raises a ValueError if input data is not in the expected format
+        (e.g. `label_fields` does not match up with values with params dict)"""
         for data_name in self.data_fields:
             data_exists = data_name in data and len(data[data_name])
             if data_exists and len(data[data_name][0]) < 7:
@@ -152,6 +165,22 @@ class BboxProcessor(DataProcessor):
                 )
 
     def filter(self, data: Sequence, rows: int, cols: int, slices: int) -> List:
+        """
+        Wrapper method that invokes `filter_bboxes`. 
+        Remove bounding boxes that either lie outside of the visible planar area or 
+        volume by more then min_area_visibility or min_volume_visibility, respectively, 
+        as well as any bounding boxes or whose planar area/volumne in pixels is under
+        the threshold set by `min_area` and `min_volume`. Also it crops boxes to final image size.
+    
+        Args:
+            data (Sequence): A sequence of bbox objects
+            rows (int): The number of rows in the target image
+            cols (int): The number of columns in the target image
+            slices (int): The number of slices in the target image
+        
+        Returns:
+            bboxes
+        """
         self.params: BboxParams
         return filter_bboxes(
             data,
@@ -168,11 +197,25 @@ class BboxProcessor(DataProcessor):
         )
 
     def check(self, data: Sequence, rows: int, cols: int, slices: int) -> None:
+        """Wrapper method that invokes `check_keypoints`.
+        Check if bbox boundaries are in range 0, 1 and minimums are lesser then maximums
+        """
         check_bboxes(data)
 
     def convert_from_dicaugment(
         self, data: Sequence, rows: int, cols: int, slices: int
     ) -> List[BoxType]:
+        """
+        Convert a bounding box from the format used by dicaugment to a format, specified in `params.format`.
+
+        Args:
+            data (Sequence): A sequence of bounding boxes.
+            rows: Image height.
+            cols: Image width.
+            slices: Image depth
+        Returns:
+            Sequence: A sequence of bounding boxes
+        """
         return convert_bboxes_from_dicaugment(
             data, self.params.format, rows, cols, slices, check_validity=True
         )
@@ -180,6 +223,19 @@ class BboxProcessor(DataProcessor):
     def convert_to_dicaugment(
         self, data: Sequence[BoxType], rows: int, cols: int, slices: int
     ) -> List[BoxType]:
+        """
+        Convert a bounding box from a format specified in `params.format` to the format used by dicaugment:
+        normalized coordinates of closest top-left and furthest bottom-right corners of the bounding box in a form of
+        `(x_min, y_min, z_min, x_max, y_max, z_max)` e.g. `(0.15, 0.27, 0.12, 0.67, 0.5, 0.48)`.
+
+        Args:
+            data (Sequence): A sequence of bounding boxes.
+            rows: Image height.
+            cols: Image width.
+            slices: Image depth
+        Returns:
+            Sequence: A sequence of bounding boxes
+        """
         return convert_bboxes_to_dicaugment(
             data, self.params.format, rows, cols, slices, check_validity=True
         )

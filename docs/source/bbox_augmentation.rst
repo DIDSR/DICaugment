@@ -2,7 +2,7 @@ Using Bounding Boxes For Object Detection Tasks
 =================================================
 
 
-Annotatation Formats
+Annotation Formats
 ------------------------
 
 

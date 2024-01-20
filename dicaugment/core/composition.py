@@ -25,8 +25,6 @@ __all__ = [
     "SomeOf",
     "OneOf",
     "OneOrOther",
-    # "BboxParams",
-    # "KeypointParams",
     "ReplayCompose",
     "Sequential",
 ]
@@ -50,6 +48,13 @@ def get_always_apply(
 
 
 class BaseCompose(Serializable):
+    """
+    Abtract Base Class for the Compose Class. Not intended to be instantiated.
+
+    Args:
+        transforms (list): list of transformations to compose.
+        p (float): probability of applying all list of transforms
+    """
     def __init__(self, transforms: TransformsSeqType, p: float):
         if isinstance(transforms, (BaseCompose, BasicTransform)):
             warnings.warn(
@@ -64,18 +69,31 @@ class BaseCompose(Serializable):
         self.applied_in_replay = False
 
     def __len__(self) -> int:
+        """Returns the number of transforms in the pipeline"""
         return len(self.transforms)
 
     def __call__(self, *args, **data) -> typing.Dict[str, typing.Any]:
+        """
+        Applies each transformation.
+
+        Args:
+            force_apply(bool): whether to always apply the transformations. Default: False
+            **data: keyword arguments for augmentations (e.g, image=image, bboxes=bboxes)
+        Raises:
+            NotImplementedError
+        """
         raise NotImplementedError
 
     def __getitem__(self, item: int) -> TransformType:  # type: ignore
+        """Returns the transform at index `item`"""
         return self.transforms[item]
 
     def __repr__(self) -> str:
+        """Returns a pretty printed string representation of this object"""
         return self.indented_repr()
 
     def indented_repr(self, indent: int = REPR_INDENT_STEP) -> str:
+        """Returns a pretty printed string representation of this object"""
         args = {
             k: v
             for k, v in self._to_dict().items()
@@ -98,13 +116,16 @@ class BaseCompose(Serializable):
 
     @classmethod
     def get_class_fullname(cls) -> str:
+        """Returns a str representation of the class name with modules"""
         return get_shortest_class_fullname(cls)
 
     @classmethod
     def is_serializable(cls) -> bool:
+        """Returns whether the class is serializable"""
         return True
 
     def _to_dict(self) -> typing.Dict[str, typing.Any]:
+        """Returns a serializable representation of object"""
         return {
             "__class_fullname__": self.get_class_fullname(),
             "p": self.p,
@@ -112,6 +133,7 @@ class BaseCompose(Serializable):
         }
 
     def get_dict_with_id(self) -> typing.Dict[str, typing.Any]:
+        """Returns a serializable representation of object with a unique integer identifier for the object"""
         return {
             "__class_fullname__": self.get_class_fullname(),
             "id": id(self),
@@ -122,17 +144,32 @@ class BaseCompose(Serializable):
     def add_targets(
         self, additional_targets: typing.Optional[typing.Dict[str, str]]
     ) -> None:
+        """Add targets to transform them the same way as one of existing targets
+        ex: {'target_image': 'image'}
+        ex: {'obj1_mask': 'mask', 'obj2_mask': 'mask'}
+        by the way you must have at least one object with key 'image'
+
+        Args:
+            additional_targets (dict): keys - new target name, values - old target name. ex: {'image2': 'image'}
+        """
         if additional_targets:
             for t in self.transforms:
                 t.add_targets(additional_targets)
 
     def set_deterministic(self, flag: bool, save_key: str = "replay") -> None:
+        """
+        Enables replays of non-deterministic transforms
+        
+        Args:
+            flag (bool): Whether or not to set the transforms as deterministic
+            save_key(str): The dict key where the saved parameters will be found in output. Default: "replay"
+        """
         for t in self.transforms:
             t.set_deterministic(flag, save_key)
 
 
 class Compose(BaseCompose):
-    """Compose transforms and handle all transformations regarding bounding boxes
+    """Compose transforms and handles all transformations for images, bounding boxes, and keypoints
 
     Args:
         transforms (list): list of transformations to compose.
@@ -211,6 +248,19 @@ class Compose(BaseCompose):
     def __call__(
         self, *args, force_apply: bool = False, **data
     ) -> typing.Dict[str, typing.Any]:
+        """Applies each transformation.
+        Invoking this method is the intended way to make use of this class and all transformations
+        Data passed must be named arguments, for example: aug(image=image)
+
+        Args:
+            force_apply(bool): whether to always apply the transformations. Default: False
+            **data: keyword arguments for augmentations (e.g, image=image, bboxes=bboxes)
+
+        Returns:
+            Dictionary of augmented data
+        Raises:
+            KeyError: If positional args are passed to this method
+        """
         if args:
             raise KeyError(
                 "You have to pass data to augmentations as named arguments, for example: aug(image=image)"
@@ -263,6 +313,7 @@ class Compose(BaseCompose):
         return data
 
     def _to_dict(self) -> typing.Dict[str, typing.Any]:
+        """Returns a serializable representation of object"""
         dictionary = super(Compose, self)._to_dict()
         bbox_processor = self.processors.get("bboxes")
         keypoints_processor = self.processors.get("keypoints")
@@ -281,6 +332,7 @@ class Compose(BaseCompose):
         return dictionary
 
     def get_dict_with_id(self) -> typing.Dict[str, typing.Any]:
+        """Returns a serializable representation of object with a unique integer identifier for the object"""
         dictionary = super().get_dict_with_id()
         bbox_processor = self.processors.get("bboxes")
         keypoints_processor = self.processors.get("keypoints")
@@ -300,6 +352,7 @@ class Compose(BaseCompose):
         return dictionary
 
     def _check_args(self, **kwargs) -> None:
+        """Checks if args are the correct type and format"""
         checked_single = ["image", "mask"]
         checked_multi = ["masks"]
         check_bbox_param = ["bboxes"]
@@ -344,6 +397,7 @@ class Compose(BaseCompose):
     def _make_targets_contiguous(
         data: typing.Dict[str, typing.Any]
     ) -> typing.Dict[str, typing.Any]:
+        """If any targets are numpy arrays, make them contiguous"""
         result = {}
         for key, value in data.items():
             if isinstance(value, np.ndarray):
@@ -370,6 +424,18 @@ class OneOf(BaseCompose):
     def __call__(
         self, *args, force_apply: bool = False, **data
     ) -> typing.Dict[str, typing.Any]:
+        """Applies each transformation.
+        Data passed must be named arguments, for example: aug(image=image)
+
+        Args:
+            force_apply(bool): whether to always apply the transformations. Default: False
+            **data: keyword arguments for augmentations (e.g, image=image, bboxes=bboxes)
+
+        Returns:
+            Dictionary of augmented data
+        Raises:
+            KeyError: If positional args are passed to this method
+        """
         if self.replay_mode:
             for t in self.transforms:
                 data = t(**data)
@@ -406,6 +472,16 @@ class SomeOf(BaseCompose):
     def __call__(
         self, *args, force_apply: bool = False, **data
     ) -> typing.Dict[str, typing.Any]:
+        """
+        Applies each transformation.
+
+        Args:
+            force_apply(bool): whether to always apply the transformations. Default: False
+            **data: keyword arguments for augmentations (e.g, image=image, bboxes=bboxes)
+
+        Returns:
+            Dictionary of augmented data
+        """
         if self.replay_mode:
             for t in self.transforms:
                 data = t(**data)
@@ -430,8 +506,14 @@ class SomeOf(BaseCompose):
 
 
 class OneOrOther(BaseCompose):
-    """Select one or another transform to apply. Selected transform will be called with `force_apply=True`."""
+    """Select one or another transform to apply. Selected transform will be called with `force_apply=True`.
 
+    Args:
+        first (TransformType): A Transformation. Ignored if transformations not None
+        second (TransformType): A Transformation. Ignored if transformations not None
+        transformations (List of TransformType): A list of two Transformations
+        p (float): probability of applying the first transform.
+    """
     def __init__(
         self,
         first: typing.Optional[TransformType] = None,
@@ -452,6 +534,16 @@ class OneOrOther(BaseCompose):
     def __call__(
         self, *args, force_apply: bool = False, **data
     ) -> typing.Dict[str, typing.Any]:
+        """
+        Applies each transformation.
+
+        Args:
+            force_apply(bool): whether to always apply the transformations. Default: False
+            **data: keyword arguments for augmentations (e.g, image=image, bboxes=bboxes)
+
+        Returns:
+            Dictionary of augmented data
+        """
         if self.replay_mode:
             for t in self.transforms:
                 data = t(**data)
@@ -463,44 +555,20 @@ class OneOrOther(BaseCompose):
         return self.transforms[-1](force_apply=True, **data)
 
 
-# class PerChannel(BaseCompose):
-#     """Apply transformations per-channel
-
-#     Args:
-#         transforms (list): list of transformations to compose.
-#         channels (sequence): channels to apply the transform to. Pass None to apply to all.
-#                          Default: None (apply to all)
-#         p (float): probability of applying the transform. Default: 0.5.
-#     """
-
-#     def __init__(
-#         self, transforms: TransformsSeqType, channels: typing.Optional[typing.Sequence[int]] = None, p: float = 0.5
-#     ):
-#         super(PerChannel, self).__init__(transforms, p)
-#         self.channels = channels
-
-#     def __call__(self, *args, force_apply: bool = False, **data) -> typing.Dict[str, typing.Any]:
-#         if force_apply or random.random() < self.p:
-
-#             image = data["image"]
-
-#             # Expand mono images to have a single channel
-#             if len(image.shape) == 2:
-#                 image = np.expand_dims(image, -1)
-
-#             if self.channels is None:
-#                 self.channels = range(image.shape[2])
-
-#             for c in self.channels:
-#                 for t in self.transforms:
-#                     image[:, :, c] = t(image=image[:, :, c])["image"]
-
-#             data["image"] = image
-
-#         return data
-
-
 class ReplayCompose(Compose):
+    """
+    Similar to Compose but tracks augmentation parameters. You can inspect those parameters or reapply them to another image.
+    
+    Args:
+        transforms (list): list of transformations to compose.
+        bbox_params (BboxParams): Parameters for bounding boxes transforms
+        keypoint_params (KeypointParams): Parameters for keypoints transforms
+        additional_targets (dict): Dict with keys - new target name, values - old target name. ex: {'image2': 'image'}
+        p (float): probability of applying all list of transforms. Default: 1.0.
+        is_check_shapes (bool): If True shapes consistency of images/mask/masks would be checked on each call. If you
+            would like to disable this check - pass False (do it only if you are sure in your data consistency).
+        save_key(str): The dict key where the saved parameters will be found in output. Default: "replay"
+    """
     def __init__(
         self,
         transforms: TransformsSeqType,
@@ -525,6 +593,16 @@ class ReplayCompose(Compose):
     def __call__(
         self, *args, force_apply: bool = False, **kwargs
     ) -> typing.Dict[str, typing.Any]:
+        """
+        Applies each transformation and saves the parameters used.
+
+        Args:
+            force_apply(bool): whether to always apply the transformations. Default: False
+            **data: keyword arguments for augmentations (e.g, image=image, bboxes=bboxes)
+
+        Returns:
+            Dictionary of augmented data with augmentation parameters used
+        """
         kwargs[self.save_key] = defaultdict(dict)
         result = super(ReplayCompose, self).__call__(force_apply=force_apply, **kwargs)
         serialized = self.get_dict_with_id()
@@ -537,6 +615,14 @@ class ReplayCompose(Compose):
     def replay(
         saved_augmentations: typing.Dict[str, typing.Any], **kwargs
     ) -> typing.Dict[str, typing.Any]:
+        """
+        Applies augmentations to new targets using the previously saved augmentation parameters.
+        
+        Args:
+            saved_augmentations (dict): previously saved augmentation parameters found from invoking `__call__`
+            kwargs (dict): keyword arguments for augmentations (e.g, image=image, bboxes=bboxes)
+        
+        """
         augs = ReplayCompose._restore_for_replay(saved_augmentations)
         return augs(force_apply=True, **kwargs)
 
@@ -547,6 +633,7 @@ class ReplayCompose(Compose):
     ) -> TransformType:
         """
         Args:
+            transform_dict (dict): 
             lambda_transforms (dict): A dictionary that contains lambda transforms, that
             is instances of the Lambda class.
                 This dictionary is required when you are restoring a pipeline that contains lambda transforms. Keys
@@ -583,6 +670,14 @@ class ReplayCompose(Compose):
         return transform
 
     def fill_with_params(self, serialized: dict, all_params: dict) -> None:
+        """
+        Recursively populates the all_params dictionary with the params for each transformation.
+
+        Args:
+            serialized (dict): a serializable representation (dict) of a transformation
+            all_params (dict): a dictionary to be populated with the params for each transformation
+        
+        """
         params = all_params.get(serialized.get("id"))
         serialized["params"] = params
         del serialized["id"]
@@ -590,6 +685,12 @@ class ReplayCompose(Compose):
             self.fill_with_params(transform, all_params)
 
     def fill_applied(self, serialized: typing.Dict[str, typing.Any]) -> bool:
+        """
+        Recursively dictates whether the transformation was applied or not (i.e. has generated params).
+
+        Args:
+            serialized (dict): a serializable representation (dict) of a transformation
+        """
         if "transforms" in serialized:
             applied = [self.fill_applied(t) for t in serialized["transforms"]]
             serialized["applied"] = any(applied)
@@ -598,6 +699,7 @@ class ReplayCompose(Compose):
         return serialized["applied"]
 
     def _to_dict(self) -> typing.Dict[str, typing.Any]:
+        """Returns a serializable representation of object"""
         dictionary = super(ReplayCompose, self)._to_dict()
         dictionary.update({"save_key": self.save_key})
         return dictionary
@@ -605,6 +707,10 @@ class ReplayCompose(Compose):
 
 class Sequential(BaseCompose):
     """Sequentially applies all transforms to targets.
+    
+    Args:
+        transforms (list): list of transformations to compose.
+        p (float): probability of applying selected transform. Default: 0.5.
 
     Note:
         This transform is not intended to be a replacement for `Compose`. Instead, it should be used inside `Compose`
@@ -632,6 +738,15 @@ class Sequential(BaseCompose):
         super().__init__(transforms, p)
 
     def __call__(self, *args, **data) -> typing.Dict[str, typing.Any]:
+        """
+        Applies each transformation.
+
+        Args:
+            **data: keyword arguments for augmentations (e.g, image=image, bboxes=bboxes)
+
+        Returns:
+            Dictionary of augmented data
+        """
         for t in self.transforms:
             data = t(**data)
         return data

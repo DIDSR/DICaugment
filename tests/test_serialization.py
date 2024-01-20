@@ -81,76 +81,13 @@ def test_augmentations_serialization(
 
 
 AUGMENTATION_CLS_PARAMS = [
-    # [
-    #     A.ImageCompression,
-    #     {
-    #         "quality_lower": 10,
-    #         "quality_upper": 80,
-    #         "compression_type": A.ImageCompression.ImageCompressionType.WEBP,
-    #     },
-    # ],
-    # [A.JpegCompression, {"quality_lower": 10, "quality_upper": 80}],
-    # [
-    #     A.HueSaturationValue,
-    #     {"hue_shift_limit": 70, "sat_shift_limit": 95, "val_shift_limit": 55},
-    # ],
-    # [A.RGBShift, {"r_shift_limit": 70, "g_shift_limit": 80, "b_shift_limit": 40}],
     [A.RandomBrightnessContrast, {"brightness_limit": 0.5, "contrast_limit": 0.8}],
     [A.Blur, {"blur_limit": 3}],
-    # [A.MotionBlur, {"blur_limit": 3}],
     [A.MedianBlur, {"blur_limit": 3}],
     [A.GaussianBlur, {"blur_limit": 3}],
     [A.GaussNoise, {"var_limit": (20, 90), "mean": 10, "per_channel": False}],
-    # [A.CLAHE, {"clip_limit": 2, "tile_grid_size": (12, 12)}],
     [A.RandomGamma, {"gamma_limit": (10, 90)}],
-    # [A.Cutout, {"num_holes": 4, "max_h_size": 4, "max_w_size": 4}],
     [A.CoarseDropout, {"max_holes": 4, "max_height": 4, "max_width": 4}],
-    # [
-    #     A.RandomSnow,
-    #     {"snow_point_lower": 0.2, "snow_point_upper": 0.4, "brightness_coeff": 4},
-    # ],
-    # [
-    #     A.RandomRain,
-    #     {
-    #         "slant_lower": -5,
-    #         "slant_upper": 5,
-    #         "drop_length": 15,
-    #         "drop_width": 2,
-    #         "drop_color": (100, 100, 100),
-    #         "blur_value": 3,
-    #         "brightness_coefficient": 0.5,
-    #         "rain_type": "heavy",
-    #     },
-    # ],
-    # [A.RandomFog, {"fog_coef_lower": 0.2, "fog_coef_upper": 0.8, "alpha_coef": 0.11}],
-    # [
-    #     A.RandomSunFlare,
-    #     {
-    #         "flare_roi": (0.1, 0.1, 0.9, 0.6),
-    #         "angle_lower": 0.1,
-    #         "angle_upper": 0.95,
-    #         "num_flare_circles_lower": 7,
-    #         "num_flare_circles_upper": 11,
-    #         "src_radius": 300,
-    #         "src_color": (200, 200, 200),
-    #     },
-    # ],
-    # [
-    #     A.RandomGravel,
-    #     {
-    #         "gravel_roi": (0.1, 0.4, 0.9, 0.9),
-    #         "number_of_patches": 2,
-    #     },
-    # ],
-    # [
-    #     A.RandomShadow,
-    #     {
-    #         "shadow_roi": (0.1, 0.4, 0.9, 0.9),
-    #         "num_shadows_lower": 2,
-    #         "num_shadows_upper": 4,
-    #         "shadow_dimension": 8,
-    #     },
-    # ],
     [
         A.PadIfNeeded,
         {
@@ -194,40 +131,8 @@ AUGMENTATION_CLS_PARAMS = [
             "value": 10,
         },
     ],
-    # [
-    #     A.OpticalDistortion,
-    #     {
-    #         "distort_limit": 0.2,
-    #         "shift_limit": 0.2,
-    #         "interpolation": cv2.INTER_CUBIC,
-    #         "border_mode": cv2.BORDER_CONSTANT,
-    #         "value": (10, 10, 10),
-    #     },
-    # ],
-    # [
-    #     A.GridDistortion,
-    #     {
-    #         "num_steps": 10,
-    #         "distort_limit": 0.5,
-    #         "interpolation": cv2.INTER_CUBIC,
-    #         "border_mode": cv2.BORDER_CONSTANT,
-    #         "value": (10, 10, 10),
-    #     },
-    # ],
-    # [
-    #     A.ElasticTransform,
-    #     {
-    #         "alpha": 2,
-    #         "sigma": 25,
-    #         "alpha_affine": 40,
-    #         "interpolation": cv2.INTER_CUBIC,
-    #         "border_mode": cv2.BORDER_CONSTANT,
-    #         "value": (10, 10, 10),
-    #     },
-    # ],
     [A.CenterCrop, {"height": 10, "width": 10, "depth": 10}],
     [A.RandomCrop, {"height": 10, "width": 10, "depth": 10}],
-    # [A.CropNonEmptyMaskIfExists, {"height": 10, "width": 10, "depth": 10}],
     [
         A.RandomSizedCrop,
         {"min_max_height": (4, 8), "height": 10, "width": 10, "depth": 10},
@@ -235,44 +140,13 @@ AUGMENTATION_CLS_PARAMS = [
     [A.Crop, {"x_max": 64, "y_max": 64, "z_max": 64}],
     [A.ToFloat, {"max_value": 16536}],
     [A.Normalize, {"mean": (0.385), "std": (0.129)}],
-    # [A.RandomBrightness, {"limit": 0.4}],
-    # [A.RandomContrast, {"limit": 0.4}],
     [A.RandomScale, {"scale_limit": 0.2, "interpolation": 2}],
     [A.Resize, {"height": 64, "width": 64, "depth": 64}],
     [A.SmallestMaxSize, {"max_size": 64, "interpolation": 2}],
     [A.LongestMaxSize, {"max_size": 128, "interpolation": 2}],
-    # [A.RandomGridShuffle, {"grid": (5, 5)}],
-    # [A.Solarize, {"threshold": 32}],
     [A.Posterize, {"num_bits": 8}],
-    [A.Equalize, {}],  # "mode": "pil", "by_channels": False}],
-    # [
-    #     A.MultiplicativeNoise,
-    #     {"multiplier": (0.7, 2.3), "per_channel": True, "elementwise": True},
-    # ],
-    # [
-    #     A.ColorJitter,
-    #     {
-    #         "brightness": [0.2, 0.3],
-    #         "contrast": [0.7, 0.9],
-    #         "saturation": [1.2, 1.7],
-    #         "hue": [-0.2, 0.1],
-    #     },
-    # ],
-    # [
-    #     A.Perspective,
-    #     {
-    #         "scale": 0.5,
-    #         "keep_size": False,
-    #         "pad_mode": cv2.BORDER_REFLECT_101,
-    #         "pad_val": 10,
-    #         "mask_pad_val": 100,
-    #         "fit_output": True,
-    #         "interpolation": cv2.INTER_CUBIC,
-    #     },
-    # ],
+    [A.Equalize, {}],
     [A.Sharpen, {"alpha": [0.2, 0.5], "lightness": [0.5, 1.0]}],
-    # [A.Emboss, {"alpha": [0.2, 0.5], "strength": [0.5, 1.0]}],
-    # [A.RandomToneCurve, {"scale": 0.2}],
     [
         A.CropAndPad,
         {
@@ -285,88 +159,20 @@ AUGMENTATION_CLS_PARAMS = [
             "pad_mode": "constant",
         },
     ],
-    # [
-    #     A.Superpixels,
-    #     {
-    #         "p_replace": (0.5, 0.7),
-    #         "n_segments": (20, 30),
-    #         "max_size": 25,
-    #         "interpolation": cv2.INTER_CUBIC,
-    #     },
-    # ],
-    # [
-    #     A.Affine,
-    #     {
-    #         "scale": 0.5,
-    #         "translate_percent": 0.7,
-    #         "translate_px": None,
-    #         "rotate": 33,
-    #         "shear": 21,
-    #         "interpolation": cv2.INTER_CUBIC,
-    #         "cval": 25,
-    #         "cval_mask": 1,
-    #         "mode": cv2.BORDER_REFLECT,
-    #         "fit_output": True,
-    #     },
-    # ],
-    # [
-    #     A.Affine,
-    #     {
-    #         "scale": {"x": [0.3, 0.5], "y": [0.1, 0.2]},
-    #         "translate_percent": None,
-    #         "translate_px": {"x": [10, 200], "y": [5, 101]},
-    #         "rotate": [333, 360],
-    #         "shear": {"x": [31, 38], "y": [41, 48]},
-    #         "interpolation": 3,
-    #         "cval": [10, 20, 30],
-    #         "cval_mask": 1,
-    #         "mode": cv2.BORDER_REFLECT,
-    #         "fit_output": True,
-    #     },
-    # ],
-    # [
-    #     A.PiecewiseAffine,
-    #     {
-    #         "scale": 0.33,
-    #         "nb_rows": (10, 20),
-    #         "nb_cols": 33,
-    #         "interpolation": 2,
-    #         "mask_interpolation": 1,
-    #         "cval": 10,
-    #         "cval_mask": 20,
-    #         "mode": "edge",
-    #         "absolute_scale": True,
-    #         "keypoints_threshold": 0.1,
-    #     },
-    # ],
-    # [A.ChannelDropout, dict(channel_drop_range=(1, 2), fill_value=1)],
-    # [A.ChannelShuffle, {}],
     [A.Downscale, dict(scale_min=0.5, scale_max=0.75, interpolation=1)],
     [A.Flip, {}],
     [A.FromFloat, dict(dtype="uint8", max_value=1)],
     [A.HorizontalFlip, {}],
     [A.SliceFlip, {}],
-    # [A.ISONoise, dict(color_shift=(0.2, 0.3), intensity=(0.7, 0.9))],
     [A.InvertImg, {}],
-    # [A.MaskDropout, dict(max_objects=2, image_fill_value=10, mask_fill_value=20)],
     [A.NoOp, {}],
-    # [
-    #     A.RandomResizedCrop,
-    #     dict(height=20, width=30, scale=(0.5, 0.6), ratio=(0.8, 0.9)),
-    # ],
-    # [A.FancyPCA, dict(alpha=0.3)],
     [A.RandomRotate90, {"axes": "xy"}],
-    # [A.ToGray, {}],
-    # [A.ToRGB, {}],
-    # [A.ToSepia, {}],
     [A.Transpose, {}],
     [A.VerticalFlip, {}],
-    # [A.RingingOvershoot, dict(blur_limit=(7, 15), cutoff=(np.pi / 5, np.pi / 2))],
     [
         A.UnsharpMask,
         {"blur_limit": 3, "sigma_limit": 0.5, "alpha": 0.2, "threshold": 15},
     ],
-    # [A.AdvancedBlur, dict(blur_limit=(3, 5), rotate_limit=(60, 90))],
     [A.PixelDropout, {"dropout_prob": 0.1, "per_channel": True, "drop_value": None}],
     [
         A.PixelDropout,
@@ -388,26 +194,9 @@ AUGMENTATION_CLS_PARAMS = [
             crop_far=0.8,
         ),
     ],
-    # [
-    #     A.Spatter,
-    #     dict(
-    #         mean=0.2,
-    #         std=0.1,
-    #         gauss_sigma=3,
-    #         cutout_threshold=0.4,
-    #         intensity=0.7,
-    #         mode="mud",
-    #     ),
-    # ],
-    # [A.Defocus, {"radius": (5, 7), "alias_blur": (0.2, 0.6)}],
-    # [A.ZoomBlur, {"max_factor": (1.56, 1.7), "step_factor": (0.02, 0.04)}],
 ]
 
 AUGMENTATION_CLS_EXCEPT = {
-    # A.FDA,
-    # A.HistogramMatching,
-    # A.PixelDistributionAdaptation,
-    # A.Lambda,
     A.RandomCropNearBBox,
     A.RandomSizedBBoxSafeCrop,
     A.BBoxSafeRandomCrop,
@@ -415,8 +204,6 @@ AUGMENTATION_CLS_EXCEPT = {
     A.RescaleSlopeIntercept,
     A.SetPixelSpacing,
     A.NPSNoise,
-    # A.GlassBlur,
-    # A.TemplateTransform,
 }
 
 
@@ -553,21 +340,10 @@ def test_augmentations_for_bboxes_serialization(
             A.RescaleSlopeIntercept,
             A.SetPixelSpacing,
             A.NPSNoise,
-            # A.FDA,
-            # A.HistogramMatching,
-            # A.PixelDistributionAdaptation,
-            # A.Lambda,
             A.CoarseDropout,
-            # A.CropNonEmptyMaskIfExists,
-            # A.ElasticTransform,
-            # A.GridDistortion,
-            # A.RandomGridShuffle,
             A.GridDropout,
-            # A.MaskDropout,
-            # A.OpticalDistortion,
             A.RandomSizedBBoxSafeCrop,
             A.BBoxSafeRandomCrop,
-            # A.TemplateTransform,
         },
     ),
 )
@@ -813,10 +589,6 @@ def test_transform_pipeline_serialization_with_keypoints(
     ["augmentation_cls", "params"],
     get_image_only_transforms(
         except_augmentations={
-            # A.HistogramMatching,
-            # A.FDA,
-            # A.PixelDistributionAdaptation,
-            # A.TemplateTransform,
             A.RescaleSlopeIntercept,
             A.NPSNoise,
         },
@@ -840,96 +612,6 @@ def test_additional_targets_for_image_only_serialization(
     deserialized_aug_data = deserialized_aug(image=image, image2=image2)
     assert np.array_equal(aug_data["image"], deserialized_aug_data["image"])
     assert np.array_equal(aug_data["image2"], deserialized_aug_data["image2"])
-
-
-# @pytest.mark.parametrize("seed", TEST_SEEDS)
-# @pytest.mark.parametrize("p", [1])
-# def test_lambda_serialization(image, mask, dicaugment_bboxes, keypoints, seed, p):
-#     def vflip_image(image, **kwargs):
-#         return FGeometric.vflip(image)
-
-#     def vflip_mask(mask, **kwargs):
-#         return FGeometric.vflip(mask)
-
-#     def vflip_bbox(bbox, **kwargs):
-#         return FGeometric.bbox_vflip(bbox, **kwargs)
-
-#     def vflip_keypoint(keypoint, **kwargs):
-#         return FGeometric.keypoint_vflip(keypoint, **kwargs)
-
-#     aug = A.Lambda(
-#         name="vflip",
-#         image=vflip_image,
-#         mask=vflip_mask,
-#         bbox=vflip_bbox,
-#         keypoint=vflip_keypoint,
-#         p=p,
-#     )
-
-#     serialized_aug = A.to_dict(aug)
-#     deserialized_aug = A.from_dict(serialized_aug, lambda_transforms={"vflip": aug})
-#     set_seed(seed)
-#     aug_data = aug(image=image, mask=mask, bboxes=dicaugment_bboxes, keypoints=keypoints)
-#     set_seed(seed)
-#     deserialized_aug_data = deserialized_aug(image=image, mask=mask, bboxes=dicaugment_bboxes, keypoints=keypoints)
-#     assert np.array_equal(aug_data["image"], deserialized_aug_data["image"])
-#     assert np.array_equal(aug_data["mask"], deserialized_aug_data["mask"])
-#     assert np.array_equal(aug_data["bboxes"], deserialized_aug_data["bboxes"])
-#     assert np.array_equal(aug_data["keypoints"], deserialized_aug_data["keypoints"])
-
-
-# def test_serialization_v2_conversion_without_totensor():
-#     current_directory = os.path.dirname(os.path.abspath(__file__))
-#     files_directory = os.path.join(current_directory, "files")
-#     transform_1_1_0 = A.load(os.path.join(files_directory, "transform_v1.1.0_without_totensor.json"))
-#     with open(os.path.join(files_directory, "output_v1.1.0_without_totensor.json")) as f:
-#         output_1_1_0 = json.load(f)
-#     np.random.seed(42)
-#     image = np.random.randint(low=0, high=255, size=(256, 256, 3), dtype=np.uint8)
-#     random.seed(42)
-#     transformed_image = transform_1_1_0(image=image)["image"]
-#     assert transformed_image.tolist() == output_1_1_0
-
-
-# @skipif_no_torch
-# def test_serialization_v2_conversion_with_totensor():
-#     current_directory = os.path.dirname(os.path.abspath(__file__))
-#     files_directory = os.path.join(current_directory, "files")
-#     transform_1_1_0 = A.load(os.path.join(files_directory, "transform_v1.1.0_with_totensor.json"))
-#     with open(os.path.join(files_directory, "output_v1.1.0_with_totensor.json")) as f:
-#         output_1_1_0 = json.load(f)
-#     np.random.seed(42)
-#     image = np.random.randint(low=0, high=255, size=(256, 256, 3), dtype=np.uint8)
-#     random.seed(42)
-#     transformed_image = transform_1_1_0(image=image)["image"]
-#     assert transformed_image.numpy().tolist() == output_1_1_0
-
-
-# def test_serialization_v2_without_totensor():
-#     current_directory = os.path.dirname(os.path.abspath(__file__))
-#     files_directory = os.path.join(current_directory, "files")
-#     transform = A.load(os.path.join(files_directory, "transform_serialization_v2_without_totensor.json"))
-#     with open(os.path.join(files_directory, "output_v1.1.0_without_totensor.json")) as f:
-#         output_1_1_0 = json.load(f)
-#     np.random.seed(42)
-#     image = np.random.randint(low=0, high=255, size=(256, 256, 3), dtype=np.uint8)
-#     random.seed(42)
-#     transformed_image = transform(image=image)["image"]
-#     assert transformed_image.tolist() == output_1_1_0
-
-
-# @skipif_no_torch
-# def test_serialization_v2_with_totensor():
-#     current_directory = os.path.dirname(os.path.abspath(__file__))
-#     files_directory = os.path.join(current_directory, "files")
-#     transform = A.load(os.path.join(files_directory, "transform_serialization_v2_with_totensor.json"))
-#     with open(os.path.join(files_directory, "output_v1.1.0_with_totensor.json")) as f:
-#         output_1_1_0 = json.load(f)
-#     np.random.seed(42)
-#     image = np.random.randint(low=0, high=255, size=(256, 256, 3), dtype=np.uint8)
-#     random.seed(42)
-#     transformed_image = transform(image=image)["image"]
-#     assert transformed_image.numpy().tolist() == output_1_1_0
 
 
 def test_custom_transform_with_overlapping_name():
@@ -969,21 +651,3 @@ def test_serialization_v2_to_dict():
 )
 def test_shorten_class_name(class_fullname, expected_short_class_name):
     assert shorten_class_name(class_fullname) == expected_short_class_name
-
-
-# @pytest.mark.parametrize("seed", TEST_SEEDS)
-# @pytest.mark.parametrize("p", [1])
-# def test_template_transform_serialization(image, template, seed, p):
-#     template_transform = A.TemplateTransform(name="template", templates=template, p=p)
-
-#     aug = A.Compose([A.Flip(), template_transform, A.Blur()])
-
-#     serialized_aug = A.to_dict(aug)
-#     deserialized_aug = A.from_dict(serialized_aug, lambda_transforms={"template": template_transform})
-
-#     set_seed(seed)
-#     aug_data = aug(image=image)
-#     set_seed(seed)
-#     deserialized_aug_data = deserialized_aug(image=image)
-
-#     assert np.array_equal(aug_data["image"], deserialized_aug_data["image"])

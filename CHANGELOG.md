@@ -9,13 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
- - Automated Testing Through Github Actions
+ - Automated Testing And Publishing Through Github Actions
  - Changelog
+ - Contributing Document
+
+### Removed
+
+- Commented out code
 
 ### Changed
 
+ - Dropped support for Python 3.7
  - Docstring arguments to include `always_apply` where applicable
  - README updated to reflect accurate code
+ - Typos
 
 ## [1.0.0] - 2023-09-01
 

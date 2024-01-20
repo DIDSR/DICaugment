@@ -24,6 +24,10 @@ class ToTensorflow(BasicTransform):
 
     @property
     def targets(self) -> Dict[str, Callable]:
+        """
+        Returns the mapping of target to applicable `apply` method.
+        (e.g. {'image': self.apply, 'bboxes', self.apply_to_bboxes})
+        """
         return {
             "image": self.apply,
             "mask": self.apply_to_mask,
@@ -31,6 +35,7 @@ class ToTensorflow(BasicTransform):
         }
 
     def apply(self, img: np.ndarray, **params) -> "tf.tensor":  # skipcq: PYL-W0613
+        """Applies the transformation to the image"""
         if len(img.shape) not in [3, 4]:
             raise ValueError("DICaugment only supports images in HWD or HWDC format")
 
@@ -43,6 +48,7 @@ class ToTensorflow(BasicTransform):
     def apply_to_mask(
         self, mask: np.ndarray, **params
     ) -> "tf.tensor":  # skipcq: PYL-W0613
+        """Applies the augmentation to a mask"""
         if mask.ndim == 3:
             mask = np.expand_dims(mask, 3)
         return tf.convert_to_tensor(mask)
@@ -51,7 +57,12 @@ class ToTensorflow(BasicTransform):
         return [self.apply_to_mask(mask, **params) for mask in masks]
 
     def get_transform_init_args_names(self) -> Tuple[str, ...]:
+        """Returns initialization argument names. (e.g. Transform(arg1 = 1, arg2 = 2) -> ('arg1', 'arg2'))"""
         return ()
 
     def get_params_dependent_on_targets(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Returns additional parameters needed for the `apply` methods that depend on a target
+        (e.g. `apply_to_bboxes` method expects image size)
+        """
         return {}

@@ -1,6 +1,6 @@
 from __future__ import division
 
-from typing import Optional, Sequence, Union, Tuple
+from typing import Optional, Sequence, Union, Tuple, Any
 from warnings import warn
 
 import cv2
@@ -35,49 +35,38 @@ from ..core.transforms_interface import (
 )
 
 __all__ = [
-    # "add_fog",
-    # "add_rain",
-    # "add_shadow",
-    # "add_gravel",
-    # "add_snow",
-    # "add_sun_flare",
-    # "add_weighted",
-    # "adjust_brightness_torchvision",
-    # "adjust_contrast_torchvision",
-    # "adjust_hue_torchvision",
-    # "adjust_saturation_torchvision",
     "brightness_contrast_adjust",
-    # "channel_shuffle",
-    # "clahe",
     "convolve",
     "downscale",
     "equalize",
-    # "fancy_pca",
     "from_float",
     "gamma_transform",
     "gauss_noise",
-    # "image_compression",
     "invert",
-    # "iso_noise",
-    # "linear_transformation_rgb",
-    # "move_tone_curve",
     "multiply",
     "noop",
     "normalize",
-    # "posterize",
-    # "shift_hsv",
-    # "shift_rgb",
-    # "solarize",
-    # "superpixels",
-    # "swap_tiles_on_image",
     "to_float",
-    # "to_gray",
-    # "gray_to_rgb",
     "unsharp_mask",
 ]
 
 
-def normalize(img, mean, std):
+def normalize(
+        img: np.ndarray,
+        mean: Union[float, np.ndarray, None],
+        std: Union[float, np.ndarray, None]
+    ) -> np.ndarray:
+    """
+    Normalizes an image by the formula `img = (img - mean) / (std)`.
+    
+    Args:
+        img (np.ndarray): an image
+        mean (float, np.ndarray, None): The offset for the image. 
+            If None, mean is calculated as the mean of the image. If np.ndarray, operation can be broadcast across dimensions.
+        std (float, np.ndarray, None): The standard deviation to divide the image by. 
+            If None, std is calculated as the std of the image. If np.ndarray, operation can be broadcast across dimensions.
+    
+    """
     ndim = img.ndim
     axis = None if ndim == 3 else tuple(range(ndim - 1))
 
@@ -102,108 +91,6 @@ def normalize(img, mean, std):
     img -= mean
     img *= denominator
     return img
-
-
-# def _shift_hsv_uint8(img, hue_shift, sat_shift, val_shift):
-#     dtype = img.dtype
-#     img = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
-#     hue, sat, val = cv2.split(img)
-
-#     if hue_shift != 0:
-#         lut_hue = np.arange(0, 256, dtype=np.int16)
-#         lut_hue = np.mod(lut_hue + hue_shift, 180).astype(dtype)
-#         hue = cv2.LUT(hue, lut_hue)
-
-#     if sat_shift != 0:
-#         lut_sat = np.arange(0, 256, dtype=np.int16)
-#         lut_sat = np.clip(lut_sat + sat_shift, 0, 255).astype(dtype)
-#         sat = cv2.LUT(sat, lut_sat)
-
-#     if val_shift != 0:
-#         lut_val = np.arange(0, 256, dtype=np.int16)
-#         lut_val = np.clip(lut_val + val_shift, 0, 255).astype(dtype)
-#         val = cv2.LUT(val, lut_val)
-
-#     img = cv2.merge((hue, sat, val)).astype(dtype)
-#     img = cv2.cvtColor(img, cv2.COLOR_HSV2RGB)
-#     return img
-
-
-# def _shift_hsv_non_uint8(img, hue_shift, sat_shift, val_shift):
-#     dtype = img.dtype
-#     img = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
-#     hue, sat, val = cv2.split(img)
-
-#     if hue_shift != 0:
-#         hue = cv2.add(hue, hue_shift)
-#         hue = np.mod(hue, 360)  # OpenCV fails with negative values
-
-#     if sat_shift != 0:
-#         sat = clip(cv2.add(sat, sat_shift), dtype, 1.0)
-
-#     if val_shift != 0:
-#         val = clip(cv2.add(val, val_shift), dtype, 1.0)
-
-#     img = cv2.merge((hue, sat, val))
-#     img = cv2.cvtColor(img, cv2.COLOR_HSV2RGB)
-#     return img
-
-
-# @preserve_shape
-# def shift_hsv(img, hue_shift, sat_shift, val_shift):
-#     if hue_shift == 0 and sat_shift == 0 and val_shift == 0:
-#         return img
-
-#     is_gray = is_grayscale_image(img)
-#     if is_gray:
-#         if hue_shift != 0 or sat_shift != 0:
-#             hue_shift = 0
-#             sat_shift = 0
-#             warn(
-#                 "HueSaturationValue: hue_shift and sat_shift are not applicable to grayscale image. "
-#                 "Set them to 0 or use RGB image"
-#             )
-#         img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
-
-#     if img.dtype == np.uint8:
-#         img = _shift_hsv_uint8(img, hue_shift, sat_shift, val_shift)
-#     else:
-#         img = _shift_hsv_non_uint8(img, hue_shift, sat_shift, val_shift)
-
-#     if is_gray:
-#         img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-
-#     return img
-
-
-# def solarize(img, threshold=128):
-#     """Invert all pixel values above a threshold.
-
-#     Args:
-#         img (numpy.ndarray): The image to solarize.
-#         threshold (int): All pixels above this greyscale level are inverted.
-
-#     Returns:
-#         numpy.ndarray: Solarized image.
-
-#     """
-#     dtype = img.dtype
-#     max_val = MAX_VALUES_BY_DTYPE[dtype]
-
-#     if dtype == np.dtype("uint8"):
-#         lut = [(i if i < threshold else max_val - i) for i in range(max_val + 1)]
-
-#         prev_shape = img.shape
-#         img = cv2.LUT(img, np.array(lut, dtype=dtype))
-
-#         if len(prev_shape) != len(img.shape):
-#             img = np.expand_dims(img, -1)
-#         return img
-
-#     result_img = img.copy()
-#     cond = img >= threshold
-#     result_img[cond] = max_val - result_img[cond]
-#     return result_img
 
 
 @preserve_shape
@@ -295,27 +182,6 @@ def posterize(img, bits):
             result_img[..., i] = img[..., i].copy() & mask
 
     return result_img
-
-
-# def _equalize_pil(img, mask=None):
-#     histogram = cv2.calcHist([img], [0], mask, [256], (0, 256)).ravel()
-#     h = [_f for _f in histogram if _f]
-
-#     if len(h) <= 1:
-#         return img.copy()
-
-#     step = np.sum(h[:-1]) // 255
-#     if not step:
-#         return img.copy()
-
-#     lut = np.empty(256, dtype=np.uint8)
-#     n = step // 2
-#     for i in range(256):
-#         lut[i] = min(n // step, 255)
-#         n += histogram[i]
-
-#     return cv2.LUT(img, np.array(lut))
-
 
 def _calcHist(
     img: np.ndarray, mask: Union[np.ndarray, None], nbins: int, hist_range: Tuple
@@ -512,7 +378,33 @@ def clahe(img, clip_limit=2.0, tile_grid_size=(8, 8)):
 
 @preserve_shape
 @clipped
-def convolve(img, kernel, mode="constant", cval=0):
+def convolve(
+    img: np.ndarray,
+    kernel: np.ndarray,
+    mode: str = "constant",
+    cval: Union[int,float] = 0
+    ) -> np.ndarray:
+    """Applies a convolutional kernel to an image
+    
+    Args:
+        img (np.ndarray): an image
+        kernel (np.ndarray): a kernel to convolve over image
+        mode (str): scipy parameter to determine how the input image is extended during convolution to maintain image shape. Must be one of the following:
+
+                    * `reflect` (d c b a | a b c d | d c b a): The input is extended by reflecting about the edge of the last pixel. This mode is also sometimes referred to as half-sample symmetric.
+                    * `constant` (k k k k | a b c d | k k k k): The input is extended by filling all values beyond the edge with the same constant value, defined by the cval parameter.
+                    * `nearest` (a a a a | a b c d | d d d d): The input is extended by replicating the last pixel.
+                    * `mirror` (d c b | a b c d | c b a): The input is extended by reflecting about the center of the last pixel. This mode is also sometimes referred to as whole-sample symmetric.
+                    * `wrap` (a b c d | a b c d | a b c d): The input is extended by wrapping around to the opposite edge.
+
+                    Reference: https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.median_filter.html
+
+                    Default: `constant`
+        cval (int,float): The fill value when mode = `constant`. Default: 0
+
+    Returns:
+        np.ndarray: the convolved image
+    """
     convolve_fn = _maybe_process_by_channel(
         ndimage.convolve, weights=kernel, mode=mode, cval=cval
     )
@@ -874,8 +766,12 @@ def add_gravel(img: np.ndarray, gravels: list):
 
 
 def invert(img: np.ndarray) -> np.ndarray:
-    # Supports all the valid dtypes
-    # clips the img to avoid unexpected behaviour.
+    """
+    Inverts the pixel values of an image.
+
+    Args:
+        img (np.ndarray): an image
+    """
     if img.dtype == np.float32 and np.max(img) > 1.0:
         warn(
             "Images with dtype float32 are expected to remain in the range of [0,1]. Returned image will contain negative values",
@@ -892,12 +788,26 @@ def channel_shuffle(img, channels_shuffled):
 
 @preserve_shape
 @clipped
-def gamma_transform(img, gamma):
+def gamma_transform(img: np.ndarray, gamma: float) -> np.ndarray:
+    """
+    Performs a Gamma correction on an image.
+
+    Args:
+        img (np.ndarray): an image
+        gamma (float): gamma parameter
+    """
     return np.power(img, gamma)
 
 
 @clipped
 def gauss_noise(image, gauss):
+    """
+    Adds noise to an image.
+
+    Args:
+        img (np.ndarray): an image
+        guass (np.ndarray): guassian noise parameter
+    """
     image = image.astype("float32")
     return image + gauss
 
@@ -921,28 +831,22 @@ def _brightness_contrast_adjust(img, alpha=1, beta=0, max_brightness=None):
     return img
 
 
-# @preserve_shape
-# def _brightness_contrast_adjust_uint(img, alpha=1, beta=0, max_brightness = None):
-#     dtype = np.dtype("uint16")
+def brightness_contrast_adjust(
+        img: np.ndarray,
+        alpha: Union[float,int] = 1, 
+        beta: Union[float,int] = 0, 
+        max_brightness: Optional[Union[float,int]] = None
+    ) -> np.ndarray:
+    """
+    Adjusts the brightness and/or contrast of an image
 
-#     max_value = MAX_VALUES_BY_DTYPE[dtype]
-
-#     lut = np.arange(0, max_value + 1).astype("float32")
-
-#     if alpha != 1:
-#         lut *= alpha
-#     if beta != 0:
-#         if beta_by_max:
-#             lut += beta * max_value
-#         else:
-#             lut += (alpha * beta) * np.mean(img)
-
-#     lut = np.clip(lut, 0, max_value).astype(dtype)
-#     img = cv2.LUT(img, lut)
-#     return img
-
-
-def brightness_contrast_adjust(img, alpha=1, beta=0, max_brightness=None):
+    Args:
+        img (np.ndarray): an image
+        alpha (int,float): The contrast parameter
+        beta (int,float): The brightness parameter
+        max_brightness (int,float,None): If not None, adjust contrast by specified maximum and clip to maximum,
+                else adjust contrast by image mean. Default: None
+    """
     return _brightness_contrast_adjust(img, alpha, beta, max_brightness)
 
 
@@ -1003,8 +907,20 @@ def gray_to_rgb(img):
 
 @preserve_shape
 def downscale(
-    img, scale, down_interpolation=INTER_LINEAR, up_interpolation=INTER_LINEAR
-):
+    img: np.ndarray,
+    scale: float,
+    down_interpolation: int = INTER_LINEAR,
+    up_interpolation: int = INTER_LINEAR
+) -> np.ndarray:
+    """
+    Decreases image quality by downscaling and upscaling back.
+
+    Args:
+        img (np.ndarray): an image
+        scale (float): the scale to downsize to
+        down_interpolation (int, Interpolation): scipy interpolation method (e.g. `dicaugment.INTER_NEAREST`)
+        up_interpolation (int, Interpolation): scipy interpolation method (e.g. `dicaugment.INTER_NEAREST`)
+    """
     h, w, d = img.shape[:3]
 
     if img.ndim == 4:
@@ -1031,6 +947,21 @@ def downscale(
 
 
 def to_float(img, min_value=None, max_value=None):
+    """
+    Convert an image to a floating point image based on current dtype
+    
+    Args:
+        img (np.ndarray): an image
+        min_value (int,float,None): Optional custom minimum value of dtype. Maps this value to the lower bound of `float32` (0.0).
+        max_value (int,float,None): Optional custom maximum value of dtype. Maps this value to the upper bound of `float32` (1.0).
+
+    Returns:
+        np.ndarray: image cast to `float32`
+
+    Raises:
+        RuntimeError: if image dtype is not one of {`uint8`, `uint16`, `uint32`, `float32`, `int16`, `int32`, `float64`}
+
+    """
     if max_value is None or min_value is None:
         try:
             max_value = MAX_VALUES_BY_DTYPE[img.dtype]
@@ -1043,7 +974,28 @@ def to_float(img, min_value=None, max_value=None):
     return (img.astype("float32") - min_value) / (max_value - min_value)
 
 
-def from_float(img, dtype, min_value=None, max_value=None):
+def from_float(
+        img: np.ndarray,
+        dtype: str,
+        min_value: Optional[Union[int,float]] = None,
+        max_value: Optional[Union[int,float]] = None
+    ) -> np.ndarray:
+    """
+    Convert an image from a floating point image, to the specified dtype
+    
+    Args:
+        img (np.ndarray): an image
+        dtype (str): a dtype to cast to. Must be one of {`uint8`, `uint16`, `uint32`, `float32`, `int16`, `int32`, `float64`}
+        min_value (int,float,None): Optional custom minimum value of dtype. Maps lower bound of `float32` (0.0) to this value.
+        max_value (int,float,None): Optional custom maximum value of dtype. Maps upper bound of `float32` (1.0) to this value.
+
+    Returns:
+        np.ndarray: image cast to `dtype`
+
+    Raises:
+        RuntimeError: if dtype is not one of {`uint8`, `uint16`, `uint32`, `float32`, `int16`, `int32`, `float64`}
+
+    """
     if max_value is None or min_value is None:
         try:
             max_value = MAX_VALUES_BY_DTYPE[np.dtype(dtype)]
@@ -1056,7 +1008,8 @@ def from_float(img, dtype, min_value=None, max_value=None):
     return (img * (max_value - min_value) + min_value).astype(dtype)
 
 
-def noop(input_obj, **params):  # skipcq: PYL-W0613
+def noop(input_obj: Any, **params):  # skipcq: PYL-W0613
+    """Does nothing. Returns the input object"""
     return input_obj
 
 
@@ -1345,64 +1298,6 @@ def adjust_hue_torchvision(img, factor):
     return cv2.cvtColor(img, cv2.COLOR_HSV2RGB)
 
 
-# @preserve_shape
-# def superpixels(
-#     image: np.ndarray, n_segments: int, replace_samples: Sequence[bool], max_size: Optional[int], interpolation: int
-# ) -> np.ndarray:
-#     if not np.any(replace_samples):
-#         return image
-
-#     orig_shape = image.shape
-#     if max_size is not None:
-#         size = max(image.shape[:2])
-#         if size > max_size:
-#             scale = max_size / size
-#             height, width = image.shape[:2]
-#             new_height, new_width = int(height * scale), int(width * scale)
-#             resize_fn = _maybe_process_in_chunks(cv2.resize, dsize=(new_width, new_height), interpolation=interpolation)
-#             image = resize_fn(image)
-
-#     segments = skimage.segmentation.slic(
-#         image, n_segments=n_segments, compactness=10, channel_axis=-1 if image.ndim > 2 else None
-#     )
-
-#     min_value = 0
-#     max_value = MAX_VALUES_BY_DTYPE[image.dtype]
-#     image = np.copy(image)
-#     if image.ndim == 2:
-#         image = image.reshape(*image.shape, 1)
-#     nb_channels = image.shape[2]
-#     for c in range(nb_channels):
-#         # segments+1 here because otherwise regionprops always misses the last label
-#         regions = skimage.measure.regionprops(segments + 1, intensity_image=image[..., c])
-#         for ridx, region in enumerate(regions):
-#             # with mod here, because slic can sometimes create more superpixel than requested.
-#             # replace_samples then does not have enough values, so we just start over with the first one again.
-#             if replace_samples[ridx % len(replace_samples)]:
-#                 mean_intensity = region.mean_intensity
-#                 image_sp_c = image[..., c]
-
-#                 if image_sp_c.dtype.kind in ["i", "u", "b"]:
-#                     # After rounding the value can end up slightly outside of the value_range. Hence, we need to clip.
-#                     # We do clip via min(max(...)) instead of np.clip because
-#                     # the latter one does not seem to keep dtypes for dtypes with large itemsizes (e.g. uint64).
-#                     value: Union[int, float]
-#                     value = int(np.round(mean_intensity))
-#                     value = min(max(value, min_value), max_value)
-#                 else:
-#                     value = mean_intensity
-
-#                 image_sp_c[segments == ridx] = value
-
-#     if orig_shape != image.shape:
-#         resize_fn = _maybe_process_in_chunks(
-#             cv2.resize, dsize=(orig_shape[1], orig_shape[0]), interpolation=interpolation
-#         )
-#         image = resize_fn(image)
-
-#     return image
-
-
 @clipped
 def add_weighted(img1, alpha, img2, beta):
     return img1.astype(float) * alpha + img2.astype(float) * beta
@@ -1419,6 +1314,31 @@ def unsharp_mask(
     mode: str = "constant",
     cval: Union[float, int] = 0,
 ):
+    """
+    Sharpen the input image using Unsharp Masking processing and overlays the result with the original image.
+    
+    Args:
+        image (np.ndarray): an image
+        ksize (int): The size of the Guassian Kernel. If 0, then ksize is estimated as `round(sigma * 8) + 1`
+        sigma (float): Gaussian kernel standard deviation. If 0, then sigma is estimated as `0.3 * ((ksize - 1) * 0.5 - 1) + 0.8`
+        alpha (float): visibility of sharpened image
+        threshold (float): Value to limit sharpening only for areas with high pixel difference between original image
+        mode (str): scipy parameter to determine how the input image is extended during convolution to maintain image shape. Must be one of the following:
+
+            - `reflect` (d c b a | a b c d | d c b a): The input is extended by reflecting about the edge of the last pixel. This mode is also sometimes referred to as half-sample symmetric.
+            - `constant` (k k k k | a b c d | k k k k): The input is extended by filling all values beyond the edge with the same constant value, defined by the cval parameter.
+            - `nearest` (a a a a | a b c d | d d d d): The input is extended by replicating the last pixel.
+            - `mirror` (d c b | a b c d | c b a): The input is extended by reflecting about the center of the last pixel. This mode is also sometimes referred to as whole-sample symmetric.
+            - `wrap` (a b c d | a b c d | a b c d): The input is extended by wrapping around to the opposite edge.
+
+            Reference: https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.median_filter.html
+
+            Default: `constant`
+        cval (int,float): The fill value when mode = `constant`. Default: 0
+
+    Reference:
+        https://arxiv.org/pdf/2107.10833.pdf
+    """
     input_dtype = image.dtype
     if input_dtype in {
         np.dtype("uint8"),

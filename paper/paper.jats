@@ -149,10 +149,12 @@ a Creative Commons Attribution 4.0 International License (CC BY
   et al., 2022</xref>) were designed to seamlessly integrate into
   popular deep learning frameworks such as PyTorch, providing a
   convenient interface for integration within deep learning pipelines.
-  Packages such as Volumentations were uniquely developed for the
-  purpose of augmenting 3D volumetric images, offering specialized
-  transformations for enriching 3D imaging datasets during the training
-  of deep neural networks.</p>
+  Packages such as Volumentations
+  (<xref alt="Solovyev et al., 2022" rid="ref-solovyev20223d" ref-type="bibr">Solovyev
+  et al., 2022</xref>) were uniquely developed for the purpose of
+  augmenting 3D volumetric images, offering specialized transformations
+  for enriching 3D imaging datasets during the training of deep neural
+  networks.</p>
   <p>DICaugment offers a variety of transformations including geometric
   and intensity transformations, spatial distortions, and physics-based
   augmentations designed to enhance the diversity of 3D image data. A
@@ -228,9 +230,9 @@ a Creative Commons Attribution 4.0 International License (CC BY
   and <inline-formula><alternatives>
   <tex-math><![CDATA[v]]></tex-math>
   <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mi>v</mml:mi></mml:math></alternatives></inline-formula>
-  represent spatial frequency (<inline-formula><alternatives>
-  <tex-math><![CDATA[mm^{-1}]]></tex-math>
-  <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mrow><mml:mi>m</mml:mi><mml:msup><mml:mi>m</mml:mi><mml:mrow><mml:mo>−</mml:mo><mml:mn>1</mml:mn></mml:mrow></mml:msup></mml:mrow></mml:math></alternatives></inline-formula>)
+  represent spatial frequency (mm<inline-formula><alternatives>
+  <tex-math><![CDATA[^{-1}]]></tex-math>
+  <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:msup><mml:mi></mml:mi><mml:mrow><mml:mo>−</mml:mo><mml:mn>1</mml:mn></mml:mrow></mml:msup></mml:math></alternatives></inline-formula>)
   in the <inline-formula><alternatives>
   <tex-math><![CDATA[x]]></tex-math>
   <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mi>x</mml:mi></mml:math></alternatives></inline-formula>
@@ -318,7 +320,7 @@ a Creative Commons Attribution 4.0 International License (CC BY
 </sec>
 <sec id="acknowledgements">
   <title>Acknowledgements</title>
-  <p>Jacob McIntosh was supported by an appointment to the Research
+  <p>J. McIntosh was supported by an appointment to the Research
   Participation Program at the Center for Devices and Radiological
   Health administered by the Oak Ridge Institute for Science and
   Education through an interagency agreement between the U.S. Department
@@ -331,6 +333,17 @@ a Creative Commons Attribution 4.0 International License (CC BY
   Albumentations for their excellent work on the original library. The
   pipeline, design, and API - originally introduced in the
   Albumentations library - served as the foundation for DICaugment.</p>
+</sec>
+<sec id="author-contributions">
+  <title>Author Contributions</title>
+  <p>J. McIntosh authored the package, developed the pipeline and its
+  functions, wrote the documentation, and drafted the article. Qian Cao
+  assisted in noise insertion augmentation and contributed to the
+  drafting of the article. Berkman Sahiner and Nicholas Petrick assisted
+  in designing the validation study, noise simulation, and contributed
+  to the drafting of the article. M. Mehdi Farhangi supervised the
+  project, implemented the noise insertion augmentation, conducted the
+  validation study, and contributed to the article drafting.</p>
 </sec>
 </body>
 <back>

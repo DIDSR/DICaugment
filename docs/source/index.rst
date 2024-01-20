@@ -1,7 +1,7 @@
 DICaugment documentation
 ============================================
 
-Welcome to the documentation for `DICaugment <https://github.com/jjmcintosh/dicaugment>`_ - a Python package for 3D image augmentation, specifically designed for working with volumetric 3D images like CT scans. This guide will help you get started with dicaugment and provide comprehensive information on its features, installation, usage, and more.
+Welcome to the documentation for `DICaugment <https://github.com/DIDSR/dicaugment>`_ - a Python package for 3D image augmentation, specifically designed for working with volumetric 3D images like CT scans. This guide will help you get started with dicaugment and provide comprehensive information on its features, installation, usage, and more.
 
 
 What is DICaugment?

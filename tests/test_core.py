@@ -227,22 +227,6 @@ def test_check_bboxes_with_end_greater_that_start():
     assert str(exc_info.value) == message
 
 
-# def test_per_channel_mono():
-#     transforms = [Blur(), Rotate()]
-#     augmentation = PerChannel(transforms, p=1)
-#     image = np.ones((8, 8))
-#     data = augmentation(image=image)
-#     assert data
-
-
-# def test_per_channel_multi():
-#     transforms = [Blur(), Rotate()]
-#     augmentation = PerChannel(transforms, p=1)
-#     image = np.ones((8, 8, 5))
-#     data = augmentation(image=image)
-#     assert data
-
-
 def test_deterministic_oneof():
     aug = ReplayCompose([OneOf([HorizontalFlip(), Blur()])], p=1)
     for _ in range(10):

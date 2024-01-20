@@ -43,9 +43,26 @@ def get_random_crop_coords(
     w_start: float,
     d_start: float,
 ):
+    """
+    Get cropping coordinates from crop dimensions and starting location
+
+    Args:
+        height (int): Image height.
+        width (int): Image width.
+        depth (int): Image depth.
+        crop_height (int): Crop height.
+        crop_width (int): Crop width.
+        crop_depth (int): Crop depth.
+        h_start (int): Crop height start.
+        w_start (int): Crop width start.
+        d_start (int): Crop depth start.
+
+    Returns:
+        Cropping coodinates `(x1, y1, z1, x2, y2, z2)`
+
+    """
     # h_start is [0, 1) and should map to [0, (height - crop_height)]  (note inclusive)
     # This is conceptually equivalent to mapping onto `range(0, (height - crop_height + 1))`
-    # See: https://github.com/albumentations-team/albumentations/pull/1080
     y1 = int((height - crop_height + 1) * h_start)
     y2 = y1 + crop_height
     x1 = int((width - crop_width + 1) * w_start)
@@ -64,6 +81,22 @@ def random_crop(
     w_start: float,
     d_start: float,
 ):
+    """
+    Performs crop on image
+
+    Args:
+        img (np.ndarray): An image
+        crop_height (int): Crop height.
+        crop_width (int): Crop width.
+        crop_depth (int): Crop depth.
+        h_start (int): Crop height start.
+        w_start (int): Crop width start.
+        d_start (int): Crop depth start.
+
+    Returns:
+        A cropped image
+
+    """
     height, width, depth = img.shape[:3]
     if height < crop_height or width < crop_width or depth < crop_depth:
         raise ValueError(
@@ -108,15 +141,15 @@ def crop_bbox_by_coords(
     Args:
         bbox (tuple): A cropped box `(x_min, y_min, z_min, x_max, y_max, z_max)`.
         crop_coords (tuple): Crop coordinates `(x1, y1, z1, x2, y2, z2)`.
-        crop_height (int):
-        crop_width (int):
-        crop_depth (int):
+        crop_height (int): Crop height.
+        crop_width (int): Crop width.
+        crop_depth (int): Crop depth.
         rows (int): Image rows.
         cols (int): Image cols.
         slices (int): Image slices.
 
     Returns:
-        tuple: A cropped bounding box `(x_min, y_min, x_max, y_max, z_min, z_max)`.
+        A cropped bounding box `(x_min, y_min, x_max, y_max, z_min, z_max)`.
 
     """
     bbox = denormalize_bbox(bbox, rows, cols, slices)
@@ -145,6 +178,24 @@ def bbox_random_crop(
     cols: int,
     slices: int,
 ):
+    """Crop a bounding box using the crop dimensions and starting locations.
+
+    Args:
+        bbox (tuple): A cropped box `(x_min, y_min, z_min, x_max, y_max, z_max)`.
+        crop_height (int): Crop height.
+        crop_width (int): Crop width.
+        crop_depth (int): Crop depth.
+        h_start (float): Crop height start.
+        w_start (float): Crop width start.
+        d_start (float): Crop depth start.
+        rows (int): Image rows.
+        cols (int): Image cols.
+        slices (int): Image slices.
+
+    Returns:
+        A cropped bounding box `(x_min, y_min, x_max, y_max, z_min, z_max)`.
+
+    """
     crop_coords = get_random_crop_coords(
         rows,
         cols,
@@ -232,6 +283,20 @@ def get_center_crop_coords(
     crop_width: int,
     crop_depth: int,
 ):
+    """
+    Calculate center crop coordinates from crop dimensions and image dimensions
+
+    Args:
+        height (int): Image height.
+        width (int): Image width.
+        depth (int): Image depth.
+        crop_height (int): Crop height.
+        crop_width (int): Crop width.
+        crop_depth (int): Crop depth.
+    
+    Returns:
+        Cropping coodinates `(x1, y1, z1, x2, y2, z2)`
+    """
     y1 = (height - crop_height) // 2
     y2 = y1 + crop_height
     x1 = (width - crop_width) // 2
@@ -242,6 +307,18 @@ def get_center_crop_coords(
 
 
 def center_crop(img: np.ndarray, crop_height: int, crop_width: int, crop_depth: int):
+    """
+    Crops an image around the center.
+
+    Args:
+        img (np.ndarray): an image
+        crop_height (int): Crop height.
+        crop_width (int): Crop width.
+        crop_depth (int): Crop depth.
+    
+    Returns:
+        A center cropped image
+    """
     height, width, depth = img.shape[:3]
     if height < crop_height or width < crop_width or depth < crop_depth:
         raise ValueError(
@@ -271,6 +348,21 @@ def bbox_center_crop(
     cols: int,
     slices: int,
 ):
+    """Crop a bounding box around the center of the image
+
+    Args:
+        bbox (tuple): A cropped box `(x_min, y_min, z_min, x_max, y_max, z_max)`.
+        crop_height (int): Crop height.
+        crop_width (int): Crop width.
+        crop_depth (int): Crop depth.
+        rows (int): Image rows.
+        cols (int): Image cols.
+        slices (int): Image slices.
+
+    Returns:
+        A cropped bounding box `(x_min, y_min, x_max, y_max, z_min, z_max)`.
+
+    """
     crop_coords = get_center_crop_coords(
         rows, cols, slices, crop_height, crop_width, crop_depth
     )
@@ -300,7 +392,7 @@ def keypoint_center_crop(
         slices (int): Image depths.
 
     Returns:
-        tuple: A keypoint `(x, y, z, angle, scale)`.
+        A keypoint `(x, y, z, angle, scale)`.
 
     """
     crop_coords = get_center_crop_coords(
@@ -318,6 +410,21 @@ def crop(
     y_max: int,
     z_max: int,
 ):
+    """Crop an image.
+
+    Args:
+        img (np.ndarray): An image
+        x_min (int): Minimum closest upper left x coordinate.
+        y_min (int): Minimum closest upper left y coordinate.
+        z_min (int): Minimum closest upper left z coordinate.
+        x_max (int): Maximum furthest lower right x coordinate.
+        y_max (int): Maximum furthest lower right y coordinate.
+        z_max (int): Maximum furthest lower right z coordinate.
+
+    Returns:
+        np.ndarray: A cropped image
+
+    """
     height, width, depth = img.shape[:3]
     if x_max <= x_min or y_max <= y_min or z_max <= z_min:
         raise ValueError(
@@ -375,12 +482,12 @@ def bbox_crop(
 
     Args:
         bbox (tuple): A bounding box `(x_min, y_min, z_min, x_max, y_max, z_max)`.
-        x_min (int):
-        y_min (int):
-        z_min (int):
-        x_max (int):
-        y_max (int):
-        z_max (int):
+        x_min (int): Minimum closest upper left x coordinate.
+        y_min (int): Minimum closest upper left y coordinate.
+        z_min (int): Minimum closest upper left z coordinate.
+        x_max (int): Maximum furthest lower right x coordinate.
+        y_max (int): Maximum furthest lower right y coordinate.
+        z_max (int): Maximum furthest lower right z coordinate.
         rows (int): Image width.
         cols (int): Image height.
         slices (int): Image depth.
@@ -407,6 +514,21 @@ def clamping_crop(
     y_max: int,
     z_max: int,
 ):
+    """Crop an image, with safeguard that clips cropping coordinates to fit within image
+    
+    Args:
+        img (np.ndarray): An image
+        x_min (int): Minimum closest upper left x coordinate.
+        y_min (int): Minimum closest upper left y coordinate.
+        z_min (int): Minimum closest upper left z coordinate.
+        x_max (int): Maximum furthest lower right x coordinate.
+        y_max (int): Maximum furthest lower right y coordinate.
+        z_max (int): Maximum furthest lower right z coordinate.
+    
+    Returns:
+        A cropped image
+
+    """
     h, w, d = img.shape[:3]
 
     x_min = max(x_min, 0)
@@ -434,6 +556,32 @@ def crop_and_pad(
     pad_mode: int,
     keep_size: bool,
 ) -> np.ndarray:
+    """
+    Performs cropping and padding operations on an image
+
+    Args:
+        img (np.ndarray): an image.
+        crop_params (Sequence of ints): Cropping coodinates `(x1, y1, z1, x2, y2, z2)`
+        pad_params (Sequence of ints): Padding parameters `(top, bottom, left, right, close, far)`
+        pad_value (float): The constant value to use if pad_mode is `constant`
+        rows (int): Image width.
+        cols (int): Image height.
+        slices (int): Image depth.
+        interpolation: scipy interpolation method (e.g. dicaugment.INTER_NEAREST).
+        pad_mode (str): scipy parameter to determine how the input image is extended during convolution to maintain image shape. Must be one of the following:
+            - `reflect` (d c b a | a b c d | d c b a): The input is extended by reflecting about the edge of the last pixel. This mode is also sometimes referred to as half-sample symmetric.
+            - `constant` (k k k k | a b c d | k k k k): The input is extended by filling all values beyond the edge with the same constant value, defined by the cval parameter.
+            - `nearest` (a a a a | a b c d | d d d d): The input is extended by replicating the last pixel.
+            - `mirror` (d c b | a b c d | c b a): The input is extended by reflecting about the center of the last pixel. This mode is also sometimes referred to as whole-sample symmetric.
+            - `wrap` (a b c d | a b c d | a b c d): The input is extended by wrapping around to the opposite edge.
+            Reference: https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.median_filter.html
+            Default: `constant`
+        keep_size (bool):
+            After cropping and padding, the result image will usually have a
+            different height/width compared to the original input image. If this
+            parameter is set to ``True``, then the cropped/padded image will be
+            resized to the input image's size, i.e. the output shape is always identical to the input shape.
+    """
     if crop_params is not None and any(i != 0 for i in crop_params):
         img = crop(img, *crop_params)
     if pad_params is not None and any(i != 0 for i in pad_params):
@@ -460,6 +608,23 @@ def crop_and_pad_bbox(
     result_cols,
     result_slices,
 ) -> BoxInternalType:
+    """
+    Performs cropping and padding operations on a bbox
+
+    Args:
+        bbox (BoxInternalType): a bounding box `(x_min, y_min, x_max, y_max, z_min, z_max)`.
+        crop_params (Sequence of ints): Cropping coodinates `(x1, y1, z1, x2, y2, z2)`
+        pad_params (Sequence of ints): Padding parameters `(top, bottom, left, right, close, far)`
+        rows (int): Image width.
+        cols (int): Image height.
+        slices (int): Image depth.
+        result_rows (int): Expected image width after transform.
+        result_cols (int): Expected image height after transform.
+        result_slices (int): Expected image depth after transform.
+
+    Returns:
+        A bounding box `(x_min, y_min, x_max, y_max, z_min, z_max)`.
+    """
     x1, y1, z1, x2, y2, z2 = denormalize_bbox(bbox, rows, cols, slices)[:6]
 
     if crop_params is not None:
@@ -500,6 +665,28 @@ def crop_and_pad_keypoint(
     result_slices: int,
     keep_size: bool,
 ) -> KeypointInternalType:
+    """
+    Performs cropping and padding operations on a keypoint
+
+    Args:
+        keypoint KeypointInternalType): A keypoint `(x, y, z, angle, scale)`.
+        crop_params (Sequence of ints): Cropping coodinates `(x1, y1, z1, x2, y2, z2)`
+        pad_params (Sequence of ints): Padding parameters `(top, bottom, left, right, close, far)`
+        rows (int): Image width.
+        cols (int): Image height.
+        slices (int): Image depth.
+        result_rows (int): Expected image width after transform.
+        result_cols (int): Expected image height after transform.
+        result_slices (int): Expected image depth after transform.
+        keep_size (bool):
+            After cropping and padding, the result image will usually have a
+            different height/width compared to the original input image. If this
+            parameter is set to ``True``, then the cropped/padded image will be
+            resized to the input image's size, i.e. the output shape is always identical to the input shape.
+
+    Returns:
+        A keypoint `(x, y, z, angle, scale)`.
+    """
     x, y, z, angle, scale = keypoint[:5]
 
     if crop_params is not None:

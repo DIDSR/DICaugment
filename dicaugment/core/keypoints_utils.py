@@ -76,14 +76,23 @@ class KeypointParams(Params):
 
     @classmethod
     def is_serializable(cls) -> bool:
+        """Returns whether the class is serializable"""
         return True
 
     @classmethod
     def get_class_fullname(cls) -> str:
+        """Returns class name"""
         return "KeypointParams"
 
 
 class KeypointsProcessor(DataProcessor):
+    """
+    Processor Class for Keypoints
+
+    Args:
+        params (KeypointParams): An instance of KeypointParams
+        additional_targets (dict): keys - new target name, values - old target name. ex: {'keypoints2': 'keypoints'}
+    """
     def __init__(
         self,
         params: KeypointParams,
@@ -93,9 +102,12 @@ class KeypointsProcessor(DataProcessor):
 
     @property
     def default_data_name(self) -> str:
+        """Returns the default data name for class (e.g. 'image')"""
         return "keypoints"
 
     def ensure_data_valid(self, data: Dict[str, Any]) -> None:
+        """Raises a ValueError if input data is not in the expected format
+        (e.g. `label_fields` does not match up with values with params dict)"""
         if self.params.label_fields:
             if not all(i in data.keys() for i in self.params.label_fields):
                 raise ValueError(
@@ -103,30 +115,22 @@ class KeypointsProcessor(DataProcessor):
                     "'keypoint_params' dict"
                 )
 
-    # def ensure_transforms_valid(self, transforms: Sequence[object]) -> None:
-    #     # IAA-based augmentations supports only transformation of xy keypoints.
-    #     # If your keypoints formats is other than 'xy' we emit warning to let user
-    #     # be aware that angle and size will not be modified.
-
-    #     try:
-    #         from dicaugment.imgaug.transforms import DualIAATransform
-    #     except ImportError:
-    #         # imgaug is not installed so we skip imgaug checks.
-    #         return
-
-    #     if self.params.format is not None and self.params.format != "xyz":
-    #         for transform in transforms:
-    #             if isinstance(transform, DualIAATransform):
-    #                 warnings.warn(
-    #                     "{} transformation supports only 'xyz' keypoints "
-    #                     "augmentation. You have '{}' keypoints format. Scale "
-    #                     "and angle WILL NOT BE transformed.".format(transform.__class__.__name__, self.params.format)
-    #                 )
-    #                 break
-
     def filter(
         self, data: Sequence[Sequence], rows: int, cols: int, slices: int
     ) -> Sequence[Sequence]:
+        """
+        Wrapper method that invokes `filter_keypoints`. 
+        Filters out keypoints that are no longer within the bounds of the image
+    
+        Args:
+            data (Sequence): A sequence of keypoint objects
+            rows (int): The number of rows in the target image
+            cols (int): The number of columns in the target image
+            slices (int): The number of slices in the target image
+        
+        Returns:
+            keypoints
+        """
         self.params: KeypointParams
         return filter_keypoints(
             data, rows, cols, slices, remove_invisible=self.params.remove_invisible
@@ -135,11 +139,33 @@ class KeypointsProcessor(DataProcessor):
     def check(
         self, data: Sequence[Sequence], rows: int, cols: int, slices: int
     ) -> None:
+        """
+        Wrapper method that invokes `check_keypoints`.
+        Checks if keypoint coordinates are less than image shapes or not in correct angle range.
+        
+        Args:
+            data (Sequence): A sequence of keypoint objects
+            rows (int): The number of rows in the target image
+            cols (int): The number of columns in the target image
+            slices (int): The number of slices in the target image
+        """
         check_keypoints(data, rows, cols, slices)
 
     def convert_from_dicaugment(
         self, data: Sequence[Sequence], rows: int, cols: int, slices: int
     ) -> List[Tuple]:
+        """
+        Converts keypoints from the `dicaugment_3d` format
+        
+        Args:
+            data (Sequence): keypoints
+            rows (int): The number of rows in the target image
+            cols (int): The number of columns in the target image
+            slices (int): The number of slices in the target image
+
+        Returns:
+            data converted from the `dicaugment_3d` format
+        """
         params = self.params
         return convert_keypoints_from_dicaugment(
             data,
@@ -154,6 +180,18 @@ class KeypointsProcessor(DataProcessor):
     def convert_to_dicaugment(
         self, data: Sequence[Sequence], rows: int, cols: int, slices: int
     ) -> List[Tuple]:
+        """
+        Converts keypoints to the `dicaugment_3d` format
+        
+        Args:
+            data (Sequence): keypoints
+            rows (int): The number of rows in the target image
+            cols (int): The number of columns in the target image
+            slices (int): The number of slices in the target image
+
+        Returns:
+            data converted to the `dicaugment_3d` format
+        """
         params = self.params
         return convert_keypoints_to_dicaugment(
             data,
@@ -167,7 +205,15 @@ class KeypointsProcessor(DataProcessor):
 
 
 def check_keypoint(kp: Sequence, rows: int, cols: int, slices: int) -> None:
-    """Check if keypoint coordinates are less than image shapes"""
+    """
+    Checks if keypoint coordinates are less than image shapes or not in correct angle range.
+    
+    Args:
+        data (Sequence): A sequence of keypoint objects
+        rows (int): The number of rows in the target image
+        cols (int): The number of columns in the target image
+        slices (int): The number of slices in the target image
+    """
     for name, value, size in zip(["x", "y", "z"], kp[:3], [cols, rows, slices]):
         if not 0 <= value < size:
             raise ValueError(
@@ -201,6 +247,20 @@ def filter_keypoints(
     slices: int,
     remove_invisible: bool,
 ) -> Sequence[Sequence]:
+    """
+    Filters out keypoints that are no longer within the bounds of the image
+    
+    Args:
+        keypoints (Sequence): A sequence of keypoint objects
+        rows (int): The number of rows in the target image
+        cols (int): The number of columns in the target image
+        slices (int): The number of slices in the target image
+        remove_invisible (bool): Whether to remove keypoints that are no longer within the bounds of the image
+    
+    Returns:
+        keypoints
+    
+    """
     if not remove_invisible:
         return keypoints
 
@@ -226,6 +286,21 @@ def convert_keypoint_to_dicaugment(
     check_validity: bool = False,
     angle_in_degrees: bool = True,
 ) -> Tuple:
+    """
+    Converts keypoints to the `dicaugment_3d` format
+    
+    Args:
+        keypoint (Sequence): a sequence representation of a keypoint
+        source_format (str): format of keypoints. Should be 'xyz', 'zyx', 'xyza', 'xyzs', 'xyzas', 'xyzsa'.
+        rows (int): The number of rows in the target image
+        cols (int): The number of columns in the target image
+        slices (int): The number of slices in the target image
+        check_validity (bool): Whether to check if keypoint coordinates are less than image shapes. Default: False
+        angle_in_degrees (bool): Whether the angle of the keypoint is in degrees rather than radians. Default: True
+
+    Returns:
+        keypoint converted to the `dicaugment_3d` format
+    """
     if source_format not in keypoint_formats:
         raise ValueError(
             "Unknown target_format {}. Supported formats are: {}".format(
@@ -270,6 +345,21 @@ def convert_keypoint_from_dicaugment(
     check_validity: bool = False,
     angle_in_degrees: bool = True,
 ) -> Tuple:
+    """
+    Converts keypoints from the `dicaugment_3d` format
+    
+    Args:
+        keypoint (Sequence): a sequence representation of a keypoint
+        target_format (str): format of keypoints. Should be 'xyz', 'zyx', 'xyza', 'xyzs', 'xyzas', 'xyzsa'.
+        rows (int): The number of rows in the target image
+        cols (int): The number of columns in the target image
+        slices (int): The number of slices in the target image
+        check_validity (bool): Whether to check if keypoint coordinates are less than image shapes. Default: False
+        angle_in_degrees (bool): Whether the angle of the keypoint is in degrees rather than radians. Default: True
+
+    Returns:
+        keypoint converted from the `dicaugment_3d` format
+    """
     if target_format not in keypoint_formats:
         raise ValueError(
             "Unknown target_format {}. Supported formats are: {}".format(
@@ -312,6 +402,21 @@ def convert_keypoints_to_dicaugment(
     check_validity: bool = False,
     angle_in_degrees: bool = True,
 ) -> List[Tuple]:
+    """
+    Converts a sequence of keypoints to the `dicaugment_3d` format
+    
+    Args:
+        keypoint (Sequence): a sequence representation of a keypoint
+        source_format (str): format of keypoints. Should be 'xyz', 'zyx', 'xyza', 'xyzs', 'xyzas', 'xyzsa'.
+        rows (int): The number of rows in the target image
+        cols (int): The number of columns in the target image
+        slices (int): The number of slices in the target image
+        check_validity (bool): Whether to check if keypoint coordinates are less than image shapes. Default: False
+        angle_in_degrees (bool): Whether the angle of the keypoint is in degrees rather than radians. Default: True
+
+    Returns:
+        A sequence of keypoints converted to the `dicaugment_3d` format
+    """
     return [
         convert_keypoint_to_dicaugment(
             kp, source_format, rows, cols, slices, check_validity, angle_in_degrees
@@ -329,6 +434,21 @@ def convert_keypoints_from_dicaugment(
     check_validity: bool = False,
     angle_in_degrees: bool = True,
 ) -> List[Tuple]:
+    """
+    Converts a sequence of keypoints from the `dicaugment_3d` format
+    
+    Args:
+        keypoint (Sequence): a sequence representation of a keypoint
+        target_format (str): format of keypoints. Should be 'xyz', 'zyx', 'xyza', 'xyzs', 'xyzas', 'xyzsa'.
+        rows (int): The number of rows in the target image
+        cols (int): The number of columns in the target image
+        slices (int): The number of slices in the target image
+        check_validity (bool): Whether to check if keypoint coordinates are less than image shapes. Default: False
+        angle_in_degrees (bool): Whether the angle of the keypoint is in degrees rather than radians. Default: True
+
+    Returns:
+        A sequence of keypoints converted from the `dicaugment_3d` format
+    """
     return [
         convert_keypoint_from_dicaugment(
             kp, target_format, rows, cols, slices, check_validity, angle_in_degrees

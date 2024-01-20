@@ -14,6 +14,14 @@ __all__ = [
 def rescale_slope_intercept(
     img: np.ndarray, slope: float, intercept: float
 ) -> np.ndarray:
+    """
+    Scales and offsets an image's pixel values using the formula `img = (img * slope) + intercept`
+
+    Args:
+        img (np.ndarray): an image
+        slope (float): the factor to scale the pixel values by
+        intercept (float): the value to offset the pixel values by
+    """
     img = img.astype(np.int16)
     img *= slope
     img += intercept
@@ -21,6 +29,12 @@ def rescale_slope_intercept(
 
 
 def reset_dicom_slope_intercept(dicom: DicomType) -> DicomType:
+    """
+    Sets the `RescaleSlope` and `RescaleIntercept` keys of a Dicom Object to 1 and 0, respectively.
+    
+    Args:
+        dicom (DicomType): a Dicom object
+    """
     res = {}
     for k, v in dicom.items():
         res[k] = v
@@ -30,6 +44,14 @@ def reset_dicom_slope_intercept(dicom: DicomType) -> DicomType:
 
 
 def dicom_scale(dicom: DicomType, scale_x: float, scale_y: float) -> DicomType:
+    """
+    Scales the `PixelSpacing` of a Dicom Object
+    
+    Args:
+        dicom (DicomType): a Dicom object
+        scale_x (float): factor to scale the PixelSpacing in the x dimension
+        scale_y (float): factor to scale the PixelSpacing in the y dimension
+    """
     y, x = dicom["PixelSpacing"]
     x *= scale_x
     y *= scale_y
@@ -43,6 +65,12 @@ def dicom_scale(dicom: DicomType, scale_x: float, scale_y: float) -> DicomType:
 
 
 def transpose_dicom(dicom: DicomType) -> DicomType:
+    """
+    Transposes the `PixelSpacing` of a Dicom Object
+    
+    Args:
+        dicom (DicomType): a Dicom object
+    """
     y, x = dicom["PixelSpacing"]
 
     res = {}

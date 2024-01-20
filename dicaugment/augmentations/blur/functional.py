@@ -19,7 +19,6 @@ __all__ = [
     "blur",
     "median_blur",
     "gaussian_blur",
-    # "glass_blur"
 ]
 
 
@@ -31,6 +30,26 @@ def blur(
     mode: str = "constant",
     cval: Union[float, int] = 0,
 ) -> np.ndarray:
+    """Blur the input image using an mean kernel.
+
+    Args:
+        ksize (int): The kernel size for blurring the input image.
+        by_slice (bool): Whether the kernel should be applied by slice or the image as a whole. If true, a 2D kernel is convolved along each slice of the image.
+            Otherwise, a 3D kernel is used. Default: False
+        mode (str): scipy parameter to determine how the input image is extended during convolution to maintain image shape. Must be one of the following:
+
+            - `reflect` (d c b a | a b c d | d c b a): The input is extended by reflecting about the edge of the last pixel. This mode is also sometimes referred to as half-sample symmetric.
+            - `constant` (k k k k | a b c d | k k k k): The input is extended by filling all values beyond the edge with the same constant value, defined by the cval parameter.
+            - `nearest` (a a a a | a b c d | d d d d): The input is extended by replicating the last pixel.
+            - `mirror` (d c b | a b c d | c b a): The input is extended by reflecting about the center of the last pixel. This mode is also sometimes referred to as whole-sample symmetric.
+            - `wrap` (a b c d | a b c d | a b c d): The input is extended by wrapping around to the opposite edge.
+
+            Reference: https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.median_filter.html
+
+            Default: `constant`
+        cval (int,float): The fill value when mode = `constant`. Default: 0
+
+    """
     if by_slice:
         kernel = np.ones((ksize, ksize, 1), dtype=np.float32)
     else:
@@ -48,6 +67,26 @@ def median_blur(
     mode: str = "constant",
     cval: Union[float, int] = 0,
 ) -> np.ndarray:
+    """Blur the input image using median blue technique.
+
+    Args:
+        ksize (int): The kernel size for blurring the input image.
+        by_slice (bool): Whether the kernel should be applied by slice or the image as a whole. If true, a 2D kernel is convolved along each slice of the image.
+            Otherwise, a 3D kernel is used. Default: False
+        mode (str): scipy parameter to determine how the input image is extended during convolution to maintain image shape. Must be one of the following:
+
+            - `reflect` (d c b a | a b c d | d c b a): The input is extended by reflecting about the edge of the last pixel. This mode is also sometimes referred to as half-sample symmetric.
+            - `constant` (k k k k | a b c d | k k k k): The input is extended by filling all values beyond the edge with the same constant value, defined by the cval parameter.
+            - `nearest` (a a a a | a b c d | d d d d): The input is extended by replicating the last pixel.
+            - `mirror` (d c b | a b c d | c b a): The input is extended by reflecting about the center of the last pixel. This mode is also sometimes referred to as whole-sample symmetric.
+            - `wrap` (a b c d | a b c d | a b c d): The input is extended by wrapping around to the opposite edge.
+
+            Reference: https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.median_filter.html
+
+            Default: `constant`
+        cval (int,float): The fill value when mode = `constant`. Default: 0
+
+    """
     if by_slice:
         ksize = (ksize, ksize, 1)
 
@@ -66,6 +105,27 @@ def gaussian_blur(
     mode: str = "constant",
     cval: Union[float, int] = 0,
 ) -> np.ndarray:
+    """Blur the input image using a Gaussian kernel.
+
+    Args:
+        ksize (int): The kernel size for blurring the input image. If 0, then ksize is estimated as `round(sigma * 8) + 1`
+        sigma (float): Gaussian kernel standard deviation. If 0, then sigma is estimated as `0.3 * ((ksize - 1) * 0.5 - 1) + 0.8`
+        by_slice (bool): Whether the kernel should be applied by slice or the image as a whole. If true, a 2D kernel is convolved along each slice of the image.
+            Otherwise, a 3D kernel is used. Default: False
+        mode (str): scipy parameter to determine how the input image is extended during convolution to maintain image shape. Must be one of the following:
+
+            - `reflect` (d c b a | a b c d | d c b a): The input is extended by reflecting about the edge of the last pixel. This mode is also sometimes referred to as half-sample symmetric.
+            - `constant` (k k k k | a b c d | k k k k): The input is extended by filling all values beyond the edge with the same constant value, defined by the cval parameter.
+            - `nearest` (a a a a | a b c d | d d d d): The input is extended by replicating the last pixel.
+            - `mirror` (d c b | a b c d | c b a): The input is extended by reflecting about the center of the last pixel. This mode is also sometimes referred to as whole-sample symmetric.
+            - `wrap` (a b c d | a b c d | a b c d): The input is extended by wrapping around to the opposite edge.
+
+            Reference: https://docs.scipy.org/doc/scipy/reference/generated/scipy.ndimage.median_filter.html
+
+            Default: `constant`
+        cval (int,float): The fill value when mode = `constant`. Default: 0
+
+    """
     if ksize == 0:
         ksize = round(sigma * 8) + 1
 
@@ -81,80 +141,3 @@ def gaussian_blur(
         ndimage.gaussian_filter, sigma=sigma, radius=radius, mode=mode, cval=cval
     )
     return blur_fn(img)
-
-
-@preserve_shape
-def glass_blur(
-    img: np.ndarray,
-    sigma: float,
-    max_delta: int,
-    iterations: int,
-    dxy: np.ndarray,
-    mode: str,
-) -> np.ndarray:
-    x = cv2.GaussianBlur(np.array(img), sigmaX=sigma, ksize=(0, 0))
-
-    if mode == "fast":
-        hs = np.arange(img.shape[0] - max_delta, max_delta, -1)
-        ws = np.arange(img.shape[1] - max_delta, max_delta, -1)
-        h: Union[int, np.ndarray] = np.tile(hs, ws.shape[0])
-        w: Union[int, np.ndarray] = np.repeat(ws, hs.shape[0])
-
-        for i in range(iterations):
-            dy = dxy[:, i, 0]
-            dx = dxy[:, i, 1]
-            x[h, w], x[h + dy, w + dx] = x[h + dy, w + dx], x[h, w]
-
-    elif mode == "exact":
-        for ind, (i, h, w) in enumerate(
-            product(
-                range(iterations),
-                range(img.shape[0] - max_delta, max_delta, -1),
-                range(img.shape[1] - max_delta, max_delta, -1),
-            )
-        ):
-            ind = ind if ind < len(dxy) else ind % len(dxy)
-            dy = dxy[ind, i, 0]
-            dx = dxy[ind, i, 1]
-            x[h, w], x[h + dy, w + dx] = x[h + dy, w + dx], x[h, w]
-    else:
-        ValueError(f"Unsupported mode `{mode}`. Supports only `fast` and `exact`.")
-
-    return cv2.GaussianBlur(x, sigmaX=sigma, ksize=(0, 0))
-
-
-def defocus(img: np.ndarray, radius: int, alias_blur: float) -> np.ndarray:
-    length = np.arange(-max(8, radius), max(8, radius) + 1)
-    ksize = 3 if radius <= 8 else 5
-
-    x, y = np.meshgrid(length, length)
-    aliased_disk = np.array((x**2 + y**2) <= radius**2, dtype=np.float32)
-    aliased_disk /= np.sum(aliased_disk)
-
-    kernel = gaussian_blur(aliased_disk, ksize, sigma=alias_blur)
-    return convolve(img, kernel=kernel)
-
-
-def central_zoom(img: np.ndarray, zoom_factor: int) -> np.ndarray:
-    h, w = img.shape[:2]
-    h_ch, w_ch = ceil(h / zoom_factor), ceil(w / zoom_factor)
-    h_top, w_top = (h - h_ch) // 2, (w - w_ch) // 2
-
-    img = scale(
-        img[h_top : h_top + h_ch, w_top : w_top + w_ch], zoom_factor, cv2.INTER_LINEAR
-    )
-    h_trim_top, w_trim_top = (img.shape[0] - h) // 2, (img.shape[1] - w) // 2
-    return img[h_trim_top : h_trim_top + h, w_trim_top : w_trim_top + w]
-
-
-@clipped
-def zoom_blur(
-    img: np.ndarray, zoom_factors: Union[np.ndarray, Sequence[int]]
-) -> np.ndarray:
-    out = np.zeros_like(img, dtype=np.float32)
-    for zoom_factor in zoom_factors:
-        out += central_zoom(img, zoom_factor)
-
-    img = ((img + out) / (len(zoom_factors) + 1)).astype(img.dtype)
-
-    return img

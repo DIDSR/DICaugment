@@ -216,14 +216,6 @@ def test_random_sized_crop_size():
     assert len(keypoints) == len(transformed["keypoints"])
 
 
-# def test_random_resized_crop_size():
-#     image = np.ones((100, 100, 3))
-#     keypoints = [(0.2, 0.3, 0.6, 0.8), (0.3, 0.4, 0.7, 0.9, 99)]
-#     aug = A.RandomResizedCrop(height=50, width=50, p=1.0)
-#     transformed = aug(image=image, keypoints=keypoints)
-#     assert transformed["image"].shape == (50, 50, 3)
-#     assert len(keypoints) == len(transformed["keypoints"])
-
 
 @pytest.mark.parametrize(
     ["aug", "keypoints", "expected"],
@@ -317,15 +309,8 @@ def test_keypoint_rotate90(keypoint, expected, factor, axes):
         ((20, 30, 40, math.pi / 2, 0), (30, 79, 40, math.pi, 0), 90, "xy"),
         ((20, 30, 40, math.pi / 2, 0), (79, 69, 40, 3 * math.pi / 2, 0), 180, "xy"),
         ((20, 30, 40, math.pi / 2, 0), (69, 20, 40, 0, 0), 270, "xy"),
-        #
         ((20, 30, 40, math.pi / 2, 0), (40, 30, 79, math.pi / 2, 0), 90, "yz"),
         ((20, 30, 40, math.pi / 2, 0), (79, 30, 59, math.pi / 2, 0), 180, "yz"),
-        # [[20, 30, math.pi / 2, 0], [20, 30, math.pi / 2, 0], 0],
-        # [[20, 30, math.pi / 2, 0], [30, 79, math.pi, 0], 90],
-        # [[20, 30, math.pi / 2, 0], [79, 69, 3 * math.pi / 2, 0], 180],
-        # [[20, 30, math.pi / 2, 0], [69, 20, 0, 0], 270],
-        # [[0, 0, 0, 0], [99, 99, math.pi, 0], 180],
-        # [[99, 99, 0, 0], [0, 0, math.pi, 0], 180],
     ],
 )
 def test_keypoint_rotate(keypoint, expected, angle, axes):

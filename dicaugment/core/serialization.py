@@ -24,6 +24,7 @@ NON_SERIALIZABLE_REGISTRY: Dict[str, "SerializableMeta"] = {}
 
 
 def shorten_class_name(class_fullname: str) -> str:
+    """Returns the shortened submodule path without 'dicaugment'"""
     splitted = class_fullname.split(".")
     if len(splitted) == 1:
         return class_fullname
@@ -34,6 +35,13 @@ def shorten_class_name(class_fullname: str) -> str:
 
 
 def get_shortest_class_fullname(cls: Type) -> str:
+    """
+    Returns shortened submodule path name
+    
+    Args:
+        cls (type): a python class object
+
+    """
     class_fullname = "{cls.__module__}.{cls.__name__}".format(cls=cls)
     return shorten_class_name(class_fullname)
 
@@ -194,6 +202,7 @@ def from_dict(
 
 
 def check_data_format(data_format: str) -> None:
+    """Ensures data_format is 'json' or 'yaml'. Raises ValueError otherwise"""
     if data_format not in {"json", "yaml"}:
         raise ValueError(
             "Unknown data_format {}. Supported formats are: 'json' and 'yaml'".format(

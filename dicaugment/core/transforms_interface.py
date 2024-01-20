@@ -88,6 +88,14 @@ def to_tuple(param, low=None, bias=None):
 
 
 class BasicTransform(Serializable):
+    """
+    Abstract Base Class for Transforms. Not intended to be instantiated.
+    
+    Args:
+        always_apply (bool): whether to always apply the transformation. Default: False
+        p (float): probability of applying the transform. Default: 0.5.
+
+    """
     call_backup = None
     interpolation: Any
     fill_value: Any
@@ -106,6 +114,19 @@ class BasicTransform(Serializable):
         self.applied_in_replay = False
 
     def __call__(self, *args, force_apply: bool = False, **kwargs) -> Dict[str, Any]:
+        """
+        Invokes the augmentation pipeline.
+        Data passed must be named arguments, for example: aug(image=image)
+
+        Args:
+            force_apply(bool): whether to always apply the transformations. Default: False
+            **kwargs: keyword arguments for augmentations (e.g, image=image, bboxes=bboxes)
+
+        Returns:
+            Dictionary of augmented data
+        Raises:
+            KeyError: If positional args are passed to this method
+        """
         if args:
             raise KeyError(
                 "You have to pass data to augmentations as named arguments, for example: aug(image=image)"
@@ -145,6 +166,16 @@ class BasicTransform(Serializable):
     def apply_with_params(
         self, params: Dict[str, Any], **kwargs
     ) -> Dict[str, Any]:  # skipcq: PYL-W0613
+        """
+        Applies the augmentation to each input.
+
+        Args:
+            params (dict): keys-value pairs of argument names for the augmentation's `apply` methods
+            kwargs (dict): keyword arguments of targets (e.g. 'image', 'bboxes')
+
+        Returns:
+            dict of augmented targets
+        """
         if params is None:
             return kwargs
         params = self.update_params(params, **kwargs)
@@ -163,12 +194,23 @@ class BasicTransform(Serializable):
     def set_deterministic(
         self, flag: bool, save_key: str = "replay"
     ) -> "BasicTransform":
-        assert save_key != "params", "params save_key is reserved"
+        """
+        Enables replays of non-deterministic transforms
+        
+        Args:
+            flag (bool): Whether or not to set the transforms as deterministic
+            save_key(str): The dict key where the saved parameters will be found in output. Default: "replay"
+        
+        Returns:
+            self
+        """
+        assert save_key != "params", "'params' save_key is reserved for internal use"
         self.deterministic = flag
         self.save_key = save_key
         return self
 
     def __repr__(self) -> str:
+        """Returns a string representation of this object"""
         state = self.get_base_init_args()
         state.update(self.get_transform_init_args())
         return "{name}({args})".format(
@@ -176,6 +218,15 @@ class BasicTransform(Serializable):
         )
 
     def _get_target_function(self, key: str) -> Callable:
+        """
+        Returns the applicable `apply` method for the data type (e.g. 'bboxes' -> apply_to_bboxes())
+
+        Args:
+            key (str): a target name (e.g. 'bboxes')
+
+        Returns:
+            the respective `apply` method for the key
+        """
         transform_key = key
         if key in self._additional_targets:
             transform_key = self._additional_targets.get(key, key)
@@ -184,19 +235,34 @@ class BasicTransform(Serializable):
         return target_function
 
     def apply(self, img: np.ndarray, **params) -> np.ndarray:
+        """
+        Applies the augmentation to an image
+        """
         raise NotImplementedError
 
     def get_params(self) -> Dict:
+        """Returns parameters needed for the `apply` methods"""
         return {}
 
     @property
     def targets(self) -> Dict[str, Callable]:
+        """
+        Returns the mapping of target to applicable `apply` method.
+        (e.g. {'image': self.apply, 'bboxes', self.apply_to_bboxes})
+        """
         # you must specify targets in subclass
         # for example: ('image', 'mask')
         #              ('image', 'boxes')
         raise NotImplementedError
 
     def update_params(self, params: Dict[str, Any], **kwargs) -> Dict[str, Any]:
+        """
+        Adds additional parameters that are defined at a per instance level
+
+        Args:
+            params (dict): keys-value pairs of argument names for the augmentation's `apply` methods
+            kwargs (dict): keyword arguments of targets (e.g. 'image', 'bboxes')
+        """
         if hasattr(self, "interpolation"):
             params["interpolation"] = self.interpolation
         if hasattr(self, "fill_value"):
@@ -214,6 +280,7 @@ class BasicTransform(Serializable):
 
     @property
     def target_dependence(self) -> Dict:
+        """An unused alternate form of the `get_parameters` and `get_params_dependent_on_targets`"""
         return {}
 
     def add_targets(self, additional_targets: Dict[str, str]):
@@ -229,9 +296,16 @@ class BasicTransform(Serializable):
 
     @property
     def targets_as_params(self) -> List[str]:
+        """Returns a list of target names (e.g. 'image') that are needed as a parameter input
+        to other `apply` methods (e.g. apply_to_bboxes(..., image = image))
+        """
         return []
 
     def get_params_dependent_on_targets(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Returns additional parameters needed for the `apply` methods that depend on a target
+        (e.g. `apply_to_bboxes` method expects image size)
+        """
         raise NotImplementedError(
             "Method get_params_dependent_on_targets is not implemented in class "
             + self.__class__.__name__
@@ -239,41 +313,59 @@ class BasicTransform(Serializable):
 
     @classmethod
     def get_class_fullname(cls) -> str:
+        """Returns shortened submodule path name"""
         return get_shortest_class_fullname(cls)
 
     @classmethod
     def is_serializable(cls):
+        """Returns whether the class is serializable"""
         return True
 
     def get_transform_init_args_names(self) -> Tuple[str, ...]:
+        """Returns initialization argument names. (e.g. Transform(arg1 = 1, arg2 = 2) -> ('arg1', 'arg2'))"""
         raise NotImplementedError(
             "Class {name} is not serializable because the `get_transform_init_args_names` method is not "
             "implemented".format(name=self.get_class_fullname())
         )
 
     def get_base_init_args(self) -> Dict[str, Any]:
+        """Returns base initialization argument names used in every transform"""
         return {"always_apply": self.always_apply, "p": self.p}
 
     def get_transform_init_args(self) -> Dict[str, Any]:
+        """Returns initialization arguments (e.g. Transform(arg1 = 1, arg2 = 2) -> ('arg1' : 1, 'arg2': 2))"""
         return {k: getattr(self, k) for k in self.get_transform_init_args_names()}
 
     def _to_dict(self) -> Dict[str, Any]:
+        """Returns a serializable representation of object"""
         state = {"__class_fullname__": self.get_class_fullname()}
         state.update(self.get_base_init_args())
         state.update(self.get_transform_init_args())
         return state
 
     def get_dict_with_id(self) -> Dict[str, Any]:
+        """Returns a serializable representation of object with a unique integer identifier for the object"""
         d = self._to_dict()
         d["id"] = id(self)
         return d
 
 
 class DualTransform(BasicTransform):
-    """Transform for segmentation task."""
+    """
+    Transform for tasks where bboxes, keypoints, and masks could be altered.
+    
+    Args:
+        always_apply (bool): whether to always apply the transformation. Default: False
+        p (float): probability of applying the transform. Default: 0.5.
+
+    """
 
     @property
     def targets(self) -> Dict[str, Callable]:
+        """
+        Returns the mapping of target to applicable `apply` method.
+        (e.g. {'image': self.apply, 'bboxes', self.apply_to_bboxes})
+        """
         return {
             "image": self.apply,
             "mask": self.apply_to_mask,
@@ -284,6 +376,15 @@ class DualTransform(BasicTransform):
         }
 
     def apply_to_bbox(self, bbox: BoxInternalType, **params) -> BoxInternalType:
+        """
+        Applies the augmentation to a bbox
+
+        Args:
+            bbox (BoxInternalType): an internal bbox representation
+
+        Returns:
+            an augmented internal bbox representation
+        """
         raise NotImplementedError(
             "Method apply_to_bbox is not implemented in class "
             + self.__class__.__name__
@@ -292,23 +393,35 @@ class DualTransform(BasicTransform):
     def apply_to_keypoint(
         self, keypoint: KeypointInternalType, **params
     ) -> KeypointInternalType:
+        """
+        Applies the augmentation to a keypoint
+
+        Args:
+            keypoint (keypointInternalType): an internal keypoint representation
+
+        Returns:
+            an augmented internal keypoint representation
+        """
         raise NotImplementedError(
             "Method apply_to_keypoint is not implemented in class "
             + self.__class__.__name__
         )
 
     def apply_to_bboxes(self, bboxes: Sequence[BoxType], **params) -> List[BoxType]:
+        """Applies the augmentation to a sequence of bbox types. See `apply_to_bbox`"""
         return [tuple(self.apply_to_bbox(tuple(bbox[:6]), **params)) + tuple(bbox[6:]) for bbox in bboxes]  # type: ignore
 
     def apply_to_keypoints(
         self, keypoints: Sequence[KeypointType], **params
     ) -> List[KeypointType]:
+        """Applies the augmentation to a sequence of keypoint types. See `apply_to_keypoints`"""
         return [  # type: ignore
             self.apply_to_keypoint(tuple(keypoint[:5]), **params) + tuple(keypoint[5:])  # type: ignore
             for keypoint in keypoints
         ]
 
     def apply_to_mask(self, img: np.ndarray, **params) -> np.ndarray:
+        """Applies the augmentation to a mask and forces INTER_NEAREST interpolation"""
         return self.apply(
             img,
             **{
@@ -318,36 +431,61 @@ class DualTransform(BasicTransform):
         )
 
     def apply_to_masks(self, masks: Sequence[np.ndarray], **params) -> List[np.ndarray]:
+        """Applies the augmentation to a sequence of mask types. See `apply_to_mask`"""
         return [self.apply_to_mask(mask, **params) for mask in masks]
 
     def apply_to_dicom(self, dicom: DicomType, **params) -> DicomType:
+        """Applies the augmentation to a dicom type"""
         return dicom
 
 
 class ImageOnlyTransform(BasicTransform):
-    """Transform applied to image only."""
+    """
+    Transform applied to image only. bboxes, keypoints, and masks are unnaffected.
+    
+    Args:
+        always_apply (bool): whether to always apply the transformation. Default: False
+        p (float): probability of applying the transform. Default: 0.5.
+
+    """
 
     @property
     def targets(self) -> Dict[str, Callable]:
+        """
+        Returns the mapping of target to applicable `apply` method.
+        (e.g. {'image': self.apply, 'bboxes', self.apply_to_bboxes})
+        """
         return {"image": self.apply}
 
 
 class NoOp(DualTransform):
-    """Does nothing"""
+    """
+    Does nothing. Applies no augmentations
+    
+    Args:
+        always_apply (bool): whether to always apply the transformation. Default: False
+        p (float): probability of applying the transform. Default: 0.5.
+
+    """
 
     def apply_to_keypoint(
         self, keypoint: KeypointInternalType, **params
     ) -> KeypointInternalType:
+        """Returns keypoint"""
         return keypoint
 
     def apply_to_bbox(self, bbox: BoxInternalType, **params) -> BoxInternalType:
+        """Returns bbox"""
         return bbox
 
     def apply(self, img: np.ndarray, **params) -> np.ndarray:
+        """Returns image"""
         return img
 
     def apply_to_mask(self, img: np.ndarray, **params) -> np.ndarray:
+        """returns mask"""
         return img
 
     def get_transform_init_args_names(self) -> Tuple:
+        """Returns initialization argument names. (e.g. Transform(arg1 = 1, arg2 = 2) -> ('arg1', 'arg2'))"""
         return ()

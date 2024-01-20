@@ -9,7 +9,6 @@ import dicaugment as A
 import dicaugment.augmentations.functional as F
 import dicaugment.augmentations.geometric.functional as FGeometric
 from dicaugment.augmentations.utils import (
-    # get_opencv_dtype_from_numpy,
     is_multispectral_image,
 )
 from dicaugment.core.bbox_utils import filter_bboxes
@@ -986,36 +985,6 @@ def test_shift_z_float_from_shift_scale_rotate(target):
     assert_array_almost_equal_nulp(shifted_along_z_img, expected)
 
 
-# @pytest.mark.parametrize(
-#     ["shift_params", "expected"], [[(-10, 0, 10), (117, 127, 137)], [(-200, 0, 200), (0, 127, 255)]]
-# )
-# def test_shift_rgb(shift_params, expected):
-#     img = np.ones((100, 100, 3), dtype=np.uint8) * 127
-#     r_shift, g_shift, b_shift = shift_params
-#     img = F.shift_rgb(img, r_shift=r_shift, g_shift=g_shift, b_shift=b_shift)
-#     expected_r, expected_g, expected_b = expected
-#     assert img.dtype == np.dtype("uint8")
-#     assert (img[:, :, 0] == expected_r).all()
-#     assert (img[:, :, 1] == expected_g).all()
-#     assert (img[:, :, 2] == expected_b).all()
-
-
-# @pytest.mark.parametrize(
-#     ["shift_params", "expected"], [[(-0.1, 0, 0.1), (0.3, 0.4, 0.5)], [(-0.6, 0, 0.6), (0, 0.4, 1.0)]]
-# )
-# def test_shift_rgb_float(shift_params, expected):
-#     img = np.ones((100, 100, 3), dtype=np.float32) * 0.4
-#     r_shift, g_shift, b_shift = shift_params
-#     img = F.shift_rgb(img, r_shift=r_shift, g_shift=g_shift, b_shift=b_shift)
-#     expected_r, expected_g, expected_b = [
-#         np.ones((100, 100), dtype=np.float32) * channel_value for channel_value in expected
-#     ]
-#     assert img.dtype == np.dtype("float32")
-#     assert_array_almost_equal_nulp(img[:, :, 0], expected_r)
-#     assert_array_almost_equal_nulp(img[:, :, 1], expected_g)
-#     assert_array_almost_equal_nulp(img[:, :, 2], expected_b)
-
-
 @pytest.mark.parametrize(["alpha", "expected"], [(1.5, 190), (3, 255)])
 def test_random_contrast(alpha, expected):
     img = np.ones((100, 100, 100), dtype=np.uint8) * 127
@@ -1091,20 +1060,6 @@ def test_gamma_transform_int16(gamma, expected):
     img = F.gamma_transform(img, gamma=gamma)
     assert img.dtype == np.dtype("int16")
     assert np.allclose(img, expected)
-
-
-# def test_gamma_float_equal_uint8():
-#     img = np.random.randint(0, 256, (100, 100, 100), dtype=np.uint8)
-#     img_f = img.astype(np.float32) / 255.0
-#     gamma = 0.5
-
-#     img = F.gamma_transform(img, gamma)
-#     img_f = F.gamma_transform(img_f, 1/gamma)
-
-#     img = img.astype(np.float32)
-#     img_f *= 255.0
-
-#     assert (np.abs(img - img_f) <= 1).all()
 
 
 @pytest.mark.parametrize(
@@ -1619,95 +1574,6 @@ def test_is_multispectral_image():
     gray_image = np.ones((5, 5, 5, 1), dtype=np.uint8)
     assert not is_multispectral_image(gray_image)
 
-
-# def test_brightness_contrast():
-#     dtype = np.uint8
-#     min_value = np.iinfo(dtype).min
-#     max_value = np.iinfo(dtype).max
-
-#     image_uint8 = np.random.randint(min_value, max_value, size=(5, 5, 3), dtype=dtype)
-
-#     assert np.array_equal(F.brightness_contrast_adjust(image_uint8), F._brightness_contrast_adjust_uint(image_uint8))
-
-#     assert np.array_equal(
-#         F._brightness_contrast_adjust_non_uint(image_uint8), F._brightness_contrast_adjust_uint(image_uint8)
-#     )
-
-#     dtype = np.uint16
-#     min_value = np.iinfo(dtype).min
-#     max_value = np.iinfo(dtype).max
-
-#     image_uint16 = np.random.randint(min_value, max_value, size=(5, 5, 3), dtype=dtype)
-
-#     assert np.array_equal(
-#         F.brightness_contrast_adjust(image_uint16), F._brightness_contrast_adjust_non_uint(image_uint16)
-#     )
-
-#     F.brightness_contrast_adjust(image_uint16)
-
-#     dtype = np.uint32
-#     min_value = np.iinfo(dtype).min
-#     max_value = np.iinfo(dtype).max
-
-#     image_uint32 = np.random.randint(min_value, max_value, size=(5, 5, 3), dtype=dtype)
-
-#     assert np.array_equal(
-#         F.brightness_contrast_adjust(image_uint32), F._brightness_contrast_adjust_non_uint(image_uint32)
-#     )
-
-#     image_float = np.random.random((5, 5, 3))
-
-#     assert np.array_equal(
-#         F.brightness_contrast_adjust(image_float), F._brightness_contrast_adjust_non_uint(image_float)
-#     )
-
-
-# def test_swap_tiles_on_image_with_empty_tiles():
-#     img = np.array([[1, 1, 1, 1], [2, 2, 2, 2], [3, 3, 3, 3], [4, 4, 4, 4]], dtype=np.uint8)
-
-#     result_img = F.swap_tiles_on_image(img, [])
-
-#     assert np.array_equal(img, result_img)
-
-
-# def test_swap_tiles_on_image_with_non_empty_tiles():
-#     img = np.array([[1, 1, 1, 1], [2, 2, 2, 2], [3, 3, 3, 3], [4, 4, 4, 4]], dtype=np.uint8)
-
-#     tiles = np.array([[0, 0, 2, 2, 2, 2], [2, 2, 0, 0, 2, 2]])
-
-#     target = np.array([[3, 3, 1, 1], [4, 4, 2, 2], [3, 3, 1, 1], [4, 4, 2, 2]], dtype=np.uint8)
-
-#     result_img = F.swap_tiles_on_image(img, tiles)
-
-#     assert np.array_equal(result_img, target)
-
-
-# @pytest.mark.parametrize("dtype", list(F.MAX_VALUES_BY_DTYPE.keys()))
-# def test_solarize(dtype):
-#     max_value = F.MAX_VALUES_BY_DTYPE[dtype]
-
-#     if dtype == np.dtype("float32"):
-#         img = np.arange(2**10, dtype=np.float32) / (2**10)
-#         img = img.reshape([2**5, 2**5])
-#     else:
-#         max_count = 1024
-#         count = min(max_value + 1, 1024)
-#         step = max(1, (max_value + 1) // max_count)
-#         shape = [int(np.sqrt(count))] * 2
-#         img = np.arange(0, max_value + 1, step, dtype=dtype).reshape(shape)
-
-#     for threshold in [0, max_value // 3, max_value // 3 * 2, max_value, max_value + 1]:
-#         check_img = img.copy()
-#         cond = check_img >= threshold
-#         check_img[cond] = max_value - check_img[cond]
-
-#         result_img = F.solarize(img, threshold=threshold)
-
-#         assert np.all(np.isclose(result_img, check_img))
-#         assert np.min(result_img) >= 0
-#         assert np.max(result_img) <= max_value
-
-
 def test_posterize_checks():
     img = np.random.random([100, 100, 100])
     with pytest.raises(TypeError) as exc_info:
@@ -1729,10 +1595,6 @@ def test_posterize_checks():
 def test_equalize_checks():
     img = np.random.randint(0, 255, [50, 50, 10], dtype=np.uint8)
 
-    # with pytest.raises(ValueError) as exc_info:
-    #     F.equalize(img, mode="other")
-    # assert str(exc_info.value) == "Unsupported equalization mode. Supports: ['cv', 'pil']. Got: other"
-
     mask = np.random.randint(0, 1, [50, 50, 10, 3], dtype=bool)
     with pytest.raises(ValueError) as exc_info:
         F.equalize(img, mask=mask)
@@ -1742,82 +1604,10 @@ def test_equalize_checks():
         img.shape, mask.shape
     )
 
-    # img = np.random.randint(0, 255, [256, 256, 3], dtype=np.uint8)
-    # with pytest.raises(ValueError) as exc_info:
-    #     F.equalize(img, mask=mask, by_channels=False)
-    # assert str(exc_info.value) == "When by_channels=False only 1-channel mask supports. " "Mask shape: {}".format(
-    #     mask.shape
-    # )
-
     img = np.random.random([50, 50, 10])
     with pytest.raises(TypeError) as exc_info:
         F.equalize(img, mask=mask)
     assert str(exc_info.value) == "Image must have int or uint type"
-
-
-# def test_equalize_grayscale():
-#     img = np.random.randint(0, 255, [256, 256], dtype=np.uint8)
-#     assert np.all(cv2.equalizeHist(img) == F.equalize(img, mode="cv"))
-
-
-# def test_equalize_rgb():
-#     img = np.random.randint(0, 255, [256, 256, 3], dtype=np.uint8)
-
-#     _img = img.copy()
-#     for i in range(3):
-#         _img[..., i] = cv2.equalizeHist(_img[..., i])
-#     assert np.all(_img == F.equalize(img, mode="cv"))
-
-#     _img = cv2.cvtColor(img, cv2.COLOR_RGB2YCrCb)
-#     img_cv = _img.copy()
-#     img_cv[..., 0] = cv2.equalizeHist(_img[..., 0])
-#     img_cv = cv2.cvtColor(img_cv, cv2.COLOR_YCrCb2RGB)
-#     assert np.all(img_cv == F.equalize(img, mode="cv", by_channels=False))
-
-
-# def test_equalize_grayscale_mask():
-#     img = np.random.randint(0, 255, [256, 256], dtype=np.uint8)
-
-#     mask = np.zeros([256, 256], dtype=bool)
-#     mask[:10, :10] = True
-
-#     assert np.all(cv2.equalizeHist(img[:10, :10]) == F.equalize(img, mask=mask, mode="cv")[:10, :10])
-
-
-# def test_equalize_rgb_mask():
-#     img = np.random.randint(0, 255, [256, 256, 3], dtype=np.uint8)
-
-#     mask = np.zeros([256, 256], dtype=bool)
-#     mask[:10, :10] = True
-
-#     _img = img.copy()[:10, :10]
-#     for i in range(3):
-#         _img[..., i] = cv2.equalizeHist(_img[..., i])
-#     assert np.all(_img == F.equalize(img, mask, mode="cv")[:10, :10])
-
-#     _img = cv2.cvtColor(img, cv2.COLOR_RGB2YCrCb)
-#     img_cv = _img.copy()[:10, :10]
-#     img_cv[..., 0] = cv2.equalizeHist(img_cv[..., 0])
-#     img_cv = cv2.cvtColor(img_cv, cv2.COLOR_YCrCb2RGB)
-#     assert np.all(img_cv == F.equalize(img, mask=mask, mode="cv", by_channels=False)[:10, :10])
-
-#     mask = np.zeros([256, 256, 3], dtype=bool)
-#     mask[:10, :10, 0] = True
-#     mask[10:20, 10:20, 1] = True
-#     mask[20:30, 20:30, 2] = True
-#     img_r = img.copy()[:10, :10, 0]
-#     img_g = img.copy()[10:20, 10:20, 1]
-#     img_b = img.copy()[20:30, 20:30, 2]
-
-#     img_r = cv2.equalizeHist(img_r)
-#     img_g = cv2.equalizeHist(img_g)
-#     img_b = cv2.equalizeHist(img_b)
-
-#     result_img = F.equalize(img, mask=mask, mode="cv")
-#     assert np.all(img_r == result_img[:10, :10, 0])
-#     assert np.all(img_g == result_img[10:20, 10:20, 1])
-#     assert np.all(img_b == result_img[20:30, 20:30, 2])
-
 
 @pytest.mark.parametrize("dtype", ["float32", "uint8"])
 def test_downscale_ones(dtype):
@@ -1841,77 +1631,3 @@ def test_maybe_process_by_channel():
         before = image[:, :, :i]
         after = FGeometric.rotate(before, angle=0, axes="xy")
         assert before.shape == after.shape
-
-
-# def test_multiply_uint8_optimized():
-#     image = np.random.randint(0, 256, [256, 320], np.uint8)
-#     m = 1.5
-
-#     result = F._multiply_uint8_optimized(image, [m])
-#     tmp = F.clip(image * m, image.dtype, F.MAX_VALUES_BY_DTYPE[image.dtype])
-#     assert np.all(tmp == result)
-
-#     image = np.random.randint(0, 256, [256, 320, 3], np.uint8)
-#     result = F._multiply_uint8_optimized(image, [m])
-#     tmp = F.clip(image * m, image.dtype, F.MAX_VALUES_BY_DTYPE[image.dtype])
-#     assert np.all(tmp == result)
-
-#     m = np.array([1.5, 0.75, 1.1])
-#     image = np.random.randint(0, 256, [256, 320, 3], np.uint8)
-#     result = F._multiply_uint8_optimized(image, m)
-#     tmp = F.clip(image * m, image.dtype, F.MAX_VALUES_BY_DTYPE[image.dtype])
-#     assert np.all(tmp == result)
-
-
-# @pytest.mark.parametrize(
-#     "img", [np.random.randint(0, 256, [100, 100], dtype=np.uint8), np.random.random([100, 100]).astype(np.float32)]
-# )
-# def test_shift_hsv_gray(img):
-#     F.shift_hsv(img, 0.5, 0.5, 0.5)
-
-
-# def test_cv_dtype_from_np():
-#     assert get_opencv_dtype_from_numpy(np.uint8) == cv2.CV_8U
-#     assert get_opencv_dtype_from_numpy(np.uint16) == cv2.CV_16U
-#     assert get_opencv_dtype_from_numpy(np.float32) == cv2.CV_32F
-#     assert get_opencv_dtype_from_numpy(np.float64) == cv2.CV_64F
-#     assert get_opencv_dtype_from_numpy(np.int32) == cv2.CV_32S
-
-#     assert get_opencv_dtype_from_numpy(np.dtype("uint8")) == cv2.CV_8U
-#     assert get_opencv_dtype_from_numpy(np.dtype("uint16")) == cv2.CV_16U
-#     assert get_opencv_dtype_from_numpy(np.dtype("float32")) == cv2.CV_32F
-#     assert get_opencv_dtype_from_numpy(np.dtype("float64")) == cv2.CV_64F
-#     assert get_opencv_dtype_from_numpy(np.dtype("int32")) == cv2.CV_32S
-
-
-# @pytest.mark.parametrize(
-#     ["image", "mean", "std"],
-#     [
-#         [np.random.randint(0, 256, [100, 100, 3], dtype=np.uint8), [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]],
-#         [np.random.randint(0, 256, [100, 100, 3], dtype=np.uint8), 0.5, 0.5],
-#         [np.random.randint(0, 256, [100, 100], dtype=np.uint8), 0.5, 0.5],
-#     ],
-# )
-# def test_normalize_np_cv_equal(image, mean, std):
-#     mean = np.array(mean, dtype=np.float32)
-#     std = np.array(std, dtype=np.float32)
-
-#     res1 = F.normalize_cv2(image, mean, std)
-#     res2 = F.normalize_numpy(image, mean, std)
-#     assert np.allclose(res1, res2)
-
-
-# @pytest.mark.parametrize("beta_by_max", [True, False])
-# def test_brightness_contrast_adjust_equal(beta_by_max):
-#     image_int = np.random.randint(0, 256, [50, 50, 50, 3], dtype=np.uint8)
-#     image_float = image_int.astype(np.float32) / 255
-
-#     alpha = 1.3
-#     beta = 0.14
-
-#     image_int = F.brightness_contrast_adjust(image_int, alpha, beta, beta_by_max)
-#     image_float = F.brightness_contrast_adjust(image_float, alpha, beta, beta_by_max)
-
-#     image_float = (image_float * 255).astype(int)
-
-#     assert np.abs(image_int.astype(int) - image_float).max() <= 1
