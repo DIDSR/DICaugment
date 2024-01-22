@@ -11,17 +11,16 @@ permissions:
 
 jobs:
   build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ['3.8', '3.9', '3.10', '3.11']
+        include:
+          - os: windows-latest
+            python-version: '3.8'
+          - os: macos-latest
+            python-version: '3.8'
     runs-on: ${{ matrix.os }}
-      strategy:
-        matrix:
-          os: [ubuntu-latest]
-          python-version: ['3.8', '3.9', '3.10', '3.11']
-          include:
-            - os: windows-latest
-              python-version: '3.8'
-            - os: macos-latest
-              python-version: '3.8'
-
     steps:
     - name: Check out Repository
       uses: actions/checkout@v3
