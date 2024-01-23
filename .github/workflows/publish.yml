@@ -15,11 +15,6 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         python-version: ['3.8', '3.9', '3.10', '3.11']
-        include:
-          - os: windows-latest
-            python-version: '3.8'
-          - os: macos-latest
-            python-version: '3.8'
     runs-on: ${{ matrix.os }}
     steps:
     - name: Check out Repository
@@ -49,6 +44,7 @@ jobs:
 
 
   create-release:
+    needs: build
     runs-on: ubuntu-latest
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
