@@ -29,12 +29,17 @@ In the future, certain operations that are acheivable through openCV will be imp
 
 **Jacob McIntosh**
 
+**Qian Cao**
+
+**Berkman Sahiner**
+
+**Nicholas Petrick**
+
 **Mehdi Farhangi**
 
 
-
 ## Installation
-DICaugment requires Python 3.7 or higher. To install the latest version using `pip`:
+DICaugment requires Python 3.8 or higher. To install the latest version using `pip`:
 
 ```
 pip install dicaugment
@@ -159,12 +164,12 @@ DICaugment is distributed under the MIT license. See [LICENSE](https://github.co
 
 We would like to express our gratitude to the developers of Albumentations [[1]](#1) for their excellent work on the original library, which served as the foundation for DICaugment. We also thank the open-source community for their contributions and feedback.
 
-# Author Contributions
+## Author Contributions
 
-Jacob McIntosh authored the package, developed the pipeline and its functions, wrote the documentation, and drafted the article.  Qian Cao assisted in noise insertion augmentation and contributed to the drafting of the article. Berkman Sahiner and Nicholas Petrick assisted in designing the validation study, noise simulation, and contributed to the drafting of the article. Mehdi Farhangi supervised the project, implemented the noise insertion augmentation, conducted the validation study, and contributed to the article drafting.
+Jacob McIntosh authored the package, developed the pipeline and its functions, wrote the documentation, and drafted the article. Qian Cao assisted in noise insertion augmentation and contributed to the drafting of the article. Berkman Sahiner and Nicholas Petrick assisted in designing the validation study, noise simulation, and contributed to the drafting of the article. Mehdi Farhangi supervised the project, implemented the noise insertion augmentation, conducted the validation study, and contributed to the article drafting.
 
 
-## Referecences
+## References
 
 <a name="1"></a>[1] Buslaev, A., Iglovikov, V. I., Khvedchenya, E., Parinov, A., Druzhinin, M., & Kalinin, A. A. (2020). Albumentations: fast and flexible image augmentations. Information, 11(2), 125.
 
