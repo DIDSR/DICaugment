@@ -1,7 +1,12 @@
 # DICaugment
+[![Build Status](https://github.com/DIDSR/Dicaugment/actions/workflows/publish.yml/badge.svg)](https://github.com/DIDSR/Dicaugment/actions/workflows/publish.yml/badge.svg)
 [![PyPI version](https://badge.fury.io/py/DICaugment.svg)](https://badge.fury.io/py/DICaugment)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/dicaugment)
+[![codecov](https://codecov.io/gh/DIDSR/DICaugment/graph/badge.svg?token=EI41ITQQP7)](https://codecov.io/gh/DIDSR/DICaugment)
+[![DOI](https://zenodo.org/badge/632097218.svg)](https://zenodo.org/badge/latestdoi/632097218)
 
-DICaugment (/daɪkɔːɡˈment/) is a Python package based on the popular image augmentation library [Albumentations](https://github.com/albumentations-team/albumentations) [[1]](#1), but with specific enhancements for working with 3D images, such as CT scans. This package provides a collection of powerful and efficient augmentation techniques that can be seamlessly integrated into your machine learning pipeline.
+
+DICaugment (/daɪkɔːɡˈment/) is a Python package based on the popular image augmentation library [Albumentations](https://github.com/albumentations-team/albumentations) [[1]](#1), but with specific enhancements for working with 3D images, such as CT scans. This package provides a collection of powerful and efficient augmentation techniques that can be seamlessly integrated into your machine learning pipeline.  
 
 Below are some examples of some common or unique augmentations that are possible with the DICaugment library applied on an example obtained from the NLST dataset [[2]](#2):
 ![](https://github.com/DIDSR/DICaugment/raw/main/tools/README_example.gif)
